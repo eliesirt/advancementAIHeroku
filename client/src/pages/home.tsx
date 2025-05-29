@@ -179,11 +179,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Save draft mutation
   const saveDraft = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/interactions/draft", data);
-      if (!response.ok) {
-        throw new Error(`Failed to save draft: ${response.status}`);
-      }
-      return response.json();
+      return await apiRequest("/api/interactions/draft", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
     },
     onSuccess: () => {
       toast({
@@ -201,6 +201,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
     onError: (error) => {
+      console.error("Draft save error:", error);
       toast({
         title: "Save Error",
         description: "Failed to save draft. Please try again.",
