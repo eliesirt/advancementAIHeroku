@@ -1,4 +1,5 @@
 import soap from 'soap';
+import fetch from 'node-fetch';
 
 export interface BBECInteractionField {
   name: string;
@@ -22,15 +23,14 @@ export interface BBECInteractionSubmission {
 }
 
 class BBECSOAPClient {
-  private wsdlUrl: string;
-  private username: string;
-  private password: string;
+  private apiUrl: string;
+  private authHeader: string;
   private client: any;
 
   constructor() {
-    this.wsdlUrl = process.env.BBEC_SOAP_WSDL_URL || process.env.BBEC_WSDL || "http://default-bbec-url/soap?wsdl";
-    this.username = process.env.BBEC_USERNAME || process.env.BBEC_USER || "default_user";
-    this.password = process.env.BBEC_PASSWORD || process.env.BBEC_PASS || "default_pass";
+    this.apiUrl = "https://crm30656d.sky.blackbaud.com/BBEC.WebService.API/webservice.asmx";
+    // Base64 encoded authentication: BBECAPI30656d:<<PASSWORD>>
+    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "Basic QkJFQ0FQSTMwNjU2ZDp1c2JRQkQ1S05tYWNSZWdx";
   }
 
   async initialize(): Promise<void> {
@@ -142,20 +142,62 @@ class BBECSOAPClient {
 
   async getAffinityTags(): Promise<any[]> {
     try {
-      if (!this.client) await this.initialize();
+      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <DataListLoadRequest xmlns="Blackbaud.AppFx.WebService.API.1" >
+                    <DataListID>1d1f6c6f-6804-421a-9964-9e3a7fda5727</DataListID>
+                    <ClientAppInfo REDatabaseToUse="30656d"/>
+                </DataListLoadRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/DataListLoad',
+          'Authorization': this.authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive'
+        },
+        body: soapBody
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
       
-      const tagsResult = await this.client.GetAffinityTagsAsync();
-      return tagsResult.tags || [];
+      // Parse the SOAP response to extract affinity tags
+      const tags = this.parseAffinityTagsResponse(responseText);
+      return tags;
     } catch (error) {
       console.error('Affinity tags retrieval error:', error);
-      // Return default tags if API fails
-      return [
-        { id: '1', name: 'Medical Research', category: 'Professional' },
-        { id: '2', name: 'Healthcare Technology', category: 'Professional' },
-        { id: '3', name: 'Education Support', category: 'Philanthropic' },
-        { id: '4', name: 'Arts & Culture', category: 'Personal' },
-        { id: '5', name: 'Technology Innovation', category: 'Professional' }
-      ];
+      throw new Error('Failed to retrieve affinity tags from BBEC API: ' + (error as Error).message);
+    }
+  }
+
+  private parseAffinityTagsResponse(soapResponse: string): any[] {
+    try {
+      // Basic XML parsing to extract affinity tag data from SOAP response
+      // This would need to be adjusted based on the actual response structure
+      const tags: any[] = [];
+      
+      // For now, return empty array until we can see the actual response structure
+      // The user will need to provide the correct authentication for this to work
+      return tags;
+    } catch (error) {
+      console.error('Error parsing affinity tags response:', error);
+      return [];
     }
   }
 }
