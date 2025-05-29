@@ -12,6 +12,8 @@ import {
   type VoiceRecording,
   type InsertVoiceRecording
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -250,4 +252,131 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getInteraction(id: number): Promise<Interaction | undefined> {
+    const [interaction] = await db.select().from(interactions).where(eq(interactions.id, id));
+    return interaction || undefined;
+  }
+
+  async getInteractionsByUser(userId: number): Promise<Interaction[]> {
+    return await db.select().from(interactions).where(eq(interactions.userId, userId)).orderBy(desc(interactions.createdAt));
+  }
+
+  async getRecentInteractions(userId: number, limit: number = 10): Promise<Interaction[]> {
+    return await db.select().from(interactions)
+      .where(eq(interactions.userId, userId))
+      .orderBy(desc(interactions.createdAt))
+      .limit(limit);
+  }
+
+  async createInteraction(insertInteraction: InsertInteraction): Promise<Interaction> {
+    const [interaction] = await db
+      .insert(interactions)
+      .values(insertInteraction)
+      .returning();
+    return interaction;
+  }
+
+  async updateInteraction(id: number, updates: Partial<InsertInteraction>): Promise<Interaction> {
+    const [interaction] = await db
+      .update(interactions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(interactions.id, id))
+      .returning();
+    return interaction;
+  }
+
+  async deleteInteraction(id: number): Promise<boolean> {
+    const result = await db.delete(interactions).where(eq(interactions.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getDraftInteractions(userId: number): Promise<Interaction[]> {
+    return await db.select().from(interactions)
+      .where(eq(interactions.userId, userId))
+      .orderBy(desc(interactions.createdAt));
+  }
+
+  async getPendingInteractions(userId: number): Promise<Interaction[]> {
+    return await db.select().from(interactions)
+      .where(eq(interactions.userId, userId))
+      .orderBy(desc(interactions.createdAt));
+  }
+
+  async getAffinityTags(): Promise<AffinityTag[]> {
+    return await db.select().from(affinityTags).orderBy(affinityTags.name);
+  }
+
+  async createAffinityTag(insertTag: InsertAffinityTag): Promise<AffinityTag> {
+    const [tag] = await db
+      .insert(affinityTags)
+      .values(insertTag)
+      .returning();
+    return tag;
+  }
+
+  async updateAffinityTags(tags: InsertAffinityTag[]): Promise<void> {
+    for (const tag of tags) {
+      await db
+        .insert(affinityTags)
+        .values(tag)
+        .onConflictDoUpdate({
+          target: affinityTags.bbecId,
+          set: {
+            name: tag.name,
+            category: tag.category,
+            lastSynced: new Date()
+          }
+        });
+    }
+  }
+
+  async getVoiceRecording(id: number): Promise<VoiceRecording | undefined> {
+    const [recording] = await db.select().from(voiceRecordings).where(eq(voiceRecordings.id, id));
+    return recording || undefined;
+  }
+
+  async createVoiceRecording(insertRecording: InsertVoiceRecording): Promise<VoiceRecording> {
+    const [recording] = await db
+      .insert(voiceRecordings)
+      .values(insertRecording)
+      .returning();
+    return recording;
+  }
+
+  async updateVoiceRecording(id: number, updates: Partial<InsertVoiceRecording>): Promise<VoiceRecording> {
+    const [recording] = await db
+      .update(voiceRecordings)
+      .set(updates)
+      .where(eq(voiceRecordings.id, id))
+      .returning();
+    return recording;
+  }
+
+  async getUnprocessedRecordings(userId: number): Promise<VoiceRecording[]> {
+    return await db.select().from(voiceRecordings)
+      .where(eq(voiceRecordings.userId, userId))
+      .orderBy(desc(voiceRecordings.createdAt));
+  }
+}
+
+export const storage = new DatabaseStorage();
