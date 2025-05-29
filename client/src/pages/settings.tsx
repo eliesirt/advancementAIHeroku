@@ -7,6 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -20,7 +22,8 @@ import {
   Shield,
   Smartphone,
   Clock,
-  Tags
+  Tags,
+  Eye
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -103,6 +106,12 @@ export default function SettingsPage() {
   // Fetch affinity tags info
   const { data: affinityTagsInfo, refetch: refetchAffinityTags } = useQuery({
     queryKey: ["/api/affinity-tags/info"],
+    retry: false,
+  });
+
+  // Fetch affinity tags list
+  const { data: affinityTags = [] } = useQuery({
+    queryKey: ["/api/affinity-tags"],
     retry: false,
   });
 
@@ -481,24 +490,70 @@ export default function SettingsPage() {
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">Manage AI analysis tags from BBEC</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleManualRefresh}
-                  disabled={refreshAffinityTags.isPending}
-                >
-                  {refreshAffinityTags.isPending ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Refreshing...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh Now
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Tags
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh]">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                          <Tags className="h-5 w-5" />
+                          <span>Stored Affinity Tags ({affinityTags.length})</span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <ScrollArea className="h-96 w-full pr-4">
+                        <div className="space-y-2">
+                          {affinityTags.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                              <Tags className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                              <p className="font-medium">No affinity tags found</p>
+                              <p className="text-sm">Click "Refresh Now" to load tags from BBEC</p>
+                            </div>
+                          ) : (
+                            [...affinityTags]
+                              .sort((a, b) => a.name.localeCompare(b.name))
+                              .map((tag, index) => (
+                                <div key={tag.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                  <div className="flex-1">
+                                    <div className="font-medium text-gray-900">{tag.name}</div>
+                                    <div className="text-sm text-gray-600">{tag.category}</div>
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    #{index + 1}
+                                  </div>
+                                </div>
+                              ))
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleManualRefresh}
+                    disabled={refreshAffinityTags.isPending}
+                  >
+                    {refreshAffinityTags.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Refreshing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh Now
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {/* Affinity Tags Status */}
