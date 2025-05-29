@@ -133,20 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create interaction from processed voice/text
   app.post("/api/interactions", async (req, res) => {
     try {
-      // For drafts, make most fields optional except userId
+      // Check if this is a draft save
       const isDraft = req.body.isDraft === true;
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      console.log("Is draft:", isDraft);
       
       if (isDraft) {
-        // Minimal validation for drafts
+        // For drafts, bypass schema validation and provide sensible defaults
         const draftData = {
-          userId: req.body.userId || 1, // Default to user 1
+          userId: Number(req.body.userId) || 1,
           prospectName: req.body.prospectName || 'Draft Interaction',
           summary: req.body.summary || 'Draft summary',
           category: req.body.category || 'General',
           subcategory: req.body.subcategory || 'Other',
           contactLevel: req.body.contactLevel || 'Initial Contact',
-          method: req.body.method || 'Other',
-          status: req.body.status || 'Draft',
+          method: req.body.method || 'In Person',
+          status: 'Draft',
           actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
           comments: req.body.comments || null,
           transcript: req.body.transcript || null,
@@ -155,13 +157,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isDraft: true,
           bbecSubmitted: false
         };
+        
+        // Create interaction directly without schema validation for drafts
         const interaction = await storage.createInteraction(draftData);
-        res.json(interaction);
+        return res.json(interaction);
       } else {
         // Full validation for completed interactions
         const interactionData = insertInteractionSchema.parse(req.body);
         const interaction = await storage.createInteraction(interactionData);
-        res.json(interaction);
+        return res.json(interaction);
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
