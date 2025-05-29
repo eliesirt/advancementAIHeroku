@@ -38,6 +38,7 @@ export interface IStorage {
   getAffinityTags(): Promise<AffinityTag[]>;
   createAffinityTag(tag: InsertAffinityTag): Promise<AffinityTag>;
   updateAffinityTags(tags: InsertAffinityTag[]): Promise<void>;
+  clearAffinityTags(): Promise<void>;
 
   // Affinity tag settings methods
   getAffinityTagSettings(): Promise<AffinityTagSettings | undefined>;
@@ -219,6 +220,11 @@ export class MemStorage implements IStorage {
     for (const insertTag of tags) {
       await this.createAffinityTag(insertTag);
     }
+  }
+
+  async clearAffinityTags(): Promise<void> {
+    this.affinityTags.clear();
+    this.currentAffinityTagId = 1;
   }
 
   // Voice recording methods
@@ -430,6 +436,10 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         });
     }
+  }
+
+  async clearAffinityTags(): Promise<void> {
+    await db.delete(affinityTags);
   }
 }
 

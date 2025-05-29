@@ -26,11 +26,17 @@ class BBECSOAPClient {
   private apiUrl: string;
   private authHeader: string;
   private client: any;
+  private wsdlUrl: string;
+  private username: string;
+  private password: string;
 
   constructor() {
-    this.apiUrl = "https://crm30656d.sky.blackbaud.com/BBEC.WebService.API/webservice.asmx";
+    this.apiUrl = "https://crm30656d.sky.blackbaud.com/BBAPPFXWEBSERVICE/AppFxWebService.asmx";
+    this.wsdlUrl = this.apiUrl + "?WSDL";
     // Base64 encoded authentication: BBECAPI30656d:<<PASSWORD>>
     this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "Basic QkJFQ0FQSTMwNjU2ZDp1c2JRQkQ1S05tYWNSZWdx";
+    this.username = "BBECAPI30656d";
+    this.password = "usbQBD5KNmacRegq";
   }
 
   async initialize(): Promise<void> {
