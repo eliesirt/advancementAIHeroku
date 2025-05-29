@@ -12,9 +12,17 @@ import {
   Edit, 
   Calendar,
   User,
-  Tag
+  Tag,
+  Trash2,
+  Send,
+  CheckSquare,
+  Square
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Interaction } from "@shared/schema";
 
 interface HistoryPageProps {
@@ -26,6 +34,10 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [sortBy, setSortBy] = useState("date");
+  const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  
+  const { toast } = useToast();
 
   // Fetch all interactions
   const { data: interactions = [], isLoading } = useQuery<Interaction[]>({
@@ -49,9 +61,9 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
       if (statusFilter === "pending") {
         matchesStatus = !interaction.bbecSubmitted && !interaction.isDraft;
       } else if (statusFilter === "drafts") {
-        matchesStatus = interaction.isDraft;
+        matchesStatus = !!interaction.isDraft;
       } else if (statusFilter === "synced") {
-        matchesStatus = interaction.bbecSubmitted;
+        matchesStatus = !!interaction.bbecSubmitted;
       }
 
       return matchesSearch && matchesCategory && matchesStatus;
@@ -78,6 +90,103 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
 
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString();
+  };
+
+  // Delete interaction mutation
+  const deleteInteraction = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/interactions/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deleted",
+        description: "Interaction deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Delete Error",
+        description: "Failed to delete interaction. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteInteractions = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const response = await apiRequest("DELETE", "/api/interactions", { ids });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Bulk Delete Complete",
+        description: data.message,
+      });
+      setSelectedInteractions([]);
+      setShowBulkActions(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Bulk Delete Error",
+        description: "Failed to delete selected interactions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Submit to BBEC mutation
+  const submitToBBEC = useMutation({
+    mutationFn: async (interactionId: number) => {
+      const response = await apiRequest("POST", `/api/interactions/${interactionId}/submit-bbec`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Interaction submitted to BBEC successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Submission Error",
+        description: "Failed to submit to BBEC. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Selection handlers
+  const handleSelectInteraction = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedInteractions([...selectedInteractions, id]);
+    } else {
+      setSelectedInteractions(selectedInteractions.filter(sid => sid !== id));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedInteractions(filteredInteractions.map(i => i.id));
+    } else {
+      setSelectedInteractions([]);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedInteractions.length > 0) {
+      bulkDeleteInteractions.mutate(selectedInteractions);
+    }
   };
 
   const getStatusInfo = (interaction: Interaction) => {
@@ -166,7 +275,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
 
             {/* Filter Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(value: "all" | "pending" | "drafts" | "synced") => setStatusFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -211,6 +320,65 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
           </CardContent>
         </Card>
 
+        {/* Bulk Actions */}
+        {selectedInteractions.length > 0 && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-red-700">
+                  {selectedInteractions.length} interaction(s) selected
+                </span>
+                <div className="flex items-center space-x-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Selected
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Selected Interactions</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete {selectedInteractions.length} interaction(s)? 
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteSelected}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setSelectedInteractions([])}
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Select All Option */}
+        {filteredInteractions.length > 0 && (
+          <div className="flex items-center space-x-2 p-2">
+            <Checkbox
+              checked={selectedInteractions.length === filteredInteractions.length}
+              onCheckedChange={handleSelectAll}
+              className="h-4 w-4"
+            />
+            <span className="text-sm text-gray-600">
+              Select all {filteredInteractions.length} interactions
+            </span>
+          </div>
+        )}
+
         {/* Interactions List */}
         <div className="space-y-3">
           {filteredInteractions.length === 0 ? (
@@ -240,9 +408,16 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
               return (
                 <Card key={interaction.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        checked={selectedInteractions.includes(interaction.id)}
+                        onCheckedChange={(checked) => handleSelectInteraction(interaction.id, !!checked)}
+                        className="mt-1 h-4 w-4"
+                      />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
                           <User className="h-4 w-4 text-gray-500" />
                           <h3 className="font-semibold text-gray-900 truncate">
                             {interaction.prospectName}
