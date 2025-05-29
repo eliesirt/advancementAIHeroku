@@ -31,18 +31,26 @@ class BBECSOAPClient {
   private password: string;
 
   constructor() {
-    this.apiUrl = "https://crm30656d.sky.blackbaud.com/BBAPPFXWEBSERVICE/AppFxWebService.asmx";
+    this.apiUrl = process.env.BLACKBAUD_API_URL || "https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx";
     this.wsdlUrl = this.apiUrl + "?WSDL";
-    // Base64 encoded authentication: BBECAPI30656d:<<PASSWORD>>
+    // Use the Authorization header from environment variable
     this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "Basic QkJFQ0FQSTMwNjU2ZDp1c2JRQkQ1S05tYWNSZWdx";
-    this.username = "BBECAPI30656d";
-    this.password = "usbQBD5KNmacRegq";
+    this.username = process.env.BLACKBAUD_USERNAME || "BBECAPI30656d";
+    this.password = process.env.BLACKBAUD_PASSWORD || "usbQBD5KNmacRegq";
   }
 
   async initialize(): Promise<void> {
     try {
-      this.client = await soap.createClientAsync(this.wsdlUrl);
-      await this.authenticate();
+      // Create SOAP client with Authorization header for WSDL access
+      const options = {
+        wsdl_headers: {
+          'Authorization': this.authHeader
+        }
+      };
+      
+      this.client = await soap.createClientAsync(this.wsdlUrl, options);
+      this.client.addHttpHeader('Authorization', this.authHeader);
+      console.log('BBEC SOAP client initialized successfully');
     } catch (error) {
       console.error('BBEC SOAP client initialization error:', error);
       throw new Error('Failed to initialize BBEC connection: ' + (error as Error).message);
@@ -50,19 +58,8 @@ class BBECSOAPClient {
   }
 
   private async authenticate(): Promise<void> {
-    try {
-      const authResult = await this.client.AuthenticateAsync({
-        Username: this.username,
-        Password: this.password
-      });
-      
-      if (!authResult.success) {
-        throw new Error('BBEC authentication failed');
-      }
-    } catch (error) {
-      console.error('BBEC authentication error:', error);
-      throw new Error('Failed to authenticate with BBEC: ' + (error as Error).message);
-    }
+    // Authentication is handled via Authorization header
+    this.client.addHttpHeader('Authorization', this.authHeader);
   }
 
   async searchConstituent(searchTerm: string): Promise<any[]> {
