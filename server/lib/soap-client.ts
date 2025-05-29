@@ -179,6 +179,7 @@ class BBECSOAPClient {
       }
 
       const responseText = await response.text();
+      console.log('Blackbaud API Response:', responseText);
       
       // Parse the SOAP response to extract affinity tags
       const tags = this.parseAffinityTagsResponse(responseText);
