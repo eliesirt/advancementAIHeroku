@@ -208,8 +208,27 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
 
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
-    setShowProcessing(true);
     
+    // Save voice recording as draft immediately
+    const draftData = {
+      userId: 1,
+      prospectName: 'Voice Recording',
+      summary: transcript || 'Voice recording captured',
+      category: 'General',
+      subcategory: 'Other',
+      contactLevel: 'In Person',
+      method: 'Voice Recording',
+      status: 'Draft',
+      actualDate: new Date().toISOString().split('T')[0],
+      comments: transcript || 'Audio recorded, awaiting transcription',
+      transcript: transcript,
+      isDraft: true,
+      bbecSubmitted: false
+    };
+    
+    saveDraft.mutate(draftData);
+    
+    // Also save the voice recording for potential processing later
     createVoiceRecording.mutate({
       audioData,
       transcript,
