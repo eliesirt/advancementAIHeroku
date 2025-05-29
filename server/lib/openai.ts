@@ -84,6 +84,31 @@ Please respond with JSON in exactly this format:
   }
 }
 
+export async function generateConciseSummary(transcript: string): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "Create a concise summary of this interaction transcript in exactly 15 words or less. Focus on the key outcome or main point."
+        },
+        {
+          role: "user", 
+          content: transcript
+        }
+      ],
+      max_tokens: 50,
+      temperature: 0.3
+    });
+
+    return response.choices[0].message.content?.trim() || "Voice recording captured";
+  } catch (error) {
+    console.error("Summary generation error:", error);
+    return "Voice recording captured";
+  }
+}
+
 export async function enhanceInteractionComments(
   transcript: string, 
   extractedInfo: ExtractedInteractionInfo

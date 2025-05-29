@@ -124,6 +124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transcribe audio
       const transcript = await transcribeAudio(recording.audioData);
       
+      // Generate concise summary
+      const { generateConciseSummary } = await import("./lib/openai");
+      const conciseSummary = await generateConciseSummary(transcript);
+      
       // Extract interaction information
       const extractedInfo = await extractInteractionInfo(transcript);
       
@@ -135,7 +139,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         transcript,
-        extractedInfo
+        extractedInfo,
+        conciseSummary
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to process voice recording", error: (error as Error).message });
