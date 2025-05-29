@@ -369,19 +369,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAffinityTags(tags: InsertAffinityTag[]): Promise<void> {
-    for (const tag of tags) {
-      await db
-        .insert(affinityTags)
-        .values(tag)
-        .onConflictDoUpdate({
-          target: affinityTags.bbecId,
-          set: {
-            name: tag.name,
-            category: tag.category,
-            lastSynced: new Date()
-          }
-        });
-    }
+    if (tags.length === 0) return;
+    
+    // Since we clear all tags before updating, we can do a simple bulk insert
+    const tagsWithTimestamp = tags.map(tag => ({
+      ...tag,
+      lastSynced: new Date()
+    }));
+    
+    await db.insert(affinityTags).values(tagsWithTimestamp);
   }
 
   async getVoiceRecording(id: number): Promise<VoiceRecording | undefined> {
