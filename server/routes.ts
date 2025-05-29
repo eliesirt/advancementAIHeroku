@@ -266,6 +266,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete interaction
+  app.delete("/api/interactions/:id", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const success = await storage.deleteInteraction(interactionId);
+      
+      if (success) {
+        res.json({ success: true, message: "Interaction deleted successfully" });
+      } else {
+        res.status(404).json({ success: false, message: "Interaction not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete interaction", error: (error as Error).message });
+    }
+  });
+
+  // Bulk delete interactions
+  app.delete("/api/interactions", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid interaction IDs provided" });
+      }
+
+      const results = await Promise.allSettled(
+        ids.map(id => storage.deleteInteraction(parseInt(id)))
+      );
+
+      const successCount = results.filter(result => 
+        result.status === 'fulfilled' && result.value
+      ).length;
+
+      res.json({ 
+        success: true, 
+        message: `Successfully deleted ${successCount} of ${ids.length} interactions`,
+        deletedCount: successCount,
+        totalCount: ids.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to bulk delete interactions", error: (error as Error).message });
+    }
+  });
+
   // Get affinity tags
   app.get("/api/affinity-tags", async (req, res) => {
     try {

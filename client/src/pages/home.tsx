@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
   Mic, 
   Car, 
@@ -12,7 +14,10 @@ import {
   AlertCircle,
   User,
   TrendingUp,
-  Send
+  Send,
+  Trash2,
+  CheckSquare,
+  Square
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -69,6 +74,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     queryKey: ["/api/interactions/recent"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // State for bulk selection
+  const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Create voice recording mutation
   const createVoiceRecording = useMutation({
@@ -233,6 +242,54 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     },
   });
 
+  // Delete interaction mutation
+  const deleteInteraction = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/interactions/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deleted",
+        description: "Interaction deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Delete Error",
+        description: "Failed to delete interaction. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteInteractions = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const response = await apiRequest("DELETE", "/api/interactions", { ids });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Bulk Delete Complete",
+        description: data.message,
+      });
+      setSelectedInteractions([]);
+      setShowBulkActions(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Bulk Delete Error",
+        description: "Failed to delete selected interactions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
     
@@ -251,6 +308,34 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const handleSaveDraft = (data: any) => {
     saveDraft.mutate(data);
   };
+
+  // Selection handlers
+  const handleSelectInteraction = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedInteractions([...selectedInteractions, id]);
+    } else {
+      setSelectedInteractions(selectedInteractions.filter(sid => sid !== id));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedInteractions(recentInteractions.map(i => i.id));
+    } else {
+      setSelectedInteractions([]);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedInteractions.length > 0) {
+      bulkDeleteInteractions.mutate(selectedInteractions);
+    }
+  };
+
+  // Toggle bulk actions visibility when selections change
+  useEffect(() => {
+    setShowBulkActions(selectedInteractions.length > 0);
+  }, [selectedInteractions]);
 
 
 
@@ -389,10 +474,54 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-lg">Recent Interactions</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary">
-              View All
-            </Button>
+            <div className="flex items-center space-x-2">
+              {recentInteractions.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={selectedInteractions.length === recentInteractions.length}
+                    onCheckedChange={handleSelectAll}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm text-gray-600">Select All</span>
+                </div>
+              )}
+              <Button variant="ghost" size="sm" className="text-primary">
+                View All
+              </Button>
+            </div>
           </CardHeader>
+          {showBulkActions && (
+            <div className="px-6 pb-4">
+              <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                <span className="text-sm font-medium text-red-700">
+                  {selectedInteractions.length} item(s) selected
+                </span>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Selected
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Selected Interactions</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete {selectedInteractions.length} interaction(s)? 
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteSelected}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
           <CardContent>
             {recentInteractions.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -404,6 +533,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
               <div className="space-y-3">
                 {recentInteractions.slice(0, 5).map((interaction) => (
                   <div key={interaction.id} className="flex items-start space-x-3 p-3 border border-gray-100 rounded-lg">
+                    <Checkbox
+                      checked={selectedInteractions.includes(interaction.id)}
+                      onCheckedChange={(checked) => handleSelectInteraction(interaction.id, !!checked)}
+                      className="mt-1 h-4 w-4"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium text-gray-900 truncate">
