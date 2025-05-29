@@ -289,11 +289,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInteraction(insertInteraction: InsertInteraction): Promise<Interaction> {
-    const [interaction] = await db
-      .insert(interactions)
-      .values(insertInteraction)
-      .returning();
-    return interaction;
+    try {
+      const [interaction] = await db
+        .insert(interactions)
+        .values(insertInteraction)
+        .returning();
+      return interaction;
+    } catch (error) {
+      console.error("Database insertion error:", error);
+      console.error("Data being inserted:", insertInteraction);
+      throw error;
+    }
   }
 
   async updateInteraction(id: number, updates: Partial<InsertInteraction>): Promise<Interaction> {

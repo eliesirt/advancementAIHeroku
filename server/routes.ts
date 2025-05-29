@@ -146,14 +146,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: req.body.comments || null,
         transcript: req.body.transcript || null,
         affinityTags: req.body.affinityTags || [],
-        extractedInfo: req.body.extractedInfo || null,
+        extractedInfo: req.body.extractedInfo,
         isDraft: true,
         bbecSubmitted: false
       };
       
+      console.log("Creating draft with data:", draftData);
       const interaction = await storage.createInteraction(draftData);
+      console.log("Draft created successfully:", interaction);
       res.json(interaction);
     } catch (error) {
+      console.error("Draft creation error:", error);
       res.status(500).json({ message: "Failed to create draft", error: (error as Error).message });
     }
   });
