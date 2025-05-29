@@ -130,43 +130,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create draft interaction (minimal validation)
+  app.post("/api/interactions/draft", async (req, res) => {
+    try {
+      const draftData = {
+        userId: Number(req.body.userId) || 1,
+        prospectName: req.body.prospectName || 'Draft Interaction',
+        summary: req.body.summary || 'Draft summary',
+        category: req.body.category || 'General',
+        subcategory: req.body.subcategory || 'Other',
+        contactLevel: req.body.contactLevel || 'Initial Contact',
+        method: req.body.method || 'In Person',
+        status: 'Draft',
+        actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
+        comments: req.body.comments || null,
+        transcript: req.body.transcript || null,
+        affinityTags: req.body.affinityTags || [],
+        extractedInfo: req.body.extractedInfo || null,
+        isDraft: true,
+        bbecSubmitted: false
+      };
+      
+      const interaction = await storage.createInteraction(draftData);
+      res.json(interaction);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create draft", error: (error as Error).message });
+    }
+  });
+
   // Create interaction from processed voice/text
   app.post("/api/interactions", async (req, res) => {
     try {
-      // Check if this is a draft save
-      const isDraft = req.body.isDraft === true;
-      console.log("Request body:", JSON.stringify(req.body, null, 2));
-      console.log("Is draft:", isDraft);
-      
-      if (isDraft) {
-        // For drafts, bypass schema validation and provide sensible defaults
-        const draftData = {
-          userId: Number(req.body.userId) || 1,
-          prospectName: req.body.prospectName || 'Draft Interaction',
-          summary: req.body.summary || 'Draft summary',
-          category: req.body.category || 'General',
-          subcategory: req.body.subcategory || 'Other',
-          contactLevel: req.body.contactLevel || 'Initial Contact',
-          method: req.body.method || 'In Person',
-          status: 'Draft',
-          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
-          comments: req.body.comments || null,
-          transcript: req.body.transcript || null,
-          affinityTags: req.body.affinityTags || [],
-          extractedInfo: req.body.extractedInfo || null,
-          isDraft: true,
-          bbecSubmitted: false
-        };
-        
-        // Create interaction directly without schema validation for drafts
-        const interaction = await storage.createInteraction(draftData);
-        return res.json(interaction);
-      } else {
-        // Full validation for completed interactions
-        const interactionData = insertInteractionSchema.parse(req.body);
-        const interaction = await storage.createInteraction(interactionData);
-        return res.json(interaction);
-      }
+      const interactionData = insertInteractionSchema.parse(req.body);
+      const interaction = await storage.createInteraction(interactionData);
+      res.json(interaction);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
