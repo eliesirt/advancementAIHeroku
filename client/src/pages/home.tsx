@@ -11,7 +11,8 @@ import {
   CheckCircle, 
   AlertCircle,
   User,
-  TrendingUp
+  TrendingUp,
+  Send
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -244,6 +245,30 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     saveDraft.mutate(data);
   };
 
+  const submitToBBEC = useMutation({
+    mutationFn: async (interactionId: number) => {
+      return await apiRequest("POST", `/api/interactions/${interactionId}/submit-to-bbec`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Interaction submitted to BBEC successfully.",
+      });
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: (error) => {
+      console.error("BBEC submission error:", error);
+      toast({
+        title: "Submission Error",
+        description: "Failed to submit to BBEC. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const formatTimeAgo = (date: string | Date) => {
     const now = new Date();
     const past = new Date(date);
@@ -406,17 +431,57 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                       <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                         {interaction.summary}
                       </p>
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="secondary" className="text-xs">
-                          {interaction.category}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {interaction.method}
-                        </Badge>
-                        <div className={`flex items-center space-x-1 text-xs ${getStatusColor(interaction)}`}>
-                          {getStatusIcon(interaction)}
-                          <span>{getStatusText(interaction)}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Badge variant="secondary" className="text-xs">
+                            {interaction.category}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {interaction.method}
+                          </Badge>
+                          <div className={`flex items-center space-x-1 text-xs ${getStatusColor(interaction)}`}>
+                            {getStatusIcon(interaction)}
+                            <span>{getStatusText(interaction)}</span>
+                          </div>
                         </div>
+                        {interaction.isDraft && (
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Pre-populate the form with the draft data
+                                setExtractedInfo({
+                                  prospectName: interaction.prospectName,
+                                  summary: interaction.summary,
+                                  category: interaction.category,
+                                  subcategory: interaction.subcategory,
+                                  professionalInterests: [],
+                                  personalInterests: [],
+                                  philanthropicPriorities: [],
+                                  keyPoints: [],
+                                  suggestedAffinityTags: []
+                                });
+                                setCurrentTranscript(interaction.transcript || "");
+                                setEnhancedComments(interaction.comments || "");
+                                setShowInteractionForm(true);
+                              }}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => submitToBBEC.mutate(interaction.id)}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              Submit to BBEC
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
