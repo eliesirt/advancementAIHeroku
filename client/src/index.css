@@ -1,0 +1,442 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 213 100% 42%; /* #1976D2 - Material Blue 700 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 60 4.8% 95.9%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 17 88% 54%; /* #F57C00 - Material Orange 700 for voice/recording */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 213 100% 42%;
+  --radius: 0.5rem;
+  
+  /* Material Design Color Palette */
+  --material-blue-700: 213 100% 42%; /* #1976D2 */
+  --material-blue-600: 217 89% 61%; /* #1E88E5 */
+  --material-blue-500: 207 90% 54%; /* #2196F3 */
+  --material-green-600: 122 39% 49%; /* #388E3C */
+  --material-green-500: 122 40% 51%; /* #4CAF50 */
+  --material-orange-700: 33 100% 48%; /* #F57C00 */
+  --material-red-700: 4 90% 58%; /* #D32F2F */
+  
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 10.6% 64.9%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 213 100% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 17 88% 54%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 94.1%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 10.6% 64.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+/* Material Design inspired animations for voice recording */
+@keyframes pulse-recording {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.8; 
+  }
+}
+
+@keyframes voice-wave {
+  0%, 100% { 
+    transform: scaleY(0.4); 
+  }
+  50% { 
+    transform: scaleY(1.0); 
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    transform: translateY(100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes shimmer {
+  0% { 
+    background-position: -200% 0; 
+  }
+  100% { 
+    background-position: 200% 0; 
+  }
+}
+
+/* Voice recording animations */
+.recording-pulse {
+  animation: pulse-recording 1.5s ease-in-out infinite;
+}
+
+.voice-wave {
+  animation: voice-wave 1.5s ease-in-out infinite;
+}
+
+.slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Processing shimmer effect */
+.processing-shimmer {
+  background: linear-gradient(90deg, hsl(60 4.8% 95.9%) 25%, hsl(20 5.9% 90%) 50%, hsl(60 4.8% 95.9%) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Material Design elevation shadows */
+.card-elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.card-elevation-2 {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.card-elevation-3 {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+}
+
+.floating-action-button {
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+
+.floating-action-button:hover {
+  box-shadow: 0 6px 25px rgba(25, 118, 210, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Driving mode background gradient */
+.driving-mode-bg {
+  background: linear-gradient(135deg, hsl(33 100% 48%) 0%, hsl(17 88% 54%) 100%);
+}
+
+/* Material Design specific color utilities */
+.bg-material-blue-700 {
+  background-color: hsl(var(--material-blue-700));
+}
+
+.bg-material-blue-600 {
+  background-color: hsl(var(--material-blue-600));
+}
+
+.bg-material-green-600 {
+  background-color: hsl(var(--material-green-600));
+}
+
+.bg-material-green-500 {
+  background-color: hsl(var(--material-green-500));
+}
+
+.bg-material-orange-700 {
+  background-color: hsl(var(--material-orange-700));
+}
+
+.bg-material-red-700 {
+  background-color: hsl(var(--material-red-700));
+}
+
+.text-material-blue-700 {
+  color: hsl(var(--material-blue-700));
+}
+
+.text-material-green-600 {
+  color: hsl(var(--material-green-600));
+}
+
+.text-material-orange-700 {
+  color: hsl(var(--material-orange-700));
+}
+
+.text-material-red-700 {
+  color: hsl(var(--material-red-700));
+}
+
+/* Mobile-optimized touch targets */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .nav-item {
+    padding: 12px;
+    min-height: 64px;
+  }
+  
+  /* Larger voice recording button for mobile */
+  .voice-recording-btn {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+/* Voice command feedback */
+.voice-listening {
+  position: relative;
+}
+
+.voice-listening::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid hsl(var(--material-green-500));
+  border-radius: inherit;
+  opacity: 0;
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* SOP compliance indicators */
+.sop-warning {
+  background-color: hsl(45 93% 47% / 0.1);
+  border-color: hsl(45 93% 47%);
+  color: hsl(25 95% 53%);
+}
+
+.sop-error {
+  background-color: hsl(var(--material-red-700) / 0.1);
+  border-color: hsl(var(--material-red-700));
+  color: hsl(var(--material-red-700));
+}
+
+.sop-success {
+  background-color: hsl(var(--material-green-600) / 0.1);
+  border-color: hsl(var(--material-green-600));
+  color: hsl(var(--material-green-600));
+}
+
+/* Affinity tag styles */
+.affinity-tag {
+  background-color: hsl(var(--material-blue-500) / 0.1);
+  color: hsl(var(--material-blue-700));
+  border: 1px solid hsl(var(--material-blue-500) / 0.3);
+}
+
+.affinity-tag-professional {
+  background-color: hsl(var(--material-blue-500) / 0.1);
+  color: hsl(var(--material-blue-700));
+}
+
+.affinity-tag-personal {
+  background-color: hsl(var(--material-green-500) / 0.1);
+  color: hsl(var(--material-green-600));
+}
+
+.affinity-tag-philanthropic {
+  background-color: hsl(283 39% 53% / 0.1);
+  color: hsl(283 39% 53%);
+}
+
+/* Progress indicators */
+.progress-bar {
+  background-color: hsl(var(--material-blue-700));
+  transition: width 0.5s ease-in-out;
+}
+
+.progress-track {
+  background-color: hsl(var(--material-blue-700) / 0.2);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0% 0%;
+    --ring: 213 100% 42%;
+  }
+  
+  .voice-wave,
+  .recording-pulse {
+    filter: contrast(2);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .recording-pulse,
+  .voice-wave,
+  .slide-up,
+  .processing-shimmer {
+    animation: none;
+  }
+  
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Focus indicators for accessibility */
+.focus-visible {
+  outline: 2px solid hsl(var(--material-blue-700));
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, hsl(60 4.8% 95.9%) 25%, hsl(20 5.9% 90%) 50%, hsl(60 4.8% 95.9%) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* Status indicators */
+.status-synced {
+  color: hsl(var(--material-green-600));
+}
+
+.status-pending {
+  color: hsl(var(--material-orange-700));
+}
+
+.status-draft {
+  color: hsl(45 93% 47%);
+}
+
+.status-error {
+  color: hsl(var(--material-red-700));
+}
+
+/* Bottom navigation safe area for mobile devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Form validation states */
+.form-field-error {
+  border-color: hsl(var(--material-red-700));
+}
+
+.form-field-error:focus {
+  ring-color: hsl(var(--material-red-700));
+}
+
+.form-field-success {
+  border-color: hsl(var(--material-green-600));
+}
+
+.form-field-success:focus {
+  ring-color: hsl(var(--material-green-600));
+}
+
+/* Interaction category colors */
+.category-cultivation {
+  background-color: hsl(var(--material-green-500) / 0.1);
+  color: hsl(var(--material-green-600));
+}
+
+.category-stewardship {
+  background-color: hsl(var(--material-blue-500) / 0.1);
+  color: hsl(var(--material-blue-700));
+}
+
+.category-solicitation {
+  background-color: hsl(var(--material-orange-700) / 0.1);
+  color: hsl(var(--material-orange-700));
+}
+
+.category-research {
+  background-color: hsl(283 39% 53% / 0.1);
+  color: hsl(283 39% 53%);
+}

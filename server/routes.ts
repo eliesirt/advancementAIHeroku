@@ -1,0 +1,308 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { transcribeAudio, extractInteractionInfo, enhanceInteractionComments } from "./lib/openai";
+import { bbecClient } from "./lib/soap-client";
+import { createAffinityMatcher } from "./lib/affinity-matcher";
+import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Get current user (simplified for demo)
+  app.get("/api/user", async (req, res) => {
+    try {
+      const user = await storage.getUser(1); // Default user
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get user", error: (error as Error).message });
+    }
+  });
+
+  // Get dashboard stats
+  app.get("/api/stats", async (req, res) => {
+    try {
+      const userId = 1; // Default user
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const allInteractions = await storage.getInteractionsByUser(userId);
+      const todayInteractions = allInteractions.filter(i => i.createdAt >= today).length;
+      const thisWeekInteractions = allInteractions.filter(i => i.createdAt >= weekAgo).length;
+      const pendingInteractions = (await storage.getPendingInteractions(userId)).length;
+
+      res.json({
+        todayInteractions,
+        thisWeekInteractions,
+        pendingInteractions
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get stats", error: (error as Error).message });
+    }
+  });
+
+  // Get recent interactions
+  app.get("/api/interactions/recent", async (req, res) => {
+    try {
+      const userId = 1; // Default user
+      const limit = parseInt(req.query.limit as string) || 10;
+      const interactions = await storage.getRecentInteractions(userId, limit);
+      res.json(interactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get recent interactions", error: (error as Error).message });
+    }
+  });
+
+  // Get all interactions for a user
+  app.get("/api/interactions", async (req, res) => {
+    try {
+      const userId = 1; // Default user
+      const interactions = await storage.getInteractionsByUser(userId);
+      res.json(interactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get interactions", error: (error as Error).message });
+    }
+  });
+
+  // Get draft interactions
+  app.get("/api/interactions/drafts", async (req, res) => {
+    try {
+      const userId = 1; // Default user
+      const drafts = await storage.getDraftInteractions(userId);
+      res.json(drafts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get draft interactions", error: (error as Error).message });
+    }
+  });
+
+  // Create voice recording
+  app.post("/api/voice-recordings", async (req, res) => {
+    try {
+      const recordingData = insertVoiceRecordingSchema.parse(req.body);
+      const recording = await storage.createVoiceRecording(recordingData);
+      res.json(recording);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to save voice recording", error: (error as Error).message });
+    }
+  });
+
+  // Process voice recording (transcribe and extract info)
+  app.post("/api/voice-recordings/:id/process", async (req, res) => {
+    try {
+      const recordingId = parseInt(req.params.id);
+      const recording = await storage.getVoiceRecording(recordingId);
+      
+      if (!recording) {
+        return res.status(404).json({ message: "Voice recording not found" });
+      }
+
+      if (!recording.audioData) {
+        return res.status(400).json({ message: "No audio data to process" });
+      }
+
+      // Transcribe audio
+      const transcript = await transcribeAudio(recording.audioData);
+      
+      // Extract interaction information
+      const extractedInfo = await extractInteractionInfo(transcript);
+      
+      // Update recording with transcript
+      await storage.updateVoiceRecording(recordingId, {
+        transcript,
+        processed: true
+      });
+
+      res.json({
+        transcript,
+        extractedInfo
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process voice recording", error: (error as Error).message });
+    }
+  });
+
+  // Create interaction from processed voice/text
+  app.post("/api/interactions", async (req, res) => {
+    try {
+      const interactionData = insertInteractionSchema.parse(req.body);
+      const interaction = await storage.createInteraction(interactionData);
+      res.json(interaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create interaction", error: (error as Error).message });
+    }
+  });
+
+  // Update interaction
+  app.put("/api/interactions/:id", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const updates = insertInteractionSchema.partial().parse(req.body);
+      const interaction = await storage.updateInteraction(interactionId, updates);
+      res.json(interaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update interaction", error: (error as Error).message });
+    }
+  });
+
+  // Submit interaction to BBEC
+  app.post("/api/interactions/:id/submit-bbec", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const interaction = await storage.getInteraction(interactionId);
+      
+      if (!interaction) {
+        return res.status(404).json({ message: "Interaction not found" });
+      }
+
+      if (interaction.bbecSubmitted) {
+        return res.status(400).json({ message: "Interaction already submitted to BBEC" });
+      }
+
+      // Submit to BBEC via SOAP API
+      const bbecInteractionId = await bbecClient.submitInteraction({
+        constituentId: "CONST001", // This would come from constituent search
+        contactLevel: interaction.contactLevel,
+        method: interaction.method,
+        summary: interaction.summary,
+        category: interaction.category,
+        subcategory: interaction.subcategory,
+        status: interaction.status,
+        actualDate: interaction.actualDate.toISOString().split('T')[0],
+        owner: "sarah.thompson",
+        comments: interaction.comments || "",
+        affinityTags: interaction.affinityTags || []
+      });
+
+      // Update interaction as submitted
+      const updatedInteraction = await storage.updateInteraction(interactionId, {
+        bbecSubmitted: true,
+        bbecInteractionId
+      });
+
+      res.json({ 
+        success: true, 
+        bbecInteractionId,
+        interaction: updatedInteraction 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit to BBEC", error: (error as Error).message });
+    }
+  });
+
+  // Get affinity tags
+  app.get("/api/affinity-tags", async (req, res) => {
+    try {
+      const tags = await storage.getAffinityTags();
+      res.json(tags);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get affinity tags", error: (error as Error).message });
+    }
+  });
+
+  // Match affinity tags to interests
+  app.post("/api/affinity-tags/match", async (req, res) => {
+    try {
+      const { professionalInterests, personalInterests, philanthropicPriorities } = req.body;
+      
+      if (!Array.isArray(professionalInterests) || !Array.isArray(personalInterests) || !Array.isArray(philanthropicPriorities)) {
+        return res.status(400).json({ message: "Invalid interests format" });
+      }
+
+      const affinityTags = await storage.getAffinityTags();
+      const matcher = await createAffinityMatcher(affinityTags);
+      
+      const matches = matcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities
+      );
+
+      res.json(matches);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to match affinity tags", error: (error as Error).message });
+    }
+  });
+
+  // Sync affinity tags from BBEC
+  app.post("/api/affinity-tags/sync", async (req, res) => {
+    try {
+      const bbecTags = await bbecClient.getAffinityTags();
+      
+      const tagsToInsert = bbecTags.map(tag => ({
+        name: tag.name,
+        category: tag.category,
+        bbecId: tag.id
+      }));
+
+      await storage.updateAffinityTags(tagsToInsert);
+      
+      res.json({ 
+        success: true, 
+        synced: tagsToInsert.length,
+        message: `Synced ${tagsToInsert.length} affinity tags from BBEC` 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to sync affinity tags", error: (error as Error).message });
+    }
+  });
+
+  // Search constituents in BBEC
+  app.get("/api/constituents/search", async (req, res) => {
+    try {
+      const searchTerm = req.query.q as string;
+      
+      if (!searchTerm || searchTerm.length < 2) {
+        return res.status(400).json({ message: "Search term must be at least 2 characters" });
+      }
+
+      const constituents = await bbecClient.searchConstituent(searchTerm);
+      res.json(constituents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search constituents", error: (error as Error).message });
+    }
+  });
+
+  // Get BBEC form metadata
+  app.get("/api/bbec/form-metadata", async (req, res) => {
+    try {
+      const metadata = await bbecClient.getInteractionFormMetadata();
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get form metadata", error: (error as Error).message });
+    }
+  });
+
+  // Enhanced comments generation
+  app.post("/api/interactions/enhance-comments", async (req, res) => {
+    try {
+      const { transcript, extractedInfo } = req.body;
+      
+      if (!transcript || !extractedInfo) {
+        return res.status(400).json({ message: "Transcript and extracted info are required" });
+      }
+
+      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo);
+      res.json({ enhancedComments });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to enhance comments", error: (error as Error).message });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
