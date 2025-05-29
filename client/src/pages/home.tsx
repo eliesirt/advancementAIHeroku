@@ -590,6 +590,33 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                               <Edit className="h-3 w-3 mr-1" />
                               Edit
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Interaction</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{interaction.prospectName}"? 
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteInteraction.mutate(interaction.id)}>
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                             <Button
                               variant="default"
                               size="sm"
