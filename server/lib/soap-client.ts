@@ -64,79 +64,176 @@ class BBECSOAPClient {
 
   async searchConstituent(searchTerm: string): Promise<any[]> {
     try {
-      if (!this.client) await this.initialize();
-      
-      const searchResult = await this.client.SearchConstituentAsync({
-        SearchCriteria: {
-          Name: searchTerm,
-          MaxResults: 10
-        }
+      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <SearchListLoadRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+                    <SearchListID>b9f8dbe9-7240-4f23-b6f6-4103c10c8e62</SearchListID>
+                    <SearchText>${searchTerm}</SearchText>
+                    <ClientAppInfo REDatabaseToUse="30656d"/>
+                </SearchListLoadRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/SearchListLoad',
+          'Authorization': this.authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive'
+        },
+        body: soapBody
       });
 
-      return searchResult.constituents || [];
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('Constituent search response:', responseText);
+      
+      // Parse the SOAP response to extract constituent data
+      const constituents = this.parseConstituentSearchResponse(responseText);
+      return constituents;
     } catch (error) {
       console.error('Constituent search error:', error);
-      throw new Error('Failed to search constituents: ' + (error as Error).message);
+      throw new Error('Failed to search constituents in BBEC: ' + (error as Error).message);
     }
   }
 
   async getInteractionFormMetadata(): Promise<BBECInteractionField[]> {
     try {
-      if (!this.client) await this.initialize();
+      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <DataFormInstanceGetMetaDataRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+                    <FormID>41953129-062a-45e6-9540-a1153f9250fa</FormID>
+                    <ReturnTemplateSpec>false</ReturnTemplateSpec>
+                    <SkipLocalization>true</SkipLocalization>
+                    <SkipCustomFieldCharacteristics>true</SkipCustomFieldCharacteristics>
+                    <SkipSearchListReplacements>true</SkipSearchListReplacements>
+                    <ClientAppInfo REDatabaseToUse="30656d"/>
+                </DataFormInstanceGetMetaDataRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/DataFormInstanceGetMetaData',
+          'Authorization': this.authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive'
+        },
+        body: soapBody
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('Form metadata response:', responseText);
       
-      const metadataResult = await this.client.GetInteractionFormMetadataAsync();
-      
-      return [
-        { name: 'contactLevel', type: 'select', required: true, options: ['Face-to-face', 'Phone', 'Email', 'Video call'] },
-        { name: 'method', type: 'select', required: true, options: ['In-person meeting', 'Phone call', 'Email exchange', 'Video conference'] },
-        { name: 'category', type: 'select', required: true, options: ['Cultivation', 'Stewardship', 'Solicitation', 'Research'] },
-        { name: 'subcategory', type: 'select', required: true, options: ['Initial meeting', 'Follow-up', 'Event attendance', 'Presentation'] },
-        { name: 'status', type: 'select', required: true, options: ['Complete', 'Pending', 'Declined', 'Canceled'] },
-        { name: 'summary', type: 'text', required: true },
-        { name: 'actualDate', type: 'date', required: true },
-        { name: 'owner', type: 'text', required: true },
-        { name: 'comments', type: 'textarea', required: false }
-      ];
+      // Parse the metadata response to extract field definitions
+      const fields = this.parseFormMetadataResponse(responseText);
+      return fields;
     } catch (error) {
       console.error('Form metadata error:', error);
-      // Return default fields if API fails
+      // Return default fields if metadata call fails
       return [
-        { name: 'contactLevel', type: 'select', required: true, options: ['Face-to-face', 'Phone', 'Email', 'Video call'] },
-        { name: 'method', type: 'select', required: true, options: ['In-person meeting', 'Phone call', 'Email exchange', 'Video conference'] },
-        { name: 'category', type: 'select', required: true, options: ['Cultivation', 'Stewardship', 'Solicitation', 'Research'] },
-        { name: 'subcategory', type: 'select', required: true, options: ['Initial meeting', 'Follow-up', 'Event attendance', 'Presentation'] },
-        { name: 'status', type: 'select', required: true, options: ['Complete', 'Pending', 'Declined', 'Canceled'] },
-        { name: 'summary', type: 'text', required: true },
-        { name: 'actualDate', type: 'date', required: true },
-        { name: 'owner', type: 'text', required: true },
-        { name: 'comments', type: 'textarea', required: false }
+        { name: "contactLevel", type: "select", required: true, options: ["Personal", "Professional", "Phone", "Email"] },
+        { name: "method", type: "select", required: true, options: ["In Person", "Phone", "Email", "Letter", "Other"] },
+        { name: "category", type: "select", required: true, options: ["Cultivation", "Solicitation", "Stewardship", "Other"] },
+        { name: "subcategory", type: "text", required: false },
+        { name: "summary", type: "text", required: true },
+        { name: "comments", type: "textarea", required: false },
+        { name: "actualDate", type: "date", required: true },
+        { name: "prospectName", type: "text", required: true }
       ];
     }
   }
 
   async submitInteraction(interaction: BBECInteractionSubmission): Promise<string> {
     try {
-      if (!this.client) await this.initialize();
+      // First, search for the constituent to get their ID
+      const constituents = await this.searchConstituent(interaction.prospectName);
       
-      const submissionResult = await this.client.CreateInteractionAsync({
-        ConstituentId: interaction.constituentId,
-        ContactLevel: interaction.contactLevel,
-        Method: interaction.method,
-        Summary: interaction.summary,
-        Category: interaction.category,
-        Subcategory: interaction.subcategory,
-        Status: interaction.status,
-        ActualDate: interaction.actualDate,
-        Owner: interaction.owner,
-        Comments: interaction.comments,
-        AffinityTags: interaction.affinityTags
+      if (constituents.length === 0) {
+        throw new Error(`No constituent found with name: ${interaction.prospectName}`);
+      }
+      
+      const constituentId = constituents[0].id;
+      
+      // Build the DataFormSave request
+      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+                    <FormID>41953129-062a-45e6-9540-a1153f9250fa</FormID>
+                    <DataFormItem>
+                        <Values>
+                            <SimpleDataListItem Key="CONSTITUENTID" Value="${constituentId}"/>
+                            <SimpleDataListItem Key="CONTACTLEVEL" Value="${interaction.contactLevel}"/>
+                            <SimpleDataListItem Key="CONTACTMETHOD" Value="${interaction.method}"/>
+                            <SimpleDataListItem Key="SUMMARY" Value="${interaction.summary}"/>
+                            <SimpleDataListItem Key="CATEGORY" Value="${interaction.category}"/>
+                            <SimpleDataListItem Key="SUBCATEGORY" Value="${interaction.subcategory}"/>
+                            <SimpleDataListItem Key="ACTUALDATE" Value="${interaction.actualDate}"/>
+                            <SimpleDataListItem Key="COMMENTS" Value="${interaction.comments || ''}"/>
+                        </Values>
+                    </DataFormItem>
+                    <ClientAppInfo REDatabaseToUse="30656d"/>
+                </DataFormSaveRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/DataFormSave',
+          'Authorization': this.authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive'
+        },
+        body: soapBody
       });
 
-      if (!submissionResult.success) {
-        throw new Error(submissionResult.errorMessage || 'Submission failed');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return submissionResult.interactionId;
+      const responseText = await response.text();
+      console.log('Interaction submission response:', responseText);
+      
+      // Parse the response to get the interaction ID
+      const interactionId = this.parseSubmissionResponse(responseText);
+      return interactionId;
     } catch (error) {
       console.error('Interaction submission error:', error);
       throw new Error('Failed to submit interaction to BBEC: ' + (error as Error).message);
@@ -227,6 +324,118 @@ class BBECSOAPClient {
     } catch (error) {
       console.error('Error parsing affinity tags response:', error);
       return [];
+    }
+  }
+
+  private parseConstituentSearchResponse(soapResponse: string): any[] {
+    try {
+      const constituents: any[] = [];
+      
+      // Extract rows from the SOAP response
+      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
+      let rowMatch;
+      
+      while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
+        const valuesContent = rowMatch[1];
+        
+        // Extract all <v> values from the row
+        const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
+        const values: string[] = [];
+        let valueMatch;
+        
+        while ((valueMatch = valueRegex.exec(valuesContent)) !== null) {
+          values.push(valueMatch[1]);
+        }
+        
+        // Based on typical search results structure: [0] = ID, [1] = Name, [2] = LookupID
+        if (values.length >= 2 && values[1]) {
+          constituents.push({
+            id: values[0] || null,
+            name: values[1].replace(/&amp;/g, '&'),
+            lookupId: values[2] || null
+          });
+        }
+      }
+      
+      return constituents;
+    } catch (error) {
+      console.error('Error parsing constituent search response:', error);
+      return [];
+    }
+  }
+
+  private parseFormMetadataResponse(soapResponse: string): BBECInteractionField[] {
+    try {
+      const fields: BBECInteractionField[] = [];
+      
+      // Extract field definitions from the metadata response
+      const fieldRegex = /<Field[^>]*>(.*?)<\/Field>/gs;
+      let match;
+      
+      while ((match = fieldRegex.exec(soapResponse)) !== null) {
+        const fieldContent = match[1];
+        
+        const nameMatch = fieldContent.match(/<Name[^>]*>(.*?)<\/Name>/);
+        const typeMatch = fieldContent.match(/<Type[^>]*>(.*?)<\/Type>/);
+        const requiredMatch = fieldContent.match(/<Required[^>]*>(.*?)<\/Required>/);
+        
+        if (nameMatch) {
+          fields.push({
+            name: nameMatch[1].trim(),
+            type: typeMatch ? typeMatch[1].trim().toLowerCase() : 'text',
+            required: requiredMatch ? requiredMatch[1].trim().toLowerCase() === 'true' : false,
+            options: []
+          });
+        }
+      }
+      
+      // Return default fields if parsing fails or no fields found
+      if (fields.length === 0) {
+        return [
+          { name: "contactLevel", type: "select", required: true, options: ["Personal", "Professional", "Phone", "Email"] },
+          { name: "method", type: "select", required: true, options: ["In Person", "Phone", "Email", "Letter", "Other"] },
+          { name: "category", type: "select", required: true, options: ["Cultivation", "Solicitation", "Stewardship", "Other"] },
+          { name: "subcategory", type: "text", required: false },
+          { name: "summary", type: "text", required: true },
+          { name: "comments", type: "textarea", required: false },
+          { name: "actualDate", type: "date", required: true },
+          { name: "prospectName", type: "text", required: true }
+        ];
+      }
+      
+      return fields;
+    } catch (error) {
+      console.error('Error parsing form metadata response:', error);
+      return [
+        { name: "contactLevel", type: "select", required: true, options: ["Personal", "Professional", "Phone", "Email"] },
+        { name: "method", type: "select", required: true, options: ["In Person", "Phone", "Email", "Letter", "Other"] },
+        { name: "category", type: "select", required: true, options: ["Cultivation", "Solicitation", "Stewardship", "Other"] },
+        { name: "subcategory", type: "text", required: false },
+        { name: "summary", type: "text", required: true },
+        { name: "comments", type: "textarea", required: false },
+        { name: "actualDate", type: "date", required: true },
+        { name: "prospectName", type: "text", required: true }
+      ];
+    }
+  }
+
+  private parseSubmissionResponse(soapResponse: string): string {
+    try {
+      // Extract the interaction ID from the submission response
+      const idMatch = soapResponse.match(/<ID[^>]*>(.*?)<\/ID>/);
+      const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
+      
+      if (idMatch) {
+        return idMatch[1].trim();
+      } else if (recordIdMatch) {
+        return recordIdMatch[1].trim();
+      }
+      
+      // If no ID found, generate a temporary one
+      return `temp_${Date.now()}`;
+    } catch (error) {
+      console.error('Error parsing submission response:', error);
+      return `temp_${Date.now()}`;
     }
   }
 }
