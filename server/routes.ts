@@ -369,6 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `Refreshed ${tagsToInsert.length} affinity tags from BBEC` 
       });
     } catch (error) {
+      console.error('Detailed refresh error:', error);
       res.status(500).json({ message: "Failed to refresh affinity tags", error: (error as Error).message });
     }
   });
