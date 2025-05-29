@@ -84,10 +84,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create voice recording
   app.post("/api/voice-recordings", async (req, res) => {
     try {
-      const recordingData = insertVoiceRecordingSchema.parse(req.body);
+      console.log("Voice recording data received:", req.body);
+      
+      const recordingData = {
+        userId: Number(req.body.userId) || 1,
+        audioData: req.body.audioData,
+        transcript: req.body.transcript || null,
+        duration: Number(req.body.duration) || null,
+        processed: false,
+        interactionId: req.body.interactionId || null
+      };
+      
+      console.log("Processed recording data:", recordingData);
       const recording = await storage.createVoiceRecording(recordingData);
       res.json(recording);
     } catch (error) {
+      console.error("Voice recording error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
