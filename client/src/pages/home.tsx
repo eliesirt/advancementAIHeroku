@@ -179,11 +179,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Save draft mutation
   const saveDraft = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/interactions/draft", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
+      return await apiRequest("POST", "/api/interactions/draft", data);
     },
     onSuccess: () => {
       toast({
