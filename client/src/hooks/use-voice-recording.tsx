@@ -59,34 +59,38 @@ export function useVoiceRecording({
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // Set up Speech Recognition
+      // Set up Speech Recognition (optional - recording will work without it)
       if (state.isSupported) {
-        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognitionRef.current = recognition;
+        try {
+          const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+          const recognition = new SpeechRecognition();
+          recognitionRef.current = recognition;
 
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US';
 
-        recognition.onresult = (event: any) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              transcript += event.results[i][0].transcript + ' ';
+          recognition.onresult = (event: any) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                transcript += event.results[i][0].transcript + ' ';
+              }
             }
-          }
-          
-          setState(prev => ({ ...prev, transcript: prev.transcript + transcript }));
-          onTranscriptUpdate?.(transcript);
-        };
+            
+            setState(prev => ({ ...prev, transcript: prev.transcript + transcript }));
+            onTranscriptUpdate?.(transcript);
+          };
 
-        recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          onError?.(`Speech recognition error: ${event.error}`);
-        };
+          recognition.onerror = (event: any) => {
+            console.warn('Speech recognition error (live transcript disabled):', event.error);
+            // Don't call onError for speech recognition issues - recording still works
+          };
 
-        recognition.start();
+          recognition.start();
+        } catch (error) {
+          console.warn('Speech recognition not available, continuing with audio recording only');
+        }
       }
 
       // Start recording
