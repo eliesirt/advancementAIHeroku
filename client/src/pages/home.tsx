@@ -192,6 +192,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setCurrentTranscript("");
       setExtractedInfo(null);
       setEnhancedComments("");
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
     onError: (error) => {
       toast({
