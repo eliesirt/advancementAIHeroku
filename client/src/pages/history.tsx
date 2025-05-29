@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
   Search, 
   Filter, 
@@ -14,15 +16,11 @@ import {
   User,
   Tag,
   Trash2,
-  Send,
-  CheckSquare,
-  Square
+  Send
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Interaction } from "@shared/schema";
 
 interface HistoryPageProps {
@@ -35,7 +33,6 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [sortBy, setSortBy] = useState("date");
   const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
   
   const { toast } = useToast();
 
@@ -74,8 +71,6 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
       switch (sortBy) {
         case "date":
           return new Date(b.actualDate).getTime() - new Date(a.actualDate).getTime();
-        case "created":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case "prospect":
           return a.prospectName.localeCompare(b.prospectName);
         case "category":
@@ -128,7 +123,6 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
         description: data.message,
       });
       setSelectedInteractions([]);
-      setShowBulkActions(false);
       queryClient.invalidateQueries({ queryKey: ["/api/interactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -218,29 +212,23 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
     switch (category) {
       case "Cultivation":
         return "🌱";
+      case "Solicitation":
+        return "💰";
       case "Stewardship":
         return "🤝";
-      case "Solicitation":
-        return "💼";
       case "Research":
         return "🔍";
       default:
-        return "📝";
+        return "📋";
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading interactions...</p>
         </div>
       </div>
     );
@@ -294,8 +282,8 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="Cultivation">Cultivation</SelectItem>
-                  <SelectItem value="Stewardship">Stewardship</SelectItem>
                   <SelectItem value="Solicitation">Solicitation</SelectItem>
+                  <SelectItem value="Stewardship">Stewardship</SelectItem>
                   <SelectItem value="Research">Research</SelectItem>
                 </SelectContent>
               </Select>
@@ -305,8 +293,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="date">Interaction Date</SelectItem>
-                  <SelectItem value="created">Created Date</SelectItem>
+                  <SelectItem value="date">Date</SelectItem>
                   <SelectItem value="prospect">Prospect Name</SelectItem>
                   <SelectItem value="category">Category</SelectItem>
                 </SelectContent>
@@ -414,77 +401,142 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                         onCheckedChange={(checked) => handleSelectInteraction(interaction.id, !!checked)}
                         className="mt-1 h-4 w-4"
                       />
+                      
                       <div className="flex-1 min-w-0">
+                        {/* Header */}
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1">
-                          <User className="h-4 w-4 text-gray-500" />
-                          <h3 className="font-semibold text-gray-900 truncate">
-                            {interaction.prospectName}
-                          </h3>
+                              <User className="h-4 w-4 text-gray-500" />
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {interaction.prospectName}
+                              </h3>
+                            </div>
+                            <p className="text-gray-600 text-sm line-clamp-2 mb-2">
+                              {interaction.summary}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-1 ml-2">
+                            {statusInfo.icon}
+                          </div>
                         </div>
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                          {interaction.summary}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-1 ml-2">
-                        {statusInfo.icon}
-                      </div>
-                    </div>
 
-                    {/* Interaction Details */}
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {getCategoryIcon(interaction.category)} {interaction.category}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {interaction.method}
-                      </Badge>
-                      <Badge className={`text-xs ${statusInfo.badge}`}>
-                        {statusInfo.text}
-                      </Badge>
-                    </div>
-
-                    {/* Affinity Tags */}
-                    {interaction.affinityTags && interaction.affinityTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {interaction.affinityTags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {tag}
+                        {/* Interaction Details */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <Badge variant="secondary" className="text-xs">
+                            {getCategoryIcon(interaction.category)} {interaction.category}
                           </Badge>
-                        ))}
-                        {interaction.affinityTags.length > 3 && (
                           <Badge variant="outline" className="text-xs">
-                            +{interaction.affinityTags.length - 3} more
+                            {interaction.method}
                           </Badge>
+                          <Badge className={`text-xs ${statusInfo.badge}`}>
+                            {statusInfo.text}
+                          </Badge>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {/* Edit Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Button>
+
+                            {/* Delete Button */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Interaction</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{interaction.prospectName}"? 
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteInteraction.mutate(interaction.id)}>
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+
+                            {/* Submit to BBEC Button */}
+                            {(interaction.isDraft || !interaction.bbecSubmitted) && (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => submitToBBEC.mutate(interaction.id)}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Send className="h-3 w-3 mr-1" />
+                                Submit to BBEC
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="text-xs text-gray-500">
+                            {formatDate(interaction.actualDate)}
+                          </div>
+                        </div>
+
+                        {/* Affinity Tags */}
+                        {interaction.affinityTags && interaction.affinityTags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {interaction.affinityTags.slice(0, 3).map((tag, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                <Tag className="h-3 w-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                            {interaction.affinityTags.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{interaction.affinityTags.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-3 w-3" />
+                            <span>Interaction: {formatDate(interaction.actualDate)}</span>
+                          </div>
+                          <span>Logged: {formatDate(interaction.createdAt)}</span>
+                        </div>
+
+                        {/* 48-hour compliance warning */}
+                        {!interaction.bbecSubmitted && !interaction.isDraft && (
+                          (() => {
+                            const hoursDiff = (new Date().getTime() - new Date(interaction.actualDate).getTime()) / (1000 * 60 * 60);
+                            if (hoursDiff > 48) {
+                              return (
+                                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                                  ⚠️ This interaction is {Math.round(hoursDiff - 48)} hours past the 48-hour SOP deadline
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()
                         )}
                       </div>
-                    )}
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-3 w-3" />
-                        <span>Interaction: {formatDate(interaction.actualDate)}</span>
-                      </div>
-                      <span>Logged: {formatDate(interaction.createdAt)}</span>
                     </div>
-
-                    {/* 48-hour compliance warning */}
-                    {!interaction.bbecSubmitted && !interaction.isDraft && (
-                      (() => {
-                        const hoursDiff = (new Date().getTime() - new Date(interaction.actualDate).getTime()) / (1000 * 60 * 60);
-                        if (hoursDiff > 48) {
-                          return (
-                            <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                              ⚠️ This interaction is {Math.round(hoursDiff - 48)} hours past the 48-hour SOP deadline
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()
-                    )}
                   </CardContent>
                 </Card>
               );
