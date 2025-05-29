@@ -192,12 +192,45 @@ class BBECSOAPClient {
 
   private parseAffinityTagsResponse(soapResponse: string): any[] {
     try {
-      // Basic XML parsing to extract affinity tag data from SOAP response
-      // This would need to be adjusted based on the actual response structure
       const tags: any[] = [];
       
-      // For now, return empty array until we can see the actual response structure
-      // The user will need to provide the correct authentication for this to work
+      // Parse XML response to extract data list rows
+      // Look for <DataListRowSet> or similar structures in the SOAP response
+      const rowSetRegex = /<DataListRowSet[^>]*>([\s\S]*?)<\/DataListRowSet>/i;
+      const rowSetMatch = soapResponse.match(rowSetRegex);
+      
+      if (rowSetMatch) {
+        // Extract individual row data
+        const rowRegex = /<Row[^>]*>([\s\S]*?)<\/Row>/gi;
+        const rows = rowSetMatch[1].match(rowRegex);
+        
+        if (rows) {
+          rows.forEach(row => {
+            // Extract field values from each row
+            const fieldRegex = /<Field[^>]*Id="([^"]*)"[^>]*Value="([^"]*)"[^>]*\/>/gi;
+            let fieldMatch;
+            const rowData: any = {};
+            
+            while ((fieldMatch = fieldRegex.exec(row)) !== null) {
+              const fieldId = fieldMatch[1];
+              const fieldValue = fieldMatch[2];
+              rowData[fieldId] = fieldValue;
+            }
+            
+            // Map to expected affinity tag structure
+            if (rowData.NAME || rowData.DESCRIPTION) {
+              tags.push({
+                id: rowData.ID || tags.length + 1,
+                name: rowData.NAME || rowData.DESCRIPTION || 'Unknown Tag',
+                category: rowData.CATEGORY || rowData.TYPE || 'General',
+                bbecId: rowData.ID || null
+              });
+            }
+          });
+        }
+      }
+      
+      console.log(`Parsed ${tags.length} affinity tags from SOAP response`);
       return tags;
     } catch (error) {
       console.error('Error parsing affinity tags response:', error);
