@@ -17,7 +17,8 @@ import {
   Send,
   Trash2,
   CheckSquare,
-  Square
+  Square,
+  Tag
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -550,6 +551,24 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                       <p className="text-sm text-gray-600 line-clamp-2 mb-2">
                         {interaction.summary}
                       </p>
+                      
+                      {/* Affinity Tags */}
+                      {interaction.affinityTags && interaction.affinityTags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {interaction.affinityTags.slice(0, 3).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              <Tag className="h-3 w-3 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                          {interaction.affinityTags.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{interaction.affinityTags.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Badge variant="secondary" className="text-xs">
