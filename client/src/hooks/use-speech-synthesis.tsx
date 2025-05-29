@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 
 interface UseSpeechSynthesisProps {
   voice?: SpeechSynthesisVoice;
