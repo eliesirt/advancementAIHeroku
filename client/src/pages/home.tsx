@@ -342,7 +342,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                 Tap to start recording your interaction report
               </p>
               <div className="flex justify-center space-x-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowInteractionForm(true)}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Type Instead
                 </Button>
