@@ -356,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tagsToInsert = bbecTags.map(tag => ({
         name: tag.name,
         category: tag.category,
-        bbecId: tag.id
+        bbecId: tag.bbecId
       }));
 
       await storage.updateAffinityTags(tagsToInsert);

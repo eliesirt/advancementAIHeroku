@@ -194,38 +194,30 @@ class BBECSOAPClient {
     try {
       const tags: any[] = [];
       
-      // Parse XML response to extract data list rows
-      // Look for <DataListRowSet> or similar structures in the SOAP response
-      const rowSetRegex = /<DataListRowSet[^>]*>([\s\S]*?)<\/DataListRowSet>/i;
-      const rowSetMatch = soapResponse.match(rowSetRegex);
+      // Parse the Blackbaud SOAP response structure: <r><Values><v>value1</v><v>value2</v>...</Values></r>
+      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
+      let rowMatch;
       
-      if (rowSetMatch) {
-        // Extract individual row data
-        const rowRegex = /<Row[^>]*>([\s\S]*?)<\/Row>/gi;
-        const rows = rowSetMatch[1].match(rowRegex);
+      while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
+        const valuesContent = rowMatch[1];
         
-        if (rows) {
-          rows.forEach(row => {
-            // Extract field values from each row
-            const fieldRegex = /<Field[^>]*Id="([^"]*)"[^>]*Value="([^"]*)"[^>]*\/>/gi;
-            let fieldMatch;
-            const rowData: any = {};
-            
-            while ((fieldMatch = fieldRegex.exec(row)) !== null) {
-              const fieldId = fieldMatch[1];
-              const fieldValue = fieldMatch[2];
-              rowData[fieldId] = fieldValue;
-            }
-            
-            // Map to expected affinity tag structure
-            if (rowData.NAME || rowData.DESCRIPTION) {
-              tags.push({
-                id: rowData.ID || tags.length + 1,
-                name: rowData.NAME || rowData.DESCRIPTION || 'Unknown Tag',
-                category: rowData.CATEGORY || rowData.TYPE || 'General',
-                bbecId: rowData.ID || null
-              });
-            }
+        // Extract all <v> values from the row
+        const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
+        const values: string[] = [];
+        let valueMatch;
+        
+        while ((valueMatch = valueRegex.exec(valuesContent)) !== null) {
+          values.push(valueMatch[1]);
+        }
+        
+        // Based on the structure I can see, the values appear to be:
+        // [0] = ID (GUID), [1] = Name, [2] = Active, [3] = Description, [4] = ?, [5] = LastModified
+        if (values.length >= 2 && values[1]) {
+          tags.push({
+            id: tags.length + 1,
+            name: values[1].replace(/&amp;/g, '&'), // Decode XML entities
+            category: 'General', // Default category since not provided in this data list
+            bbecId: values[0] || null
           });
         }
       }
