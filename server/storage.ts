@@ -257,6 +257,21 @@ export class MemStorage implements IStorage {
       .filter(recording => recording.userId === userId && !recording.processed)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
+
+  // Affinity tag settings methods
+  private affinityTagSettings: AffinityTagSettings | undefined;
+
+  async getAffinityTagSettings(): Promise<AffinityTagSettings | undefined> {
+    return this.affinityTagSettings;
+  }
+
+  async updateAffinityTagSettings(settings: InsertAffinityTagSettings): Promise<void> {
+    this.affinityTagSettings = {
+      id: 1,
+      ...settings,
+      updatedAt: new Date()
+    };
+  }
 }
 
 // Database Storage Implementation

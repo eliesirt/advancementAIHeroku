@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { transcribeAudio, extractInteractionInfo, enhanceInteractionComments } from "./lib/openai";
 import { bbecClient } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
+import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -394,15 +395,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const settings = {
         autoRefresh: Boolean(autoRefresh),
         refreshInterval: refreshInterval || 'daily',
-        lastRefresh: lastRefresh || null,
-        totalTags: totalTags || 0
+        lastRefresh: lastRefresh ? new Date(lastRefresh) : null,
+        totalTags: totalTags || 0,
+        nextRefresh: null
       };
 
       await storage.updateAffinityTagSettings(settings);
       
+      // Update scheduler based on new settings
+      await affinityTagScheduler.updateSchedule(
+        settings.autoRefresh, 
+        settings.refreshInterval as 'hourly' | 'daily' | 'weekly'
+      );
+      
       res.json({ 
         success: true, 
         settings,
+        schedulerStatus: affinityTagScheduler.getScheduleStatus(),
         message: "Affinity tag settings updated successfully" 
       });
     } catch (error) {
