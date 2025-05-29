@@ -133,9 +133,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create interaction from processed voice/text
   app.post("/api/interactions", async (req, res) => {
     try {
-      const interactionData = insertInteractionSchema.parse(req.body);
-      const interaction = await storage.createInteraction(interactionData);
-      res.json(interaction);
+      // For drafts, make most fields optional except userId
+      const isDraft = req.body.isDraft === true;
+      
+      if (isDraft) {
+        // Minimal validation for drafts
+        const draftData = {
+          userId: req.body.userId || 1, // Default to user 1
+          prospectName: req.body.prospectName || 'Draft Interaction',
+          summary: req.body.summary || 'Draft summary',
+          category: req.body.category || 'General',
+          subcategory: req.body.subcategory || 'Other',
+          contactLevel: req.body.contactLevel || 'Initial Contact',
+          method: req.body.method || 'Other',
+          status: req.body.status || 'Draft',
+          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
+          comments: req.body.comments || null,
+          transcript: req.body.transcript || null,
+          affinityTags: req.body.affinityTags || [],
+          extractedInfo: req.body.extractedInfo || null,
+          isDraft: true,
+          bbecSubmitted: false
+        };
+        const interaction = await storage.createInteraction(draftData);
+        res.json(interaction);
+      } else {
+        // Full validation for completed interactions
+        const interactionData = insertInteractionSchema.parse(req.body);
+        const interaction = await storage.createInteraction(interactionData);
+        res.json(interaction);
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
