@@ -134,8 +134,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update recording with transcript
       await storage.updateVoiceRecording(recordingId, {
         transcript,
-        processed: true
+        processed: true,
+        interactionId: recording.interactionId
       });
+
+      // If this recording is linked to an interaction, update it with the AI-processed data
+      if (recording.interactionId) {
+        await storage.updateInteraction(recording.interactionId, {
+          transcript,
+          extractedInfo: JSON.stringify(extractedInfo),
+          summary: conciseSummary,
+          prospectName: extractedInfo.prospectName || 'Voice Recording',
+          category: extractedInfo.category || 'General',
+          subcategory: extractedInfo.subcategory || 'Other',
+          comments: `Transcribed: ${transcript.slice(0, 200)}${transcript.length > 200 ? '...' : ''}`
+        });
+      }
 
       res.json({
         transcript,

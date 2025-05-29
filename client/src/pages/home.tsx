@@ -73,10 +73,36 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Create voice recording mutation
   const createVoiceRecording = useMutation({
     mutationFn: async (data: { audioData: string; duration: number; transcript: string }) => {
-      const response = await apiRequest("POST", "/api/voice-recordings", data);
+      // First create a draft interaction
+      const draftResponse = await apiRequest("POST", "/api/interactions/draft", {
+        userId: 1,
+        prospectName: 'Voice Recording',
+        summary: 'Voice recording captured',
+        category: 'General',
+        subcategory: 'Other',
+        contactLevel: 'In Person',
+        method: 'Voice Recording',
+        status: 'Draft',
+        actualDate: new Date().toISOString().split('T')[0],
+        comments: 'Audio recorded, awaiting transcription',
+        transcript: data.transcript,
+        isDraft: true,
+        bbecSubmitted: false
+      });
+      const draft = await draftResponse.json();
+      
+      // Then create voice recording linked to the draft
+      const response = await apiRequest("POST", "/api/voice-recordings", {
+        ...data,
+        interactionId: draft.id
+      });
       return response.json();
     },
     onSuccess: (recording) => {
+      // Refresh data to show the new draft
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      
       // Process the recording
       processVoiceRecording.mutate(recording.id);
     },
@@ -210,26 +236,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
     
-    // Save voice recording as draft immediately
-    const draftData = {
-      userId: 1,
-      prospectName: 'Voice Recording',
-      summary: transcript || 'Voice recording captured',
-      category: 'General',
-      subcategory: 'Other',
-      contactLevel: 'In Person',
-      method: 'Voice Recording',
-      status: 'Draft',
-      actualDate: new Date().toISOString().split('T')[0],
-      comments: transcript || 'Audio recorded, awaiting transcription',
-      transcript: transcript,
-      isDraft: true,
-      bbecSubmitted: false
-    };
-    
-    saveDraft.mutate(draftData);
-    
-    // Also save the voice recording for potential processing later
+    // First save voice recording
     createVoiceRecording.mutate({
       audioData,
       transcript,
