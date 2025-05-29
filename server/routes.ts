@@ -236,9 +236,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Interaction already submitted to BBEC" });
       }
 
-      // Submit to BBEC via SOAP API
+      // Submit to BBEC via SOAP API using the proper workflow
       const bbecInteractionId = await bbecClient.submitInteraction({
-        constituentId: "CONST001", // This would come from constituent search
+        constituentId: "", // Will be determined by searchConstituent
+        prospectName: interaction.prospectName || "Unknown",
         contactLevel: interaction.contactLevel,
         method: interaction.method,
         summary: interaction.summary,
@@ -446,6 +447,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(metadata);
     } catch (error) {
       res.status(500).json({ message: "Failed to get form metadata", error: (error as Error).message });
+    }
+  });
+
+  // Search constituents in BBEC
+  app.get("/api/bbec/constituents/search", async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ error: 'Search query required' });
+      }
+      
+      const constituents = await bbecClient.searchConstituent(q);
+      res.json(constituents);
+    } catch (error) {
+      console.error('Constituent search error:', error);
+      res.status(500).json({ error: 'Failed to search constituents' });
     }
   });
 

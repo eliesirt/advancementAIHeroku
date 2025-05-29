@@ -10,6 +10,7 @@ export interface BBECInteractionField {
 
 export interface BBECInteractionSubmission {
   constituentId: string;
+  prospectName: string;
   contactLevel: string;
   method: string;
   summary: string;
