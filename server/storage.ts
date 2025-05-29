@@ -3,6 +3,7 @@ import {
   interactions, 
   affinityTags, 
   voiceRecordings,
+  affinityTagSettings,
   type User, 
   type InsertUser,
   type Interaction,
@@ -10,7 +11,9 @@ import {
   type AffinityTag,
   type InsertAffinityTag,
   type VoiceRecording,
-  type InsertVoiceRecording
+  type InsertVoiceRecording,
+  type AffinityTagSettings,
+  type InsertAffinityTagSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -35,6 +38,10 @@ export interface IStorage {
   getAffinityTags(): Promise<AffinityTag[]>;
   createAffinityTag(tag: InsertAffinityTag): Promise<AffinityTag>;
   updateAffinityTags(tags: InsertAffinityTag[]): Promise<void>;
+
+  // Affinity tag settings methods
+  getAffinityTagSettings(): Promise<AffinityTagSettings | undefined>;
+  updateAffinityTagSettings(settings: InsertAffinityTagSettings): Promise<void>;
 
   // Voice recording methods
   getVoiceRecording(id: number): Promise<VoiceRecording | undefined>;
@@ -382,6 +389,32 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(voiceRecordings)
       .where(eq(voiceRecordings.userId, userId))
       .orderBy(desc(voiceRecordings.createdAt));
+  }
+
+  async getAffinityTagSettings(): Promise<AffinityTagSettings | undefined> {
+    const [settings] = await db.select().from(affinityTagSettings).limit(1);
+    return settings || undefined;
+  }
+
+  async updateAffinityTagSettings(settingsData: InsertAffinityTagSettings): Promise<void> {
+    const existingSettings = await this.getAffinityTagSettings();
+    
+    if (existingSettings) {
+      await db
+        .update(affinityTagSettings)
+        .set({
+          ...settingsData,
+          updatedAt: new Date()
+        })
+        .where(eq(affinityTagSettings.id, existingSettings.id));
+    } else {
+      await db
+        .insert(affinityTagSettings)
+        .values({
+          ...settingsData,
+          updatedAt: new Date()
+        });
+    }
   }
 }
 

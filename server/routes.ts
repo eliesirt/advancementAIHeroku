@@ -344,8 +344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sync affinity tags from BBEC
-  app.post("/api/affinity-tags/sync", async (req, res) => {
+  // Refresh affinity tags from BBEC (manual trigger)
+  app.post("/api/affinity-tags/refresh", async (req, res) => {
     try {
       const bbecTags = await bbecClient.getAffinityTags();
       
@@ -360,10 +360,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         synced: tagsToInsert.length,
-        message: `Synced ${tagsToInsert.length} affinity tags from BBEC` 
+        total: tagsToInsert.length,
+        lastRefresh: new Date().toISOString(),
+        message: `Refreshed ${tagsToInsert.length} affinity tags from BBEC` 
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to sync affinity tags", error: (error as Error).message });
+      res.status(500).json({ message: "Failed to refresh affinity tags", error: (error as Error).message });
+    }
+  });
+
+  // Get affinity tags info (count, last refresh, etc.)
+  app.get("/api/affinity-tags/info", async (req, res) => {
+    try {
+      const tags = await storage.getAffinityTags();
+      const settings = await storage.getAffinityTagSettings();
+      
+      res.json({
+        total: tags.length,
+        lastRefresh: settings?.lastRefresh,
+        autoRefresh: settings?.autoRefresh || false,
+        refreshInterval: settings?.refreshInterval || 'daily'
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get affinity tags info", error: (error as Error).message });
+    }
+  });
+
+  // Update affinity tag settings
+  app.post("/api/affinity-tags/settings", async (req, res) => {
+    try {
+      const { autoRefresh, refreshInterval, lastRefresh, totalTags } = req.body;
+      
+      const settings = {
+        autoRefresh: Boolean(autoRefresh),
+        refreshInterval: refreshInterval || 'daily',
+        lastRefresh: lastRefresh || null,
+        totalTags: totalTags || 0
+      };
+
+      await storage.updateAffinityTagSettings(settings);
+      
+      res.json({ 
+        success: true, 
+        settings,
+        message: "Affinity tag settings updated successfully" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update affinity tag settings", error: (error as Error).message });
     }
   });
 

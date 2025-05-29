@@ -52,6 +52,16 @@ export const voiceRecordings = pgTable("voice_recordings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const affinityTagSettings = pgTable("affinity_tag_settings", {
+  id: serial("id").primaryKey(),
+  autoRefresh: boolean("auto_refresh").default(false),
+  refreshInterval: text("refresh_interval").default("daily"), // 'hourly', 'daily', 'weekly'
+  lastRefresh: timestamp("last_refresh"),
+  totalTags: integer("total_tags").default(0),
+  nextRefresh: timestamp("next_refresh"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -74,6 +84,11 @@ export const insertVoiceRecordingSchema = createInsertSchema(voiceRecordings).om
   createdAt: true,
 });
 
+export const insertAffinityTagSettingsSchema = createInsertSchema(affinityTagSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Interaction = typeof interactions.$inferSelect;
@@ -82,3 +97,5 @@ export type AffinityTag = typeof affinityTags.$inferSelect;
 export type InsertAffinityTag = z.infer<typeof insertAffinityTagSchema>;
 export type VoiceRecording = typeof voiceRecordings.$inferSelect;
 export type InsertVoiceRecording = z.infer<typeof insertVoiceRecordingSchema>;
+export type AffinityTagSettings = typeof affinityTagSettings.$inferSelect;
+export type InsertAffinityTagSettings = z.infer<typeof insertAffinityTagSettingsSchema>;
