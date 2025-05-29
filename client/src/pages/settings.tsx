@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -17,7 +18,9 @@ import {
   AlertCircle,
   Volume2,
   Shield,
-  Smartphone
+  Smartphone,
+  Clock,
+  Tags
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -46,6 +49,13 @@ interface BBECSettings {
   deadline48Hours: boolean;
 }
 
+interface AffinityTagSettings {
+  autoRefresh: boolean;
+  refreshInterval: 'hourly' | 'daily' | 'weekly';
+  lastRefresh?: string;
+  totalTags?: number;
+}
+
 export default function SettingsPage() {
   const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>({
     enabled: true,
@@ -70,6 +80,13 @@ export default function SettingsPage() {
     deadline48Hours: true
   });
 
+  const [affinityTagSettings, setAffinityTagSettings] = useState<AffinityTagSettings>({
+    autoRefresh: false,
+    refreshInterval: 'daily',
+    lastRefresh: undefined,
+    totalTags: 0
+  });
+
   const { toast } = useToast();
 
   // Fetch user data
@@ -83,23 +100,56 @@ export default function SettingsPage() {
     retry: false,
   });
 
-  // Sync affinity tags mutation
-  const syncAffinityTags = useMutation({
+  // Fetch affinity tags info
+  const { data: affinityTagsInfo, refetch: refetchAffinityTags } = useQuery({
+    queryKey: ["/api/affinity-tags/info"],
+    retry: false,
+  });
+
+  // Manual refresh affinity tags mutation
+  const refreshAffinityTags = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/affinity-tags/sync");
+      const response = await apiRequest("POST", "/api/affinity-tags/refresh");
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Sync Complete",
-        description: `Successfully synced ${data.synced} affinity tags from BBEC`,
+        title: "Refresh Complete",
+        description: `Successfully refreshed ${data.synced} affinity tags from BBEC`,
       });
+      setAffinityTagSettings(prev => ({
+        ...prev,
+        lastRefresh: new Date().toISOString(),
+        totalTags: data.total
+      }));
       queryClient.invalidateQueries({ queryKey: ["/api/affinity-tags"] });
+      refetchAffinityTags();
     },
     onError: () => {
       toast({
-        title: "Sync Failed",
-        description: "Unable to sync affinity tags from BBEC. Please check your connection.",
+        title: "Refresh Failed",
+        description: "Unable to refresh affinity tags from BBEC. Please check your connection.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update auto-refresh settings mutation
+  const updateAffinitySettings = useMutation({
+    mutationFn: async (settings: AffinityTagSettings) => {
+      const response = await apiRequest("POST", "/api/affinity-tags/settings", settings);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings Updated",
+        description: "Affinity tag refresh settings have been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Unable to update affinity tag settings.",
         variant: "destructive",
       });
     },
@@ -115,6 +165,24 @@ export default function SettingsPage() {
 
   const updateBBECSetting = (key: keyof BBECSettings, value: any) => {
     setBbecSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateAffinityTagSetting = (key: keyof AffinityTagSettings, value: any) => {
+    const newSettings = { ...affinityTagSettings, [key]: value };
+    setAffinityTagSettings(newSettings);
+    
+    // Auto-save settings when changed
+    updateAffinitySettings.mutate(newSettings);
+  };
+
+  const handleManualRefresh = () => {
+    refreshAffinityTags.mutate();
+  };
+
+  const formatLastRefresh = (lastRefresh?: string) => {
+    if (!lastRefresh) return "Never";
+    const date = new Date(lastRefresh);
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
   const testVoiceSynthesis = () => {
@@ -403,25 +471,104 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between mb-4">
+            {/* Affinity Tags Section */}
+            <div className="pt-4 border-t space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <Label>Affinity Tags</Label>
-                  <p className="text-sm text-gray-600">Sync latest affinity tags from BBEC</p>
+                  <Label className="flex items-center space-x-2">
+                    <Tags className="h-4 w-4" />
+                    <span>Affinity Tags Management</span>
+                  </Label>
+                  <p className="text-sm text-gray-600 mt-1">Manage AI analysis tags from BBEC</p>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => syncAffinityTags.mutate()}
-                  disabled={syncAffinityTags.isPending}
+                  onClick={handleManualRefresh}
+                  disabled={refreshAffinityTags.isPending}
                 >
-                  {syncAffinityTags.isPending ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  {refreshAffinityTags.isPending ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Refreshing...
+                    </>
                   ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Now
+                    </>
                   )}
-                  Sync Now
                 </Button>
+              </div>
+
+              {/* Affinity Tags Status */}
+              <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Total Tags:</span>
+                  <Badge variant="secondary">{affinityTagsInfo?.total || affinityTagSettings.totalTags || 0}</Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Last Refresh:</span>
+                  <span className="text-gray-900">
+                    {formatLastRefresh(affinityTagsInfo?.lastRefresh || affinityTagSettings.lastRefresh)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Auto-refresh Settings */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="auto-refresh">Automatic Refresh</Label>
+                    <p className="text-sm text-gray-600">Enable scheduled affinity tag updates</p>
+                  </div>
+                  <Switch
+                    id="auto-refresh"
+                    checked={affinityTagSettings.autoRefresh}
+                    onCheckedChange={(checked) => updateAffinityTagSetting('autoRefresh', checked)}
+                  />
+                </div>
+
+                {affinityTagSettings.autoRefresh && (
+                  <div className="pl-4 border-l-2 border-gray-200">
+                    <Label htmlFor="refresh-interval" className="text-sm font-medium">
+                      Refresh Interval
+                    </Label>
+                    <Select
+                      value={affinityTagSettings.refreshInterval}
+                      onValueChange={(value: 'hourly' | 'daily' | 'weekly') => 
+                        updateAffinityTagSetting('refreshInterval', value)
+                      }
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hourly">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Every Hour</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="daily">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Daily</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="weekly">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Weekly</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Next refresh: {affinityTagSettings.autoRefresh ? 'Scheduled' : 'Not scheduled'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
