@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,6 +108,19 @@ export default function SettingsPage() {
     queryKey: ["/api/affinity-tags/info"],
     retry: false,
   });
+
+  // Load settings when affinityTagsInfo is available
+  useEffect(() => {
+    if (affinityTagsInfo) {
+      setAffinityTagSettings(prev => ({
+        ...prev,
+        autoRefresh: affinityTagsInfo.autoRefresh || false,
+        refreshInterval: affinityTagsInfo.refreshInterval || 'daily',
+        lastRefresh: affinityTagsInfo.lastRefresh,
+        totalTags: affinityTagsInfo.total || 0
+      }));
+    }
+  }, [affinityTagsInfo]);
 
   // Fetch affinity tags list
   const { data: affinityTags = [] } = useQuery({
