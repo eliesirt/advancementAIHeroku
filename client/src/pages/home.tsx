@@ -245,29 +245,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     saveDraft.mutate(data);
   };
 
-  const submitToBBEC = useMutation({
-    mutationFn: async (interactionId: number) => {
-      return await apiRequest("POST", `/api/interactions/${interactionId}/submit-to-bbec`, {});
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Interaction submitted to BBEC successfully.",
-      });
-      
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-    },
-    onError: (error) => {
-      console.error("BBEC submission error:", error);
-      toast({
-        title: "Submission Error",
-        description: "Failed to submit to BBEC. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const formatTimeAgo = (date: string | Date) => {
     const now = new Date();
@@ -474,7 +452,24 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                             <Button
                               variant="default"
                               size="sm"
-                              onClick={() => submitToBBEC.mutate(interaction.id)}
+                              onClick={() => {
+                                // Use the existing submitToBBEC mutation
+                                apiRequest("POST", `/api/interactions/${interaction.id}/submit-bbec`).then(() => {
+                                  toast({
+                                    title: "Success",
+                                    description: "Interaction submitted to BBEC successfully.",
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+                                  queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+                                }).catch((error) => {
+                                  console.error("BBEC submission error:", error);
+                                  toast({
+                                    title: "Submission Error", 
+                                    description: "Failed to submit to BBEC. Please try again.",
+                                    variant: "destructive",
+                                  });
+                                });
+                              }}
                               className="h-7 px-2 text-xs"
                             >
                               <Send className="h-3 w-3 mr-1" />
