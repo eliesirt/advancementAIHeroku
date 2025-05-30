@@ -132,6 +132,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract interaction information
       const extractedInfo = await extractInteractionInfo(transcript);
       
+      // Match interests to affinity tags
+      const affinityTags = await storage.getAffinityTags();
+      const affinityMatcher = await createAffinityMatcher(affinityTags);
+      
+      const allInterests = [
+        ...extractedInfo.professionalInterests,
+        ...extractedInfo.personalInterests,
+        ...extractedInfo.philanthropicPriorities
+      ];
+      
+      const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+      
       // Update recording with transcript
       await storage.updateVoiceRecording(recordingId, {
         transcript,
@@ -148,6 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           prospectName: extractedInfo.prospectName || 'Voice Recording',
           category: extractedInfo.category || 'General',
           subcategory: extractedInfo.subcategory || 'Other',
+          affinityTags: suggestedAffinityTags,
           comments: `Transcribed: ${transcript.slice(0, 200)}${transcript.length > 200 ? '...' : ''}`
         });
       }
