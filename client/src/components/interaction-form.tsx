@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, AlertCircle, CheckCircle, User, Calendar, Tag } from 'lucide-react';
 import { validateSOPCompliance, type SOPValidationResult } from '@/lib/sop-validation';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   prospectName: z.string().min(1, 'Prospect name is required'),
@@ -64,6 +66,7 @@ export function InteractionForm({
 }: InteractionFormProps) {
   const [selectedAffinityTags, setSelectedAffinityTags] = useState<string[]>([]);
   const [validationResult, setValidationResult] = useState<SOPValidationResult>({ isValid: true, errors: [], warnings: [] });
+  const { toast } = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -451,7 +454,38 @@ export function InteractionForm({
                   name="comments"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Detailed Comments</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Detailed Comments</FormLabel>
+                        {existingInteraction && existingInteraction.transcript && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const response = await apiRequest("POST", `/api/interactions/${existingInteraction.id}/regenerate-synopsis`);
+                                const data = await response.json();
+                                if (data.success) {
+                                  form.setValue("comments", data.comments);
+                                  toast({
+                                    title: "Synopsis Generated",
+                                    description: "AI synopsis has been added to the comments.",
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to generate synopsis. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            className="text-xs"
+                          >
+                            Generate AI Synopsis
+                          </Button>
+                        )}
+                      </div>
                       <FormControl>
                         <Textarea 
                           {...field} 

@@ -482,6 +482,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Regenerate synopsis for existing interaction
+  app.post("/api/interactions/:id/regenerate-synopsis", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const interaction = await storage.getInteraction(interactionId);
+      
+      if (!interaction) {
+        return res.status(404).json({ message: "Interaction not found" });
+      }
+
+      if (!interaction.transcript) {
+        return res.status(400).json({ message: "No transcript available for synopsis generation" });
+      }
+
+      // Use stored extracted info or create basic structure
+      const extractedInfo = interaction.extractedInfo || {
+        prospectName: interaction.prospectName,
+        summary: interaction.summary,
+        category: interaction.category,
+        subcategory: interaction.subcategory,
+        professionalInterests: [],
+        personalInterests: [],
+        philanthropicPriorities: [],
+        keyPoints: [],
+        suggestedAffinityTags: interaction.affinityTags || []
+      } as ExtractedInteractionInfo;
+
+      // Generate enhanced comments with synopsis
+      const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
+      
+      // Update interaction with enhanced comments
+      await storage.updateInteraction(interactionId, {
+        comments: enhancedComments
+      });
+
+      res.json({ 
+        success: true,
+        comments: enhancedComments,
+        message: "Synopsis generated successfully" 
+      });
+    } catch (error) {
+      console.error("Synopsis generation error:", error);
+      res.status(500).json({ 
+        message: "Failed to generate synopsis", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
