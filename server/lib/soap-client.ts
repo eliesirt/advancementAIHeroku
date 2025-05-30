@@ -35,9 +35,9 @@ class BBECSOAPClient {
     this.apiUrl = process.env.BLACKBAUD_API_URL || "https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx";
     this.wsdlUrl = this.apiUrl + "?WSDL";
     // Use the Authorization header from environment variable
-    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "Basic QkJFQ0FQSTMwNjU2ZDp1c2JRQkQ1S05tYWNSZWdx";
-    this.username = process.env.BLACKBAUD_USERNAME || "BBECAPI30656d";
-    this.password = process.env.BLACKBAUD_PASSWORD || "usbQBD5KNmacRegq";
+    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    this.username = process.env.BLACKBAUD_USERNAME || "";
+    this.password = process.env.BLACKBAUD_PASSWORD || "";
   }
 
   async initialize(): Promise<void> {
