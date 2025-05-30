@@ -50,6 +50,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [sortBy, setSortBy] = useState("date");
   const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
+  const [selectedInteractionObjects, setSelectedInteractionObjects] = useState<Interaction[]>([]);
   
   // Edit form state
   const [showInteractionForm, setShowInteractionForm] = useState(false);
@@ -392,6 +393,21 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                   {selectedInteractions.length} interaction(s) selected
                 </span>
                 <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      const selectedInteractionObjects = interactions.filter(i => 
+                        selectedInteractions.includes(i.id)
+                      );
+                      // This will trigger the BulkProcessor dialog
+                      setSelectedInteractionObjects(selectedInteractionObjects);
+                    }}
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Process Selected
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm">
@@ -634,7 +650,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
       {/* Edit Interaction Form */}
       <InteractionForm
         isVisible={showInteractionForm}
-        extractedInfo={extractedInfo}
+        extractedInfo={extractedInfo || undefined}
         transcript={currentTranscript}
         enhancedComments={enhancedComments}
         onSubmit={(data) => updateInteraction.mutate(data)}
@@ -647,6 +663,15 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
           setEnhancedComments("");
         }}
         isSubmitting={updateInteraction.isPending}
+      />
+
+      {/* Bulk Processor */}
+      <BulkProcessor
+        selectedInteractions={selectedInteractionObjects}
+        onClearSelection={() => {
+          setSelectedInteractions([]);
+          setSelectedInteractionObjects([]);
+        }}
       />
     </div>
   );

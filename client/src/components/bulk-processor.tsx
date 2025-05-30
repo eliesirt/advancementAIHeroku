@@ -38,12 +38,10 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
 
   const bulkProcessMutation = useMutation({
     mutationFn: async (interactionIds: number[]) => {
-      const response = await apiRequest("/api/interactions/bulk-process", {
-        method: "POST",
-        body: JSON.stringify({ interactionIds }),
-        headers: { "Content-Type": "application/json" }
+      const response = await apiRequest("POST", "/api/interactions/bulk-process", {
+        interactionIds
       });
-      return response.json() as Promise<BulkProcessResponse>;
+      return response as unknown as BulkProcessResponse;
     },
     onSuccess: (data) => {
       setResults(data);
