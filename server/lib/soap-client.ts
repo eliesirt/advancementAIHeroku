@@ -271,7 +271,7 @@ class BBECSOAPClient {
       </FilterFields>
       <SortFields/>
       <GroupFilterFields/>
-      <ClientAppInfo REDatabaseToUse="${this.username}"/>
+      <ClientAppInfo REDatabaseToUse="30656d"/>
     </AdHocQueryProcessRequest>
             </soap:Body>
         </soap:Envelope>`;
