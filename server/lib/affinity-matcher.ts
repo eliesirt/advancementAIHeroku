@@ -26,9 +26,9 @@ export class AffinityMatcher {
     philanthropicPriorities: string[]
   ): MatchedAffinityTag[] {
     const allInterests = [
-      ...professionalInterests,
-      ...personalInterests,
-      ...philanthropicPriorities
+      ...(Array.isArray(professionalInterests) ? professionalInterests : []),
+      ...(Array.isArray(personalInterests) ? personalInterests : []),
+      ...(Array.isArray(philanthropicPriorities) ? philanthropicPriorities : [])
     ];
 
     const matches: MatchedAffinityTag[] = [];
