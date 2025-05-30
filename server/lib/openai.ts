@@ -163,49 +163,12 @@ export async function enhanceInteractionComments(
   extractedInfo: ExtractedInteractionInfo
 ): Promise<string> {
   try {
-    // Generate both synopsis and summary
+    // Generate comprehensive synopsis
     const synopsis = await generateInteractionSynopsis(transcript, extractedInfo);
     
-    // Generate a single paragraph summary
-    const summaryPrompt = `
-Create a single paragraph summary (2-3 sentences) of this fundraising interaction transcript that captures the key outcomes, commitments, and next steps in a professional tone suitable for a CRM system.
-
-Transcript: ${transcript}
-
-Key Information:
-- Summary: ${extractedInfo.summary}
-- Category: ${extractedInfo.category}
-- Professional Interests: ${extractedInfo.professionalInterests.join(', ')}
-- Personal Interests: ${extractedInfo.personalInterests.join(', ')}
-- Philanthropic Priorities: ${extractedInfo.philanthropicPriorities.join(', ')}
-- Key Points: ${extractedInfo.keyPoints.join(', ')}
-
-Provide only the summary paragraph, no additional formatting.`;
-
-    const summaryResponse = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional fundraising documentation assistant. Create concise, professional summaries for CRM interaction records."
-        },
-        {
-          role: "user",
-          content: summaryPrompt
-        }
-      ],
-      max_tokens: 200,
-      temperature: 0.3
-    });
-
-    const summary = summaryResponse.choices[0].message.content?.trim() || "Interaction summary not available.";
-    
-    // Format the final comments with synopsis, summary, and transcript
+    // Format the final comments with synopsis and transcript only
     const formattedComments = `ADVANCEMENT OFFICE SYNOPSIS:
 ${synopsis}
-
-SUMMARY:
-${summary}
 
 TRANSCRIPT:
 ${transcript}`;
@@ -216,9 +179,6 @@ ${transcript}`;
     // Fallback format if AI processing fails
     return `ADVANCEMENT OFFICE SYNOPSIS:
 Synopsis could not be generated due to processing error.
-
-SUMMARY:
-Voice recording captured during interaction.
 
 TRANSCRIPT:
 ${transcript}`;
