@@ -172,6 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conciseSummary
       });
     } catch (error) {
+      console.error("Voice processing error details:", error);
       res.status(500).json({ message: "Failed to process voice recording", error: (error as Error).message });
     }
   });
