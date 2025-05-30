@@ -649,14 +649,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(r => r.success)
         .reduce((total, r) => total + (r.affinityTagsMatched || 0), 0);
 
-      res.json({
+      const response = {
         success: true,
         processed: results.length,
         successful: successCount,
         failed: results.length - successCount,
         totalAffinityTagsMatched: totalTagsMatched,
         results
-      });
+      };
+      
+      console.log("Bulk processing response:", JSON.stringify(response, null, 2));
+      res.json(response);
 
     } catch (error) {
       console.error("Bulk processing error:", error);
