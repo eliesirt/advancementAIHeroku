@@ -489,12 +489,25 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Based on typical search results structure: [0] = ID, [1] = Name, [2] = LookupID
-        if (values.length >= 2 && values[1]) {
+        // Based on the constituent search query structure, the fields are:
+        // [0] = uid (LOOKUPID), [1] = name (NAME), [2] = c (capacitycode), [3] = i (inclinationcode),
+        // [4] = sch_yr (VALUE), [5] = job_title (JobTitle), [6] = company (BusinessName),
+        // [7] = phone (PrimaryNumber), [8] = email (PrimaryEmail), [9] = first_name (FIRSTNAME),
+        // [10] = last_name (KEYNAME), [11] = guid (ID), [12] = QUERYRECID
+        if (values.length >= 11 && values[1]) {
           constituents.push({
-            id: values[0] || null,
-            name: values[1].replace(/&amp;/g, '&'),
-            lookupId: values[2] || null
+            uid: values[0] || '',
+            name: values[1] ? values[1].replace(/&amp;/g, '&') : '',
+            c: values[2] || '',
+            i: values[3] || '',
+            sch_yr: values[4] || '',
+            job_title: values[5] || '',
+            company: values[6] || '',
+            phone: values[7] || '',
+            email: values[8] || '',
+            first_name: values[9] || '',
+            last_name: values[10] || '',
+            guid: values[11] || ''
           });
         }
       }
