@@ -685,6 +685,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search user by BUID
+  app.get("/api/users/search/:buid", async (req, res) => {
+    try {
+      const { buid } = req.params;
+      
+      if (!buid) {
+        return res.status(400).json({ message: "BUID is required" });
+      }
+
+      const { bbecClient } = await import("./lib/soap-client");
+      await bbecClient.initialize();
+      
+      const user = await bbecClient.searchUserByBUID(buid);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error("Error searching user by BUID:", error);
+      res.status(500).json({ 
+        message: "Failed to search user", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
+  // Update user profile
+  app.patch("/api/user/profile", async (req, res) => {
+    try {
+      const { firstName, lastName, email, buid } = req.body;
+      const userId = 1; // For now, using default user
+      
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        email,
+        buid
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ 
+        message: "Failed to update user profile", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
