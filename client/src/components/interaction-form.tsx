@@ -96,7 +96,7 @@ export function InteractionForm({
         method: existingInteraction.method || '',
         status: existingInteraction.status || 'Complete',
         actualDate: new Date(existingInteraction.actualDate).toISOString().slice(0, 16),
-        comments: existingInteraction.transcript || existingInteraction.comments || '',
+        comments: existingInteraction.comments || existingInteraction.transcript || '',
       });
       setSelectedAffinityTags(existingInteraction.affinityTags || []);
     } else if (extractedInfo) {
