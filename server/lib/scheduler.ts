@@ -72,6 +72,9 @@ class AffinityTagScheduler {
     try {
       console.log('Starting scheduled affinity tag refresh...');
       
+      // Clear existing affinity tags before refreshing (same as manual refresh)
+      await storage.clearAffinityTags();
+      
       const bbecTags = await bbecClient.getAffinityTags();
       
       const tagsToInsert = bbecTags.map(tag => ({
