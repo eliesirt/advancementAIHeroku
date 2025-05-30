@@ -183,6 +183,40 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     },
   });
 
+  // Update interaction mutation
+  const updateInteraction = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/interactions/${id}`, data);
+      return response.json();
+    },
+    onSuccess: (interaction) => {
+      if (!interaction.isDraft) {
+        // Submit to BBEC if not a draft
+        submitToBBEC.mutate(interaction.id);
+      } else {
+        // If it's a draft, just show success and refresh
+        toast({
+          title: "Draft Saved",
+          description: "Interaction saved as draft successfully.",
+        });
+        setShowInteractionForm(false);
+        setEditingInteraction(null);
+        setExtractedInfo(null);
+        setCurrentTranscript("");
+        setEnhancedComments("");
+        queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Error",
+        description: "Failed to update interaction. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Submit to BBEC mutation
   const submitToBBEC = useMutation({
     mutationFn: async (interactionId: number) => {
@@ -304,11 +338,26 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   };
 
   const handleInteractionSubmit = (data: any) => {
-    createInteraction.mutate(data);
+    if (editingInteraction) {
+      // Update existing interaction
+      updateInteraction.mutate({ id: editingInteraction.id, data });
+    } else {
+      // Create new interaction
+      createInteraction.mutate(data);
+    }
   };
 
   const handleSaveDraft = (data: any) => {
-    saveDraft.mutate(data);
+    if (editingInteraction) {
+      // Update existing interaction as draft
+      updateInteraction.mutate({ 
+        id: editingInteraction.id, 
+        data: { ...data, isDraft: true }
+      });
+    } else {
+      // Create new draft
+      saveDraft.mutate(data);
+    }
   };
 
   // Selection handlers
@@ -593,20 +642,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                // Pre-populate the form with the draft data
-                                setExtractedInfo({
-                                  prospectName: interaction.prospectName,
-                                  summary: interaction.summary,
-                                  category: interaction.category,
-                                  subcategory: interaction.subcategory,
-                                  professionalInterests: [],
-                                  personalInterests: [],
-                                  philanthropicPriorities: [],
-                                  keyPoints: [],
-                                  suggestedAffinityTags: []
-                                });
-                                setCurrentTranscript(interaction.transcript || "");
-                                setEnhancedComments(interaction.comments || "");
+                                setEditingInteraction(interaction);
+                                setExtractedInfo(null);
+                                setCurrentTranscript("");
+                                setEnhancedComments("");
                                 setShowInteractionForm(true);
                               }}
                               className="h-7 px-2 text-xs"
@@ -716,12 +755,19 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       <InteractionForm
         isVisible={showInteractionForm}
         extractedInfo={extractedInfo}
+        existingInteraction={editingInteraction}
         transcript={currentTranscript}
         enhancedComments={enhancedComments}
         onSubmit={handleInteractionSubmit}
         onSaveDraft={handleSaveDraft}
-        onClose={() => setShowInteractionForm(false)}
-        isSubmitting={createInteraction.isPending || submitToBBEC.isPending}
+        onClose={() => {
+          setShowInteractionForm(false);
+          setEditingInteraction(null);
+          setExtractedInfo(null);
+          setCurrentTranscript("");
+          setEnhancedComments("");
+        }}
+        isSubmitting={createInteraction.isPending || updateInteraction.isPending || submitToBBEC.isPending}
       />
     </div>
   );
