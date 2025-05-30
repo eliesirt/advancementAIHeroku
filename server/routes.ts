@@ -157,11 +157,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate enhanced comments with full synopsis and transcript
         const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo);
         
+        // Parse first and last name from prospect name
+        const parseProspectName = (fullName: string) => {
+          if (!fullName || fullName.trim().length === 0) return { firstName: '', lastName: '' };
+          
+          const nameParts = fullName.trim().split(/\s+/);
+          if (nameParts.length === 1) {
+            return { firstName: nameParts[0], lastName: '' };
+          } else if (nameParts.length === 2) {
+            return { firstName: nameParts[0], lastName: nameParts[1] };
+          } else {
+            // For names with more than 2 parts, assume first word is first name, rest is last name
+            return { 
+              firstName: nameParts[0], 
+              lastName: nameParts.slice(1).join(' ') 
+            };
+          }
+        };
+
+        const prospectName = extractedInfo.prospectName || 'Voice Recording';
+        const { firstName, lastName } = parseProspectName(prospectName);
+        
         await storage.updateInteraction(recording.interactionId, {
           transcript,
           extractedInfo: JSON.stringify(extractedInfo),
           summary: conciseSummary,
-          prospectName: extractedInfo.prospectName || 'Voice Recording',
+          prospectName,
+          firstName,
+          lastName,
           category: extractedInfo.category || 'General',
           subcategory: extractedInfo.subcategory || 'Other',
           affinityTags: suggestedAffinityTags,

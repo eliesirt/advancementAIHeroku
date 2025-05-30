@@ -108,11 +108,39 @@ export function InteractionForm({
   // Pre-populate form with extracted information or existing interaction
   useEffect(() => {
     if (existingInteraction) {
+      // Function to parse first and last name from prospect name
+      const parseProspectName = (fullName: string) => {
+        if (!fullName || fullName.trim().length === 0) return { firstName: '', lastName: '' };
+        
+        const nameParts = fullName.trim().split(/\s+/);
+        if (nameParts.length === 1) {
+          return { firstName: nameParts[0], lastName: '' };
+        } else if (nameParts.length === 2) {
+          return { firstName: nameParts[0], lastName: nameParts[1] };
+        } else {
+          // For names with more than 2 parts, assume first word is first name, rest is last name
+          return { 
+            firstName: nameParts[0], 
+            lastName: nameParts.slice(1).join(' ') 
+          };
+        }
+      };
+
+      // If firstName and lastName are empty but prospectName exists, parse the name
+      let firstName = existingInteraction.firstName || '';
+      let lastName = existingInteraction.lastName || '';
+      
+      if ((!firstName && !lastName) && existingInteraction.prospectName) {
+        const parsed = parseProspectName(existingInteraction.prospectName);
+        firstName = parsed.firstName;
+        lastName = parsed.lastName;
+      }
+
       // Editing existing interaction
       form.reset({
         prospectName: existingInteraction.prospectName || '',
-        firstName: existingInteraction.firstName || '',
-        lastName: existingInteraction.lastName || '',
+        firstName,
+        lastName,
         buid: existingInteraction.buid || '',
         bbecGuid: existingInteraction.bbecGuid || '',
         summary: existingInteraction.summary || '',
