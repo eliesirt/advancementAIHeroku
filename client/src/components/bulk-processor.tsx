@@ -44,6 +44,7 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
       return response as unknown as BulkProcessResponse;
     },
     onSuccess: (data) => {
+      console.log("Bulk processing response received:", data);
       setResults(data);
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -145,6 +146,7 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
 
           {results && (
             <div className="space-y-4">
+              {console.log("Rendering results:", results)}
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">{results.successful}</div>
