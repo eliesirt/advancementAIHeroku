@@ -126,11 +126,33 @@ export function InteractionForm({
       });
       setSelectedAffinityTags(existingInteraction.affinityTags || []);
     } else if (extractedInfo) {
+      // Function to parse first and last name from prospect name
+      const parseProspectName = (fullName: string) => {
+        if (!fullName || fullName.trim().length === 0) return { firstName: '', lastName: '' };
+        
+        const nameParts = fullName.trim().split(/\s+/);
+        if (nameParts.length === 1) {
+          return { firstName: nameParts[0], lastName: '' };
+        } else if (nameParts.length === 2) {
+          return { firstName: nameParts[0], lastName: nameParts[1] };
+        } else {
+          // For names with more than 2 parts, assume first word is first name, rest is last name
+          return { 
+            firstName: nameParts[0], 
+            lastName: nameParts.slice(1).join(' ') 
+          };
+        }
+      };
+
+      // Parse first and last name from prospect name
+      const prospectName = extractedInfo.prospectName || '';
+      const { firstName, lastName } = parseProspectName(prospectName);
+
       // New interaction with AI extracted info
       form.reset({
-        prospectName: extractedInfo.prospectName || '',
-        firstName: '',
-        lastName: '',
+        prospectName: prospectName,
+        firstName: firstName,
+        lastName: lastName,
         buid: '',
         bbecGuid: '',
         summary: extractedInfo.summary,
