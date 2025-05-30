@@ -281,7 +281,7 @@ class BBECSOAPClient {
         headers: {
           'Host': 'crm30656d.sky.blackbaud.com',
           'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/AdHocQueryProcessRequest',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/AdHocQueryProcess',
           'Authorization': this.authHeader,
           'User-Agent': 'NodeJS-BBEC-Client/1.0',
           'Accept': '*/*',
