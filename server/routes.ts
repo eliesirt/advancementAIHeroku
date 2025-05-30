@@ -603,16 +603,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // If there's a transcript but no extracted info, process it
           if (interaction.transcript && !extractedInfo) {
+            const { extractInteractionInfo, enhanceInteractionComments } = await import("./lib/openai");
             extractedInfo = await extractInteractionInfo(interaction.transcript);
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
           }
 
           // Re-match affinity tags if we have extracted info
-          if (extractedInfo) {
+          if (extractedInfo && typeof extractedInfo === 'object') {
+            const parsedInfo = typeof extractedInfo === 'string' ? JSON.parse(extractedInfo) : extractedInfo;
             const allInterests = [
-              ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
-              ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
-              ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
+              ...(Array.isArray(parsedInfo.professionalInterests) ? parsedInfo.professionalInterests : []),
+              ...(Array.isArray(parsedInfo.personalInterests) ? parsedInfo.personalInterests : []),
+              ...(Array.isArray(parsedInfo.philanthropicPriorities) ? parsedInfo.philanthropicPriorities : [])
             ];
 
             const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);

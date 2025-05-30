@@ -167,7 +167,7 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
               <div className="space-y-2">
                 <h3 className="font-medium">Processing Results:</h3>
                 <div className="max-h-60 overflow-y-auto space-y-2">
-                  {results.results.map(result => {
+                  {results.results?.map(result => {
                     const interaction = selectedInteractions.find(i => i.id === result.id);
                     return (
                       <div key={result.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
@@ -188,7 +188,7 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
                         </div>
                       </div>
                     );
-                  })}
+                  }) || <div className="text-sm text-gray-500">No results to display</div>}
                 </div>
               </div>
 
