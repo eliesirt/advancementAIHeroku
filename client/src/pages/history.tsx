@@ -21,10 +21,23 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { InteractionForm } from "@/components/interaction-form";
 import type { Interaction } from "@shared/schema";
 
 interface HistoryPageProps {
   initialFilter?: "all" | "pending" | "drafts" | "synced";
+}
+
+interface ExtractedInfo {
+  prospectName?: string;
+  summary: string;
+  category: string;
+  subcategory: string;
+  professionalInterests: string[];
+  personalInterests: string[];
+  philanthropicPriorities: string[];
+  keyPoints: string[];
+  suggestedAffinityTags: string[];
 }
 
 export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps) {
@@ -33,6 +46,13 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   const [statusFilter, setStatusFilter] = useState(initialFilter);
   const [sortBy, setSortBy] = useState("date");
   const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
+  
+  // Edit form state
+  const [showInteractionForm, setShowInteractionForm] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState("");
+  const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
+  const [enhancedComments, setEnhancedComments] = useState("");
+  const [editingInteractionId, setEditingInteractionId] = useState<number | null>(null);
   
   const { toast } = useToast();
 
@@ -160,6 +180,35 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
     },
   });
 
+  // Update interaction mutation
+  const updateInteraction = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PATCH", `/api/interactions/${editingInteractionId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Interaction updated successfully.",
+      });
+      setShowInteractionForm(false);
+      setEditingInteractionId(null);
+      setCurrentTranscript("");
+      setExtractedInfo(null);
+      setEnhancedComments("");
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Error",
+        description: "Failed to update interaction. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Selection handlers
   const handleSelectInteraction = (id: number, checked: boolean) => {
     if (checked) {
@@ -181,6 +230,25 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
     if (selectedInteractions.length > 0) {
       bulkDeleteInteractions.mutate(selectedInteractions);
     }
+  };
+
+  // Edit handler
+  const handleEditInteraction = (interaction: Interaction) => {
+    setEditingInteractionId(interaction.id);
+    setExtractedInfo({
+      prospectName: interaction.prospectName,
+      summary: interaction.summary,
+      category: interaction.category,
+      subcategory: interaction.subcategory,
+      professionalInterests: [],
+      personalInterests: [],
+      philanthropicPriorities: [],
+      keyPoints: [],
+      suggestedAffinityTags: []
+    });
+    setCurrentTranscript(interaction.transcript || "");
+    setEnhancedComments(interaction.comments || "");
+    setShowInteractionForm(true);
   };
 
   const getStatusInfo = (interaction: Interaction) => {
@@ -441,6 +509,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => handleEditInteraction(interaction)}
                               className="h-7 px-2 text-xs"
                             >
                               <Edit className="h-3 w-3 mr-1" />
