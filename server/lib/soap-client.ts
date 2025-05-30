@@ -489,12 +489,12 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Based on the actual SOAP response structure from the logs, the fields are:
-        // [0] = uid (LOOKUPID), [1] = name (NAME), [2] = c (capacitycode), [3] = i (inclinationcode),
-        // [4] = sch_yr (school year), [5] = job_title (JobTitle), [6] = company (BusinessName),
-        // [7] = phone (PrimaryNumber), [8] = email (PrimaryEmail), [9] = first_name (FIRSTNAME),
-        // [10] = last_name (KEYNAME), [11] = guid (ID), [12] = QUERYRECID (duplicate)
-        if (values.length >= 12 && values[1]) {
+        // Looking at the actual values array from the logs, I need to debug the exact mapping
+        console.log(`Raw values array (${values.length} items):`, values);
+        
+        // From the actual SOAP response and the Fields structure, the correct mapping should be:
+        // uid, name, c, i, sch_yr, job_title, company, phone, email, first_name, last_name, guid, QUERYRECID
+        if (values.length >= 13 && values[1]) {
           const constituent = {
             uid: values[0] || '',
             name: values[1] ? values[1].replace(/&amp;/g, '&') : '',
@@ -510,7 +510,7 @@ class BBECSOAPClient {
             guid: values[11] || ''
           };
           
-          console.log('Parsed constituent:', JSON.stringify(constituent, null, 2));
+          console.log('Mapped constituent:', JSON.stringify(constituent, null, 2));
           constituents.push(constituent);
         }
       }
