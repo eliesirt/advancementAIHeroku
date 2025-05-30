@@ -109,11 +109,63 @@ export async function generateConciseSummary(transcript: string): Promise<string
   }
 }
 
+export async function generateInteractionSynopsis(
+  transcript: string,
+  extractedInfo: ExtractedInteractionInfo
+): Promise<string> {
+  try {
+    const synopsisPrompt = `
+Analyze this fundraising interaction and create a comprehensive synopsis for Boston University's Advancement office. Include:
+
+1. Perceived value of this interaction to Boston University and the Advancement office
+2. Interests discussed (professional, personal, philanthropic)
+3. Personal news or new details discussed
+4. Potential opportunities and next steps
+5. Overall assessment of prospect engagement
+
+Transcript: ${transcript}
+
+Key Information:
+- Summary: ${extractedInfo.summary}
+- Category: ${extractedInfo.category}
+- Professional Interests: ${extractedInfo.professionalInterests.join(', ')}
+- Personal Interests: ${extractedInfo.personalInterests.join(', ')}
+- Philanthropic Priorities: ${extractedInfo.philanthropicPriorities.join(', ')}
+- Key Points: ${extractedInfo.keyPoints.join(', ')}
+
+Provide a detailed analysis in 3-4 paragraphs that would be valuable for advancement staff reviewing this interaction.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert fundraising analyst helping Boston University's Advancement office understand the value and potential of donor interactions."
+        },
+        {
+          role: "user",
+          content: synopsisPrompt
+        }
+      ],
+      max_tokens: 500,
+      temperature: 0.3
+    });
+
+    return response.choices[0].message.content?.trim() || "Analysis not available";
+  } catch (error) {
+    console.error("Synopsis generation error:", error);
+    return "Synopsis could not be generated";
+  }
+}
+
 export async function enhanceInteractionComments(
   transcript: string, 
   extractedInfo: ExtractedInteractionInfo
 ): Promise<string> {
   try {
+    // Generate both synopsis and summary
+    const synopsis = await generateInteractionSynopsis(transcript, extractedInfo);
+    
     // Generate a single paragraph summary
     const summaryPrompt = `
 Create a single paragraph summary (2-3 sentences) of this fundraising interaction transcript that captures the key outcomes, commitments, and next steps in a professional tone suitable for a CRM system.
@@ -148,8 +200,11 @@ Provide only the summary paragraph, no additional formatting.`;
 
     const summary = summaryResponse.choices[0].message.content?.trim() || "Interaction summary not available.";
     
-    // Format the final comments with clear separation
-    const formattedComments = `SUMMARY:
+    // Format the final comments with synopsis, summary, and transcript
+    const formattedComments = `ADVANCEMENT OFFICE SYNOPSIS:
+${synopsis}
+
+SUMMARY:
 ${summary}
 
 TRANSCRIPT:
@@ -159,7 +214,10 @@ ${transcript}`;
   } catch (error) {
     console.error("Comment enhancement error:", error);
     // Fallback format if AI processing fails
-    return `SUMMARY:
+    return `ADVANCEMENT OFFICE SYNOPSIS:
+Synopsis could not be generated due to processing error.
+
+SUMMARY:
 Voice recording captured during interaction.
 
 TRANSCRIPT:
