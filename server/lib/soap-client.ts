@@ -293,7 +293,11 @@ class BBECSOAPClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`BBEC API error response (${response.status}):`, errorText);
+        console.error('Request headers:', response.headers);
+        console.error('Request body that failed:', soapBody);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       const responseText = await response.text();
