@@ -14,9 +14,14 @@ import { X, AlertCircle, CheckCircle, User, Calendar, Tag } from 'lucide-react';
 import { validateSOPCompliance, type SOPValidationResult } from '@/lib/sop-validation';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { ConstituentSearch } from './constituent-search';
 
 const formSchema = z.object({
   prospectName: z.string().min(1, 'Prospect name is required'),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  buid: z.string().optional(),
+  bbecGuid: z.string().optional(),
   contactLevel: z.string().min(1, 'Contact level is required'),
   method: z.string().min(1, 'Method is required'),
   summary: z.string().min(1, 'Summary is required'),
@@ -261,6 +266,77 @@ export function InteractionForm({
                       </FormItem>
                     )}
                   />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter first name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <div className="flex space-x-2">
+                            <FormControl>
+                              <Input {...field} placeholder="Enter last name" />
+                            </FormControl>
+                            <ConstituentSearch
+                              lastName={field.value || ''}
+                              onSelectConstituent={(constituent) => {
+                                form.setValue("firstName", constituent.first_name || '');
+                                form.setValue("lastName", constituent.last_name || '');
+                                form.setValue("buid", constituent.uid || '');
+                                form.setValue("bbecGuid", constituent.guid || '');
+                              }}
+                            />
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="buid"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>BUID</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Blackbaud User ID" readOnly />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="bbecGuid"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>BBEC GUID</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Blackbaud GUID" readOnly />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 {/* Interaction Details */}

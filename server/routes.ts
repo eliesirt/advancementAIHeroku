@@ -713,6 +713,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search constituents by last name
+  app.get("/api/constituents/search/:lastName", async (req, res) => {
+    try {
+      const { lastName } = req.params;
+      
+      if (!lastName) {
+        return res.status(400).json({ message: "Last name is required" });
+      }
+
+      const { bbecClient } = await import("./lib/soap-client");
+      await bbecClient.initialize();
+      
+      const constituents = await bbecClient.searchConstituentsByLastName(lastName);
+      
+      res.json(constituents);
+    } catch (error) {
+      console.error("Error searching constituents by last name:", error);
+      res.status(500).json({ 
+        message: "Failed to search constituents", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Update user profile
   app.patch("/api/user/profile", async (req, res) => {
     try {

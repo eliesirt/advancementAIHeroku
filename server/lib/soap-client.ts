@@ -241,6 +241,76 @@ class BBECSOAPClient {
     }
   }
 
+  async searchConstituentsByLastName(lastName: string): Promise<any[]> {
+    if (!this.authHeader) {
+      await this.authenticate();
+    }
+
+    const soapRequest = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <AdHocQueryProcessRequest DoReturnData="true" SuppressDuplicateRows="true" BypassRecordCount="true" SuppressPrimaryKeyField="false" QueryViewID="ee8a7483-c483-4214-9646-4bb62ec29ab7" 
+      xmlns="Blackbaud.AppFx.WebService.API.1">
+      <SelectFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="uid"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="NAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="name"/>
+        <f ObjectName="USR_V_QUERY_DARWIN_CUSTOM_RATING" ColumnName="capacitycode" ParentPath="V_QUERY_CONSTITUENT\\DARWIN RATING" DisplayPath="V_QUERY_CONSTITUENT\\DARWIN RATING" AliasName="c"/>
+        <f ObjectName="USR_V_QUERY_DARWIN_CUSTOM_RATING" ColumnName="inclinationcode" ParentPath="V_QUERY_CONSTITUENT\\DARWIN RATING" DisplayPath="V_QUERY_CONSTITUENT\\DARWIN RATING" AliasName="i"/>
+        <f ObjectName="V_QUERY_SMARTFIELD7EC74E570F3243D88E7751DE3AA32926" ColumnName="VALUE" ParentPath="V_QUERY_CONSTITUENT\\Constituent Schools and Parent Indicator Smart Field" DisplayPath="V_QUERY_CONSTITUENT\\Constituent Schools and Parent Indicator Smart Field" AliasName="sch_yr"/>
+        <f ObjectName="USR_V_QUERY_BUSINESS_NODE" ColumnName="JobTitle" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Business" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Business" AliasName="job_title"/>
+        <f ObjectName="USR_V_QUERY_BUSINESS_NODE" ColumnName="BusinessName" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Business" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Business" AliasName="company"/>
+        <f ObjectName="USR_V_QUERY_PHONES_NODE" ColumnName="PrimaryNumber" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Phones" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Phones" AliasName="phone"/>
+        <f ObjectName="USR_V_QUERY_EMAILS_NODE" ColumnName="PrimaryEmail" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" AliasName="email"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="FIRSTNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="first_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="last_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="ID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="guid"/>
+      </SelectFields>
+      <FilterFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" IncludeCurrentNode="true" DataMartLastRefresh="0001-01-01T00:00:00">
+          <DateFilterTypes/>
+          <FuzzyDateFilterTypes/>
+          <MonthDayFilterTypes/>
+          <Values>
+            <v>${lastName}</v>
+          </Values>
+          <DataType>String</DataType>
+        </f>
+      </FilterFields>
+      <SortFields/>
+      <GroupFilterFields/>
+      <ClientAppInfo REDatabaseToUse="30656d"/>
+    </AdHocQueryProcessRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/AdHocQueryProcess',
+          'Authorization': this.authHeader
+        },
+        body: soapRequest
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const responseText = await response.text();
+      console.log("Constituent search response:", responseText);
+      
+      return this.parseConstituentSearchResponse(responseText);
+    } catch (error) {
+      console.error("Error searching constituents by last name:", error);
+      throw error;
+    }
+  }
+
   async searchUserByBUID(buid: string): Promise<any> {
     try {
       const soapBody = `<?xml version="1.0" encoding="utf-8"?>
