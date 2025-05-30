@@ -222,6 +222,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update interaction (PATCH method)
+  app.patch("/api/interactions/:id", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const updates = insertInteractionSchema.partial().parse(req.body);
+      const interaction = await storage.updateInteraction(interactionId, updates);
+      res.json(interaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update interaction", error: (error as Error).message });
+    }
+  });
+
   // Submit interaction to BBEC
   app.post("/api/interactions/:id/submit-bbec", async (req, res) => {
     try {
