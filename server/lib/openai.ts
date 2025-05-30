@@ -132,16 +132,15 @@ export async function generateInteractionSynopsis(
 ): Promise<string> {
   try {
     const synopsisPrompt = `
-Analyze this fundraising interaction and create a comprehensive synopsis for Boston University's Advancement office. 
+Analyze this fundraising interaction and create a concise synopsis for Boston University's Advancement office. 
 
 Format your response as:
-1. First, write a single comprehensive paragraph that summarizes the overall interaction, relationship value, and strategic significance
+1. First, write 2-3 sentences that summarize the overall interaction and strategic significance
 2. Then provide bullet points covering:
-   • Perceived donor capacity and inclination signals
    • Key interests and motivations discovered
-   • Relationship development opportunities
-   • Potential next steps or follow-up actions
-   • Strategic insights for future cultivation
+   • Perceived donor capacity signals
+   • Next steps or follow-up actions
+   • Strategic cultivation opportunities
 
 Transcript: ${transcript}
 
@@ -153,7 +152,7 @@ Key Information:
 - Philanthropic Priorities: ${extractedInfo.philanthropicPriorities.join(', ')}
 - Key Points: ${extractedInfo.keyPoints.join(', ')}
 
-Provide a detailed analysis in 3-4 paragraphs that would be valuable for advancement staff reviewing this interaction.`;
+Keep the narrative portion brief and focused - maximum 3 sentences before the bullet points.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
