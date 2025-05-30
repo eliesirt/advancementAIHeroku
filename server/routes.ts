@@ -723,7 +723,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName,
         lastName,
         email,
-        buid
+        buid,
+        bbecGuid: req.body.bbecGuid
       });
 
       res.json(updatedUser);
