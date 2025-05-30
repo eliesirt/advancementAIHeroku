@@ -84,7 +84,7 @@ export function BuidSearch({ buid, onSelectConstituent }: BuidSearchProps) {
               </div>
             )}
 
-            {constituents.map((constituent: Constituent) => (
+            {constituents.map((constituent) => (
               <div
                 key={constituent.uid}
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
