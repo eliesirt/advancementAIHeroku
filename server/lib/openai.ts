@@ -18,23 +18,40 @@ export interface ExtractedInteractionInfo {
 }
 
 export async function transcribeAudio(audioData: string): Promise<string> {
-  try {
-    // Convert base64 to buffer for OpenAI API
-    const audioBuffer = Buffer.from(audioData, 'base64');
-    
-    // Create a temporary file-like object
-    const audioFile = new File([audioBuffer], 'audio.wav', { type: 'audio/wav' });
-    
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: "whisper-1",
-    });
+  const maxRetries = 3;
+  let lastError: Error;
 
-    return transcription.text;
-  } catch (error) {
-    console.error('Audio transcription error:', error);
-    throw new Error('Failed to transcribe audio: ' + (error as Error).message);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Convert base64 to buffer for OpenAI API
+      const audioBuffer = Buffer.from(audioData, 'base64');
+      
+      // Create a temporary file-like object
+      const audioFile = new File([audioBuffer], 'audio.wav', { type: 'audio/wav' });
+      
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioFile,
+        model: "whisper-1",
+      });
+
+      return transcription.text;
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Audio transcription error (attempt ${attempt}/${maxRetries}):`, error);
+      
+      // If this is a connection error and we have retries left, wait and try again
+      if (attempt < maxRetries && (error as any)?.cause?.code === 'ECONNRESET') {
+        console.log(`Retrying transcription in ${attempt * 2} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+        continue;
+      }
+      
+      // If all retries failed or it's not a connection error, throw
+      break;
+    }
   }
+
+  throw new Error(`Failed to transcribe audio after ${maxRetries} attempts: ${lastError.message}`);
 }
 
 export async function extractInteractionInfo(transcript: string): Promise<ExtractedInteractionInfo> {
