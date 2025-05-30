@@ -46,6 +46,18 @@ interface ExtractedInfo {
   suggestedAffinityTags: string[];
 }
 
+interface Constituent {
+  uid: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  company: string;
+  job_title: string;
+  guid: string;
+}
+
 interface InteractionFormProps {
   isVisible: boolean;
   extractedInfo?: ExtractedInfo;
@@ -77,6 +89,10 @@ export function InteractionForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       prospectName: '',
+      firstName: '',
+      lastName: '',
+      buid: '',
+      bbecGuid: '',
       contactLevel: '',
       method: '',
       summary: '',
@@ -94,6 +110,10 @@ export function InteractionForm({
       // Editing existing interaction
       form.reset({
         prospectName: existingInteraction.prospectName || '',
+        firstName: existingInteraction.firstName || '',
+        lastName: existingInteraction.lastName || '',
+        buid: existingInteraction.buid || '',
+        bbecGuid: existingInteraction.bbecGuid || '',
         summary: existingInteraction.summary || '',
         category: existingInteraction.category || '',
         subcategory: existingInteraction.subcategory || '',
@@ -108,6 +128,10 @@ export function InteractionForm({
       // New interaction with AI extracted info
       form.reset({
         prospectName: extractedInfo.prospectName || '',
+        firstName: '',
+        lastName: '',
+        buid: '',
+        bbecGuid: '',
         summary: extractedInfo.summary,
         category: extractedInfo.category,
         subcategory: extractedInfo.subcategory,
