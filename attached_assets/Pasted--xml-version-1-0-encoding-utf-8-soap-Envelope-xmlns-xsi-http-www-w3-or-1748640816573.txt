@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <AdHocQueryProcessRequest DoReturnData="true" SuppressDuplicateRows="true" BypassRecordCount="true" SuppressPrimaryKeyField="false" QueryViewID="ee8a7483-c483-4214-9646-4bb62ec29ab7" 
+      xmlns="Blackbaud.AppFx.WebService.API.1">
+      <SelectFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="uid"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="NAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="name"/>
+        <f ObjectName="USR_V_QUERY_EMAILS_NODE" ColumnName="PrimaryEmail" ParentPath="V_QUERY_CONSTITUENT\ DAR\Email Addresses" DisplayPath="V_QUERY_CONSTITUENT\ DAR\Email Addresses" AliasName="email"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="FIRSTNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="first_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="last_name"/>
+      </SelectFields>
+      <FilterFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" IncludeCurrentNode="true" DataMartLastRefresh="0001-01-01T00:00:00">
+          <DateFilterTypes/>
+          <FuzzyDateFilterTypes/>
+          <MonthDayFilterTypes/>
+          <Values>
+            <v>{{BUID}}</v>
+          </Values>
+          <DataType>String</DataType>
+        </f>
+      </FilterFields>
+      <SortFields/>
+      <GroupFilterFields/>
+      <ClientAppInfo REDatabaseToUse="30656d"/>
+    </AdHocQueryProcessRequest>
+            </soap:Body>
+        </soap:Envelope>
