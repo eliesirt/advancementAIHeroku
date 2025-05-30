@@ -28,7 +28,7 @@ export function BuidSearch({ buid, onSelectConstituent }: BuidSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: constituents = [], isLoading, error } = useQuery<Constituent[]>({
-    queryKey: ['/api/constituents/search-by-buid', buid],
+    queryKey: [`/api/constituents/search-by-buid/${buid}`],
     enabled: isOpen && buid.trim().length > 0,
     retry: false,
   });
