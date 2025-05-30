@@ -531,14 +531,15 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Based on the query structure: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name
+        // Based on the query structure: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid
         if (values.length >= 2 && values[0]) {
           users.push({
             uid: values[0] || '',
             name: values[1] || '',
             email: values[2] || '',
             first_name: values[3] || '',
-            last_name: values[4] || ''
+            last_name: values[4] || '',
+            guid: values[5] || ''
           });
         }
       }
