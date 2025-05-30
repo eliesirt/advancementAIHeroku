@@ -28,6 +28,10 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface VoiceSettings {
   enabled: boolean;
@@ -57,6 +61,215 @@ interface AffinityTagSettings {
   refreshInterval: 'hourly' | 'daily' | 'weekly';
   lastRefresh?: string;
   totalTags?: number;
+}
+
+const userProfileSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  buid: z.string().min(1, "BUID is required"),
+});
+
+type UserProfileFormData = z.infer<typeof userProfileSchema>;
+
+interface UserProfileUpdateDialogProps {
+  user: any;
+}
+
+function UserProfileUpdateDialog({ user }: UserProfileUpdateDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const { toast } = useToast();
+
+  const form = useForm<UserProfileFormData>({
+    resolver: zodResolver(userProfileSchema),
+    defaultValues: {
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      buid: user?.buid || "",
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: UserProfileFormData) => {
+      const response = await apiRequest("PATCH", "/api/user/profile", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      setIsOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Unable to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const searchUserByBuid = async (buid: string) => {
+    if (!buid) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await apiRequest("GET", `/api/users/search/${buid}`);
+      const userData = await response.json();
+      
+      if (response.ok) {
+        setSearchResult(userData);
+        // Auto-fill form with BBEC data
+        form.setValue("firstName", userData.first_name || "");
+        form.setValue("lastName", userData.last_name || "");
+        form.setValue("email", userData.email || "");
+        
+        toast({
+          title: "User Found",
+          description: "Profile information loaded from Blackbaud CRM.",
+        });
+      } else {
+        setSearchResult(null);
+        toast({
+          title: "User Not Found",
+          description: "No user found with this BUID in Blackbaud CRM.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setSearchResult(null);
+      toast({
+        title: "Search Failed",
+        description: "Unable to search user in Blackbaud CRM.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const onSubmit = (data: UserProfileFormData) => {
+    updateUserMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <User className="h-4 w-4 mr-2" />
+          Update User
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Update User Profile</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="buid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BUID</FormLabel>
+                  <div className="flex space-x-2">
+                    <FormControl>
+                      <Input {...field} placeholder="Enter BUID" />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => searchUserByBuid(field.value)}
+                      disabled={isSearching || !field.value}
+                    >
+                      {isSearching ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Search"
+                      )}
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {searchResult && (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Found: {searchResult.name} ({searchResult.email})
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateUserMutation.isPending}
+              >
+                {updateUserMutation.isPending ? "Updating..." : "Update Profile"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function SettingsPage() {
@@ -263,24 +476,31 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" value={user?.name || ""} disabled />
+                <Label htmlFor="firstName">First Name</Label>
+                <Input id="firstName" value={user?.firstName || ""} disabled />
               </div>
               <div>
-                <Label htmlFor="role">Role</Label>
-                <Input id="role" value={user?.role || ""} disabled />
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input id="lastName" value={user?.lastName || ""} disabled />
               </div>
               <div>
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" value={user?.username || ""} disabled />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={user?.email || ""} disabled />
+              </div>
+              <div>
+                <Label htmlFor="buid">BUID</Label>
+                <Input id="buid" value={user?.buid || ""} disabled />
               </div>
             </div>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                User profile information is managed by your organization's IT department.
-              </AlertDescription>
-            </Alert>
+            <div className="flex justify-between items-center">
+              <Alert className="flex-1 mr-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Profile information is synced with Blackbaud CRM.
+                </AlertDescription>
+              </Alert>
+              <UserProfileUpdateDialog user={user} />
+            </div>
           </CardContent>
         </Card>
 
