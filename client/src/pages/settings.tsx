@@ -278,6 +278,10 @@ export default function SettingsPage() {
                 <Input id="email" value={user?.email || ""} disabled />
               </div>
               <div>
+                <Label htmlFor="bbecGuid">BBEC GUID</Label>
+                <Input id="bbecGuid" value={user?.bbecGuid || ""} disabled />
+              </div>
+              <div>
                 <Label htmlFor="buid">BUID</Label>
                 <Input id="buid" value={user?.buid || ""} disabled />
               </div>
