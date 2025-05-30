@@ -489,13 +489,13 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Based on the constituent search query structure, the fields are:
+        // Based on the actual SOAP response structure from the logs, the fields are:
         // [0] = uid (LOOKUPID), [1] = name (NAME), [2] = c (capacitycode), [3] = i (inclinationcode),
-        // [4] = sch_yr (VALUE), [5] = job_title (JobTitle), [6] = company (BusinessName),
+        // [4] = sch_yr (school year), [5] = job_title (JobTitle), [6] = company (BusinessName),
         // [7] = phone (PrimaryNumber), [8] = email (PrimaryEmail), [9] = first_name (FIRSTNAME),
-        // [10] = last_name (KEYNAME), [11] = guid (ID), [12] = QUERYRECID
-        if (values.length >= 11 && values[1]) {
-          constituents.push({
+        // [10] = last_name (KEYNAME), [11] = guid (ID), [12] = QUERYRECID (duplicate)
+        if (values.length >= 12 && values[1]) {
+          const constituent = {
             uid: values[0] || '',
             name: values[1] ? values[1].replace(/&amp;/g, '&') : '',
             c: values[2] || '',
@@ -508,7 +508,10 @@ class BBECSOAPClient {
             first_name: values[9] || '',
             last_name: values[10] || '',
             guid: values[11] || ''
-          });
+          };
+          
+          console.log('Parsed constituent:', JSON.stringify(constituent, null, 2));
+          constituents.push(constituent);
         }
       }
       
