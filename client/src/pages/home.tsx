@@ -602,7 +602,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                           {formatTimeAgo(interaction.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                      <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">
                         {interaction.summary}
                       </p>
                       
