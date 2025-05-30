@@ -567,6 +567,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk process interactions with batch tag matching
+  app.post("/api/interactions/bulk-process", async (req, res) => {
+    try {
+      const { interactionIds } = req.body;
+      
+      if (!Array.isArray(interactionIds) || interactionIds.length === 0) {
+        return res.status(400).json({ message: "Valid interaction IDs array is required" });
+      }
+
+      // Get all interactions
+      const interactions = await Promise.all(
+        interactionIds.map(id => storage.getInteraction(parseInt(id)))
+      );
+
+      // Filter out null results
+      const validInteractions = interactions.filter(interaction => interaction !== undefined);
+
+      if (validInteractions.length === 0) {
+        return res.status(404).json({ message: "No valid interactions found" });
+      }
+
+      // Get affinity tags once for all interactions
+      const affinityTags = await storage.getAffinityTags();
+      const affinityMatcher = await createAffinityMatcher(affinityTags);
+
+      const results = [];
+
+      // Process each interaction
+      for (const interaction of validInteractions) {
+        try {
+          let extractedInfo = interaction.extractedInfo;
+          let enhancedComments = interaction.comments;
+          let suggestedAffinityTags = interaction.affinityTags || [];
+
+          // If there's a transcript but no extracted info, process it
+          if (interaction.transcript && !extractedInfo) {
+            extractedInfo = await extractInteractionInfo(interaction.transcript);
+            enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
+          }
+
+          // Re-match affinity tags if we have extracted info
+          if (extractedInfo) {
+            const allInterests = [
+              ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
+              ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
+              ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
+            ];
+
+            const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+          }
+
+          // Update the interaction
+          await storage.updateInteraction(interaction.id, {
+            extractedInfo: extractedInfo ? JSON.stringify(extractedInfo) : interaction.extractedInfo,
+            comments: enhancedComments,
+            affinityTags: suggestedAffinityTags
+          });
+
+          results.push({
+            id: interaction.id,
+            success: true,
+            affinityTagsMatched: suggestedAffinityTags.length,
+            message: `Processed successfully with ${suggestedAffinityTags.length} affinity tags`
+          });
+
+        } catch (error) {
+          results.push({
+            id: interaction.id,
+            success: false,
+            error: (error as Error).message
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const totalTagsMatched = results
+        .filter(r => r.success)
+        .reduce((total, r) => total + (r.affinityTagsMatched || 0), 0);
+
+      res.json({
+        success: true,
+        processed: results.length,
+        successful: successCount,
+        failed: results.length - successCount,
+        totalAffinityTagsMatched: totalTagsMatched,
+        results
+      });
+
+    } catch (error) {
+      console.error("Bulk processing error:", error);
+      res.status(500).json({ 
+        message: "Failed to process interactions in bulk", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

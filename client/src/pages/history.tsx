@@ -16,12 +16,16 @@ import {
   User,
   Tag,
   Trash2,
-  Send
+  Send,
+  CheckSquare,
+  Square,
+  Zap
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InteractionForm } from "@/components/interaction-form";
+import { BulkProcessor } from "@/components/bulk-processor";
 import type { Interaction } from "@shared/schema";
 
 interface HistoryPageProps {
