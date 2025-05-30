@@ -15,6 +15,7 @@ import { validateSOPCompliance, type SOPValidationResult } from '@/lib/sop-valid
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { ConstituentSearch } from './constituent-search';
+import { BuidSearch } from './buid-search';
 
 const formSchema = z.object({
   prospectName: z.string().min(1, 'Prospect name is required'),
@@ -339,9 +340,20 @@ export function InteractionForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>BUID</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Blackbaud User ID" readOnly />
-                          </FormControl>
+                          <div className="flex space-x-2">
+                            <FormControl>
+                              <Input {...field} placeholder="Blackbaud User ID" />
+                            </FormControl>
+                            <BuidSearch
+                              buid={field.value || ''}
+                              onSelectConstituent={(constituent) => {
+                                form.setValue("firstName", constituent.first_name || '');
+                                form.setValue("lastName", constituent.last_name || '');
+                                form.setValue("buid", constituent.uid || '');
+                                form.setValue("bbecGuid", constituent.guid || '');
+                              }}
+                            />
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -737,6 +737,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search constituents by BUID  
+  app.get("/api/constituents/search-by-buid/:buid", async (req, res) => {
+    try {
+      const { buid } = req.params;
+      
+      if (!buid) {
+        return res.status(400).json({ message: "BUID is required" });
+      }
+
+      const { bbecClient } = await import("./lib/soap-client");
+      await bbecClient.initialize();
+      
+      const constituent = await bbecClient.searchUserByBUID(buid);
+      
+      // Convert the single user result to an array to match the expected format
+      const result = constituent ? [constituent] : [];
+      res.json(result);
+    } catch (error) {
+      console.error("Error searching constituent by BUID:", error);
+      res.status(500).json({ 
+        message: "Failed to search constituent by BUID", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Update user profile
   app.patch("/api/user/profile", async (req, res) => {
     try {
