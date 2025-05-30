@@ -455,7 +455,8 @@ export function InteractionForm({
                       <FormControl>
                         <Textarea 
                           {...field} 
-                          rows={4}
+                          rows={8}
+                          className="min-h-[200px] max-h-[400px] resize-y"
                           placeholder="Detailed interaction notes..."
                         />
                       </FormControl>
