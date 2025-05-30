@@ -601,24 +601,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let enhancedComments = interaction.comments;
           let suggestedAffinityTags = interaction.affinityTags || [];
 
+          console.log(`Processing interaction ${interaction.id}:`, {
+            hasTranscript: !!interaction.transcript,
+            hasExtractedInfo: !!extractedInfo,
+            extractedInfoType: typeof extractedInfo,
+            currentAffinityTags: suggestedAffinityTags
+          });
+
           // If there's a transcript but no extracted info, process it
           if (interaction.transcript && !extractedInfo) {
             const { extractInteractionInfo, enhanceInteractionComments } = await import("./lib/openai");
             extractedInfo = await extractInteractionInfo(interaction.transcript);
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
+            console.log(`Newly extracted info for ${interaction.id}:`, extractedInfo);
           }
 
-          // Re-match affinity tags if we have extracted info
-          if (extractedInfo && typeof extractedInfo === 'object') {
+          // Re-match affinity tags - try current affinity tags or extract from stored info
+          if (extractedInfo) {
             const parsedInfo = typeof extractedInfo === 'string' ? JSON.parse(extractedInfo) : extractedInfo;
+            console.log(`Parsed info for ${interaction.id}:`, parsedInfo);
+            
             const allInterests = [
               ...(Array.isArray(parsedInfo.professionalInterests) ? parsedInfo.professionalInterests : []),
               ...(Array.isArray(parsedInfo.personalInterests) ? parsedInfo.personalInterests : []),
               ...(Array.isArray(parsedInfo.philanthropicPriorities) ? parsedInfo.philanthropicPriorities : [])
             ];
 
-            const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
-            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+            console.log(`All interests for ${interaction.id}:`, allInterests);
+
+            if (allInterests.length > 0) {
+              const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+              suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+              console.log(`Matched tags for ${interaction.id}:`, suggestedAffinityTags);
+            }
+          }
+          
+          // If still no tags, try to match existing summary/comments for interests
+          if (suggestedAffinityTags.length === 0 && (interaction.summary || interaction.comments)) {
+            const textToMatch = `${interaction.summary || ''} ${interaction.comments || ''}`.toLowerCase();
+            const keywords = textToMatch.split(/\s+/).filter(word => word.length > 3);
+            if (keywords.length > 0) {
+              const matchedTags = affinityMatcher.matchInterests(keywords, 0.2);
+              suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+              console.log(`Keyword-matched tags for ${interaction.id}:`, suggestedAffinityTags);
+            }
           }
 
           // Update the interaction
