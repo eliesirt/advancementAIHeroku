@@ -114,37 +114,55 @@ export async function enhanceInteractionComments(
   extractedInfo: ExtractedInteractionInfo
 ): Promise<string> {
   try {
-    const prompt = `
-Based on this interaction transcript and extracted information, create a professional interaction comment 
-that follows SOP guidelines for fundraising documentation. Include key discussion points, next steps if mentioned,
-and maintain confidentiality standards.
+    // Generate a single paragraph summary
+    const summaryPrompt = `
+Create a single paragraph summary (2-3 sentences) of this fundraising interaction transcript that captures the key outcomes, commitments, and next steps in a professional tone suitable for a CRM system.
 
-Transcript: "${transcript}"
+Transcript: ${transcript}
 
-Extracted Info: ${JSON.stringify(extractedInfo)}
+Key Information:
+- Summary: ${extractedInfo.summary}
+- Category: ${extractedInfo.category}
+- Professional Interests: ${extractedInfo.professionalInterests.join(', ')}
+- Personal Interests: ${extractedInfo.personalInterests.join(', ')}
+- Philanthropic Priorities: ${extractedInfo.philanthropicPriorities.join(', ')}
+- Key Points: ${extractedInfo.keyPoints.join(', ')}
 
-Format the comment professionally for a CRM system, focusing on actionable insights and relationship building opportunities.
-Keep it concise but comprehensive.
-`;
+Provide only the summary paragraph, no additional formatting.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const summaryResponse = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: "You are an expert fundraising professional who writes clear, actionable interaction comments for CRM systems."
+          content: "You are a professional fundraising documentation assistant. Create concise, professional summaries for CRM interaction records."
         },
         {
           role: "user",
-          content: prompt
+          content: summaryPrompt
         }
       ],
-      temperature: 0.4,
+      max_tokens: 200,
+      temperature: 0.3
     });
 
-    return response.choices[0].message.content!;
+    const summary = summaryResponse.choices[0].message.content?.trim() || "Interaction summary not available.";
+    
+    // Format the final comments with clear separation
+    const formattedComments = `SUMMARY:
+${summary}
+
+TRANSCRIPT:
+${transcript}`;
+
+    return formattedComments;
   } catch (error) {
-    console.error('Comment enhancement error:', error);
-    throw new Error('Failed to enhance interaction comments: ' + (error as Error).message);
+    console.error("Comment enhancement error:", error);
+    // Fallback format if AI processing fails
+    return `SUMMARY:
+Voice recording captured during interaction.
+
+TRANSCRIPT:
+${transcript}`;
   }
 }
