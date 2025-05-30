@@ -131,6 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Extract interaction information
       const extractedInfo = await extractInteractionInfo(transcript);
+      console.log("Extracted info from transcript:", JSON.stringify(extractedInfo, null, 2));
       
       // Match interests to affinity tags
       const affinityTags = await storage.getAffinityTags();
@@ -142,7 +143,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
       ];
       
+      console.log("All interests for matching:", allInterests);
+      console.log("Available affinity tags count:", affinityTags.length);
+      
       const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+      console.log("Matched affinity tags:", matchedTags);
+      
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
       
       // Update recording with transcript
