@@ -107,6 +107,10 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
     return new Date(date).toLocaleString();
   };
 
+  const formatDateForInput = (date: string | Date) => {
+    return new Date(date).toISOString().slice(0, 16);
+  };
+
   // Delete interaction mutation
   const deleteInteraction = useMutation({
     mutationFn: async (id: number) => {

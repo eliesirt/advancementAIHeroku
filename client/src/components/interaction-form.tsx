@@ -42,6 +42,7 @@ interface ExtractedInfo {
 interface InteractionFormProps {
   isVisible: boolean;
   extractedInfo?: ExtractedInfo;
+  existingInteraction?: any; // For editing existing interactions
   transcript?: string;
   enhancedComments?: string;
   onSubmit: (data: FormData & { affinityTags: string[] }) => void;
@@ -53,6 +54,7 @@ interface InteractionFormProps {
 export function InteractionForm({
   isVisible,
   extractedInfo,
+  existingInteraction,
   transcript,
   enhancedComments,
   onSubmit,
@@ -73,14 +75,29 @@ export function InteractionForm({
       category: '',
       subcategory: '',
       status: 'Complete',
-      actualDate: new Date().toISOString().split('T')[0],
+      actualDate: new Date().toISOString().slice(0, 16),
       comments: '',
     }
   });
 
-  // Pre-populate form with extracted information
+  // Pre-populate form with extracted information or existing interaction
   useEffect(() => {
-    if (extractedInfo) {
+    if (existingInteraction) {
+      // Editing existing interaction
+      form.reset({
+        prospectName: existingInteraction.prospectName || '',
+        summary: existingInteraction.summary || '',
+        category: existingInteraction.category || '',
+        subcategory: existingInteraction.subcategory || '',
+        contactLevel: existingInteraction.contactLevel || '',
+        method: existingInteraction.method || '',
+        status: existingInteraction.status || 'Complete',
+        actualDate: new Date(existingInteraction.actualDate).toISOString().slice(0, 16),
+        comments: existingInteraction.comments || '',
+      });
+      setSelectedAffinityTags(existingInteraction.affinityTags || []);
+    } else if (extractedInfo) {
+      // New interaction with AI extracted info
       form.reset({
         prospectName: extractedInfo.prospectName || '',
         summary: extractedInfo.summary,
@@ -92,10 +109,9 @@ export function InteractionForm({
         actualDate: new Date().toISOString().slice(0, 16),
         comments: enhancedComments || transcript || '',
       });
-
       setSelectedAffinityTags(extractedInfo.suggestedAffinityTags || []);
     }
-  }, [extractedInfo, enhancedComments, transcript, form]);
+  }, [extractedInfo, existingInteraction, enhancedComments, transcript, form]);
 
   // Validate form data whenever it changes
   useEffect(() => {

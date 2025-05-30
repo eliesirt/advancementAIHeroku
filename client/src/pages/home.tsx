@@ -56,6 +56,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
   const [enhancedComments, setEnhancedComments] = useState("");
+  const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
 
   const { toast } = useToast();
 
@@ -351,6 +352,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return past.toLocaleString();
+  };
+
+  const formatDateForInput = (date: string | Date) => {
+    return new Date(date).toISOString().slice(0, 16);
   };
 
   const getStatusColor = (interaction: Interaction) => {
