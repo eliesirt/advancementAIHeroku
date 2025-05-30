@@ -83,6 +83,10 @@ export class MemStorage implements IStorage {
       username: "sarah.thompson",
       password: "hashed_password",
       name: "Sarah Thompson",
+      firstName: null,
+      lastName: null,
+      email: null,
+      buid: null,
       role: "Senior Development Officer",
       createdAt: new Date(),
     };
@@ -172,9 +176,10 @@ export class MemStorage implements IStorage {
     const interaction: Interaction = { 
       ...insertInteraction,
       id,
-      userId: 1, // Default to first user for demo
+      userId: insertInteraction.userId,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      status: insertInteraction.status || "draft"
     };
     this.interactions.set(id, interaction);
     return interaction;
@@ -226,6 +231,7 @@ export class MemStorage implements IStorage {
     const tag: AffinityTag = { 
       ...insertTag, 
       id,
+      bbecId: insertTag.bbecId || null,
       lastSynced: new Date()
     };
     this.affinityTags.set(id, tag);
@@ -257,8 +263,12 @@ export class MemStorage implements IStorage {
     const recording: VoiceRecording = { 
       ...insertRecording,
       id,
-      userId: 1, // Default to first user for demo
-      createdAt: new Date()
+      createdAt: new Date(),
+      transcript: insertRecording.transcript || null,
+      audioData: insertRecording.audioData || null,
+      duration: insertRecording.duration || null,
+      processed: insertRecording.processed || null,
+      interactionId: insertRecording.interactionId || null
     };
     this.voiceRecordings.set(id, recording);
     return recording;
