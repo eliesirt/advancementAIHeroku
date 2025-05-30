@@ -1,0 +1,48 @@
+On the User profile section of the settings tab, remove the Role and Username fields.  Create fields for First name, Last Name, Email, and BUID. Create an "Update user" button that opens a new form from the User Profile section on the settings tab. The form allows a user to enter a BUID and search (via API call) for a particular BBEC record. Upon API call, the full name, first name, last name, lookupID, and email gets returned and entered into the name,first name, last name, BUID, and Email fields of the user profile. In order to search for and fetch the information from BBEC, use the following api, where {{BUID}} is replaced with the BUID entered by the user to search:
+
+Request Header:
+Host: crm30656d.sky.blackbaud.com
+Content-Type: text/xml; charset=utf-8
+SOAPAction: Blackbaud.AppFx.WebService.API.1/AdHocQueryProcess
+Authorization: Basic QkJFQ0FQSTMwNjU2ZDp1c2JRQkQ1S05tYWNSZWdx
+User-Agent: PostmanRuntime/7.44.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: dcc8f1e8-0d0a-4aa2-81a2-24bf75cf6526
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: ApplicationGatewayAffinity=0b7ff9ea9dd0b9dc4505695499b274bda7ee0645f25d2e2b1ddce49bfadd4f86; ApplicationGatewayAffinityCORS=0b7ff9ea9dd0b9dc4505695499b274bda7ee0645f25d2e2b1ddce49bfadd4f86
+
+Request body:
+<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <AdHocQueryProcessRequest DoReturnData="true" SuppressDuplicateRows="true" BypassRecordCount="true" SuppressPrimaryKeyField="false" QueryViewID="ee8a7483-c483-4214-9646-4bb62ec29ab7" 
+      xmlns="Blackbaud.AppFx.WebService.API.1">
+      <SelectFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="uid"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="NAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="name"/>
+        <f ObjectName="USR_V_QUERY_EMAILS_NODE" ColumnName="PrimaryEmail" ParentPath="V_QUERY_CONSTITUENT\ DAR\Email Addresses" DisplayPath="V_QUERY_CONSTITUENT\ DAR\Email Addresses" AliasName="email"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="FIRSTNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="first_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="last_name"/>
+      </SelectFields>
+      <FilterFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" IncludeCurrentNode="true" DataMartLastRefresh="0001-01-01T00:00:00">
+          <DateFilterTypes/>
+          <FuzzyDateFilterTypes/>
+          <MonthDayFilterTypes/>
+          <Values>
+            <v>{{BUID}}</v>
+          </Values>
+          <DataType>String</DataType>
+        </f>
+      </FilterFields>
+      <SortFields/>
+      <GroupFilterFields/>
+      <ClientAppInfo REDatabaseToUse="30656d"/>
+    </AdHocQueryProcessRequest>
+            </soap:Body>
+        </soap:Envelope>

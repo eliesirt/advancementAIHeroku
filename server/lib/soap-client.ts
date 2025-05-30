@@ -241,6 +241,72 @@ class BBECSOAPClient {
     }
   }
 
+  async searchUserByBUID(buid: string): Promise<any> {
+    try {
+      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+                <AdHocQueryProcessRequest DoReturnData="true" SuppressDuplicateRows="true" BypassRecordCount="true" SuppressPrimaryKeyField="false" QueryViewID="ee8a7483-c483-4214-9646-4bb62ec29ab7" 
+      xmlns="Blackbaud.AppFx.WebService.API.1">
+      <SelectFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="uid"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="NAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="name"/>
+        <f ObjectName="USR_V_QUERY_EMAILS_NODE" ColumnName="PrimaryEmail" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" AliasName="email"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="FIRSTNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="first_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="last_name"/>
+      </SelectFields>
+      <FilterFields>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" IncludeCurrentNode="true" DataMartLastRefresh="0001-01-01T00:00:00">
+          <DateFilterTypes/>
+          <FuzzyDateFilterTypes/>
+          <MonthDayFilterTypes/>
+          <Values>
+            <v>${buid}</v>
+          </Values>
+          <DataType>String</DataType>
+        </f>
+      </FilterFields>
+      <SortFields/>
+      <GroupFilterFields/>
+      <ClientAppInfo REDatabaseToUse="${this.username}"/>
+    </AdHocQueryProcessRequest>
+            </soap:Body>
+        </soap:Envelope>`;
+
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/AdHocQueryProcess',
+          'Authorization': this.authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive'
+        },
+        body: soapBody
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const responseText = await response.text();
+      console.log('User search response:', responseText);
+      
+      const users = this.parseUserSearchResponse(responseText);
+      return users.length > 0 ? users[0] : null;
+    } catch (error) {
+      console.error('User search error:', error);
+      throw new Error('Failed to search user by BUID in BBEC: ' + (error as Error).message);
+    }
+  }
+
   async getAffinityTags(): Promise<any[]> {
     try {
       const soapBody = `<?xml version="1.0" encoding="utf-8"?>
@@ -437,6 +503,45 @@ class BBECSOAPClient {
     } catch (error) {
       console.error('Error parsing submission response:', error);
       return `temp_${Date.now()}`;
+    }
+  }
+
+  private parseUserSearchResponse(soapResponse: string): any[] {
+    try {
+      const users: any[] = [];
+      
+      // Extract rows from the SOAP response
+      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
+      let rowMatch;
+      
+      while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
+        const valuesContent = rowMatch[1];
+        
+        // Extract all <v> values from the row
+        const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
+        const values: string[] = [];
+        let valueMatch;
+        
+        while ((valueMatch = valueRegex.exec(valuesContent)) !== null) {
+          values.push(valueMatch[1]);
+        }
+        
+        // Based on the query structure: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name
+        if (values.length >= 2 && values[0]) {
+          users.push({
+            uid: values[0] || '',
+            name: values[1] || '',
+            email: values[2] || '',
+            first_name: values[3] || '',
+            last_name: values[4] || ''
+          });
+        }
+      }
+      
+      return users;
+    } catch (error) {
+      console.error('Error parsing user search response:', error);
+      return [];
     }
   }
 }
