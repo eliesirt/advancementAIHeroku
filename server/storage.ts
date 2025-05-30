@@ -87,6 +87,7 @@ export class MemStorage implements IStorage {
       lastName: null,
       email: null,
       buid: null,
+      bbecGuid: null,
       role: "Senior Development Officer",
       createdAt: new Date(),
     };
@@ -131,7 +132,8 @@ export class MemStorage implements IStorage {
       firstName: insertUser.firstName || null,
       lastName: insertUser.lastName || null,
       email: insertUser.email || null,
-      buid: insertUser.buid || null
+      buid: insertUser.buid || null,
+      bbecGuid: insertUser.bbecGuid || null
     };
     this.users.set(id, user);
     return user;
