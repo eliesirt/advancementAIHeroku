@@ -622,6 +622,24 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
           </div>
         )}
       </main>
+
+      {/* Edit Interaction Form */}
+      <InteractionForm
+        isVisible={showInteractionForm}
+        extractedInfo={extractedInfo}
+        transcript={currentTranscript}
+        enhancedComments={enhancedComments}
+        onSubmit={(data) => updateInteraction.mutate(data)}
+        onSaveDraft={(data) => updateInteraction.mutate({ ...data, isDraft: true })}
+        onClose={() => {
+          setShowInteractionForm(false);
+          setEditingInteractionId(null);
+          setCurrentTranscript("");
+          setExtractedInfo(null);
+          setEnhancedComments("");
+        }}
+        isSubmitting={updateInteraction.isPending}
+      />
     </div>
   );
 }
