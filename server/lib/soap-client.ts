@@ -489,25 +489,55 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Looking at the actual values array from the logs, I need to debug the exact mapping
-        console.log(`Raw values array (${values.length} items):`, values);
+        // Based on the debug output, I can see the actual structure varies by constituent
+        // Let me map based on the pattern I can see:
+        // - All have: [0] = BUID, [1] = Full Name
+        // - Then varying fields: school, job, company, phone, email
+        // - Always end with: first_name, last_name, guid, guid (duplicate)
         
-        // From the actual SOAP response and the Fields structure, the correct mapping should be:
-        // uid, name, c, i, sch_yr, job_title, company, phone, email, first_name, last_name, guid, QUERYRECID
-        if (values.length >= 13 && values[1]) {
+        if (values.length >= 4 && values[1]) {
+          // The pattern shows that first_name and last_name are always the 3rd and 2nd to last positions
+          // And GUID is always the last two positions (duplicated)
+          const firstName = values[values.length - 4] || '';
+          const lastName = values[values.length - 3] || '';
+          const guid = values[values.length - 2] || '';
+          
+          // For other fields, try to identify them by position and content
+          let email = '';
+          let phone = '';
+          let jobTitle = '';
+          let company = '';
+          let school = '';
+          
+          // Look for patterns in the middle fields
+          for (let i = 2; i < values.length - 4; i++) {
+            const value = values[i];
+            if (value && value.includes('@')) {
+              email = value;
+            } else if (value && value.match(/^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/)) {
+              phone = value;
+            } else if (value && (value.includes('University') || value.includes('School') || value.includes('College'))) {
+              company = value;
+            } else if (value && !jobTitle && value.length > 3) {
+              jobTitle = value;
+            } else if (value && value.includes("'")) {
+              school = value;
+            }
+          }
+          
           const constituent = {
             uid: values[0] || '',
             name: values[1] ? values[1].replace(/&amp;/g, '&') : '',
-            c: values[2] || '',
-            i: values[3] || '',
-            sch_yr: values[4] || '',
-            job_title: values[5] || '',
-            company: values[6] || '',
-            phone: values[7] || '',
-            email: values[8] || '',
-            first_name: values[9] || '',
-            last_name: values[10] || '',
-            guid: values[11] || ''
+            c: '',
+            i: '',
+            sch_yr: school,
+            job_title: jobTitle,
+            company: company,
+            phone: phone,
+            email: email,
+            first_name: firstName,
+            last_name: lastName,
+            guid: guid
           };
           
           console.log('Mapped constituent:', JSON.stringify(constituent, null, 2));
