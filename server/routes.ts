@@ -601,38 +601,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let enhancedComments = interaction.comments;
           let suggestedAffinityTags = interaction.affinityTags || [];
 
-          console.log(`Processing interaction ${interaction.id}:`, {
-            hasTranscript: !!interaction.transcript,
-            hasExtractedInfo: !!extractedInfo,
-            extractedInfoType: typeof extractedInfo,
-            currentAffinityTags: suggestedAffinityTags
-          });
+
 
           // If there's a transcript but no extracted info, process it
           if (interaction.transcript && !extractedInfo) {
             const { extractInteractionInfo, enhanceInteractionComments } = await import("./lib/openai");
             extractedInfo = await extractInteractionInfo(interaction.transcript);
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
-            console.log(`Newly extracted info for ${interaction.id}:`, extractedInfo);
+
           }
 
           // Re-match affinity tags - try current affinity tags or extract from stored info
           if (extractedInfo) {
             const parsedInfo = typeof extractedInfo === 'string' ? JSON.parse(extractedInfo) : extractedInfo;
-            console.log(`Parsed info for ${interaction.id}:`, parsedInfo);
-            
             const allInterests = [
               ...(Array.isArray(parsedInfo.professionalInterests) ? parsedInfo.professionalInterests : []),
               ...(Array.isArray(parsedInfo.personalInterests) ? parsedInfo.personalInterests : []),
               ...(Array.isArray(parsedInfo.philanthropicPriorities) ? parsedInfo.philanthropicPriorities : [])
             ];
 
-            console.log(`All interests for ${interaction.id}:`, allInterests);
-
             if (allInterests.length > 0) {
               const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
               suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-              console.log(`Matched tags for ${interaction.id}:`, suggestedAffinityTags);
             }
           }
           
@@ -643,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (keywords.length > 0) {
               const matchedTags = affinityMatcher.matchInterests(keywords, 0.2);
               suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-              console.log(`Keyword-matched tags for ${interaction.id}:`, suggestedAffinityTags);
+
             }
           }
 
@@ -684,7 +674,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         results
       };
       
-      console.log("Bulk processing response:", JSON.stringify(response, null, 2));
       res.json(response);
 
     } catch (error) {

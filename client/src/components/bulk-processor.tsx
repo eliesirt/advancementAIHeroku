@@ -167,28 +167,32 @@ export function BulkProcessor({ selectedInteractions, onClearSelection }: BulkPr
               <div className="space-y-2">
                 <h3 className="font-medium">Processing Results:</h3>
                 <div className="max-h-60 overflow-y-auto space-y-2">
-                  {results.results?.map(result => {
-                    const interaction = selectedInteractions.find(i => i.id === result.id);
-                    return (
-                      <div key={result.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                        {result.success ? (
-                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{interaction?.prospectName}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {result.success ? (
-                              `${result.affinityTagsMatched} affinity tags matched`
-                            ) : (
-                              result.error
-                            )}
+                  {(results.results && Array.isArray(results.results) && results.results.length > 0) ? (
+                    results.results.map(result => {
+                      const interaction = selectedInteractions.find(i => i.id === result.id);
+                      return (
+                        <div key={result.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                          {result.success ? (
+                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{interaction?.prospectName}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {result.success ? (
+                                `${result.affinityTagsMatched} affinity tags matched`
+                              ) : (
+                                result.error
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  }) || <div className="text-sm text-gray-500">No results to display</div>}
+                      );
+                    })
+                  ) : (
+                    <div className="text-sm text-gray-500">No results to display</div>
+                  )}
                 </div>
               </div>
 
