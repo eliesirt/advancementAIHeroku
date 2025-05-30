@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   email: text("email"),
   buid: text("buid"), // Blackbaud User ID
+  bbecGuid: text("bbec_guid"), // Blackbaud GUID
   role: text("role").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -257,6 +257,7 @@ class BBECSOAPClient {
         <f ObjectName="USR_V_QUERY_EMAILS_NODE" ColumnName="PrimaryEmail" ParentPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" DisplayPath="V_QUERY_CONSTITUENT\\ DAR\\Email Addresses" AliasName="email"/>
         <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="FIRSTNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="first_name"/>
         <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="KEYNAME" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="last_name"/>
+        <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="ID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" AliasName="guid"/>
       </SelectFields>
       <FilterFields>
         <f ObjectName="V_QUERY_CONSTITUENT" ColumnName="LOOKUPID" ParentPath="V_QUERY_CONSTITUENT" DisplayPath="V_QUERY_CONSTITUENT" IncludeCurrentNode="true" DataMartLastRefresh="0001-01-01T00:00:00">

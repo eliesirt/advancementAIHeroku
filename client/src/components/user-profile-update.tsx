@@ -18,6 +18,7 @@ const userProfileSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
   buid: z.string().min(1, "BUID is required"),
+  bbecGuid: z.string().optional(),
 });
 
 type UserProfileFormData = z.infer<typeof userProfileSchema>;
@@ -39,6 +40,7 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
       lastName: user?.lastName || "",
       email: user?.email || "",
       buid: user?.buid || "",
+      bbecGuid: user?.bbecGuid || "",
     },
   });
 
@@ -79,6 +81,7 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
         form.setValue("firstName", userData.first_name || "");
         form.setValue("lastName", userData.last_name || "");
         form.setValue("email", userData.email || "");
+        form.setValue("bbecGuid", userData.guid || "");
         
         toast({
           title: "User Found",
@@ -195,6 +198,20 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input {...field} type="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="bbecGuid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BBEC GUID</FormLabel>
+                  <FormControl>
+                    <Input {...field} readOnly className="bg-gray-50" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
