@@ -28,10 +28,7 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { UserProfileUpdate } from "@/components/user-profile-update";
 
 interface VoiceSettings {
   enabled: boolean;
@@ -292,46 +289,7 @@ export default function SettingsPage() {
                   Profile information is synced with Blackbaud CRM.
                 </AlertDescription>
               </Alert>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <User className="h-4 w-4 mr-2" />
-                    Update User
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Update User Profile</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="update-buid">BUID</Label>
-                      <div className="flex space-x-2">
-                        <Input id="update-buid" placeholder="Enter BUID" />
-                        <Button variant="outline" size="sm">
-                          Search
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="update-firstName">First Name</Label>
-                      <Input id="update-firstName" placeholder="First name" />
-                    </div>
-                    <div>
-                      <Label htmlFor="update-lastName">Last Name</Label>
-                      <Input id="update-lastName" placeholder="Last name" />
-                    </div>
-                    <div>
-                      <Label htmlFor="update-email">Email</Label>
-                      <Input id="update-email" type="email" placeholder="Email" />
-                    </div>
-                    <div className="flex justify-end space-x-2 pt-4">
-                      <Button variant="outline">Cancel</Button>
-                      <Button>Update Profile</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <UserProfileUpdate user={user} />
             </div>
           </CardContent>
         </Card>
