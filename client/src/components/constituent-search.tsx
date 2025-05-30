@@ -132,36 +132,40 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-500" />
                     <span className="font-semibold text-lg">{constituent.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {constituent.uid}
-                    </Badge>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                    {constituent.email && (
-                      <div className="flex items-center space-x-2">
-                        <Mail className="h-3 w-3" />
-                        <span>{constituent.email}</span>
-                      </div>
-                    )}
+                  <div className="space-y-1 text-sm text-gray-600 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-xs">
+                        {constituent.uid}
+                      </Badge>
+                      {constituent.email && (
+                        <span className="flex items-center space-x-1">
+                          <Mail className="h-3 w-3" />
+                          <span>{constituent.email}</span>
+                        </span>
+                      )}
+                    </div>
                     
-                    {constituent.phone && (
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-3 w-3" />
-                        <span>{constituent.phone}</span>
-                      </div>
-                    )}
-                    
-                    {constituent.company && (
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-3 w-3" />
-                        <span>{constituent.company}</span>
-                      </div>
-                    )}
-                    
-                    {constituent.job_title && (
-                      <div className="text-sm text-gray-500">
-                        {constituent.job_title}
+                    {(constituent.phone || constituent.job_title || constituent.company) && (
+                      <div className="space-y-1">
+                        {constituent.phone && (
+                          <div className="flex items-center space-x-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{constituent.phone}</span>
+                          </div>
+                        )}
+                        
+                        {constituent.job_title && (
+                          <div>{constituent.job_title}</div>
+                        )}
+                        
+                        {constituent.company && (
+                          <div className="flex items-center space-x-1">
+                            <Building className="h-3 w-3" />
+                            <span>{constituent.company}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
