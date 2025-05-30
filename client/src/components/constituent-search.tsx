@@ -43,6 +43,8 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
     }
 
     setIsSearching(true);
+    setSearchResults([]); // Clear previous results
+    
     try {
       const response = await apiRequest("GET", `/api/constituents/search/${encodeURIComponent(lastName)}`);
       
@@ -56,7 +58,12 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
             description: `No constituents found with last name "${lastName}".`,
           });
         } else {
+          // Only open dialog after results are loaded
           setIsOpen(true);
+          toast({
+            title: "Search Complete",
+            description: `Found ${results.length} constituent${results.length !== 1 ? 's' : ''} with last name "${lastName}".`,
+          });
         }
       } else {
         toast({
@@ -86,22 +93,22 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={searchConstituents}
-          disabled={isSearching || !lastName.trim()}
-        >
-          {isSearching ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-        </Button>
-      </DialogTrigger>
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={searchConstituents}
+        disabled={isSearching || !lastName.trim()}
+      >
+        {isSearching ? (
+          <RefreshCw className="h-4 w-4 animate-spin" />
+        ) : (
+          <Search className="h-4 w-4" />
+        )}
+      </Button>
+      
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Select Constituent - "{lastName}"</DialogTitle>
@@ -196,6 +203,7 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
           )}
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
