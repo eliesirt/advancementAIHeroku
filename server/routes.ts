@@ -137,9 +137,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const affinityMatcher = await createAffinityMatcher(affinityTags);
       
       const allInterests = [
-        ...extractedInfo.professionalInterests,
-        ...extractedInfo.personalInterests,
-        ...extractedInfo.philanthropicPriorities
+        ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
+        ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
+        ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
       ];
       
       const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
