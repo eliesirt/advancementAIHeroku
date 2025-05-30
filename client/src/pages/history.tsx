@@ -104,7 +104,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   }, [interactions, searchTerm, categoryFilter, statusFilter, sortBy]);
 
   const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleString();
   };
 
   // Delete interaction mutation

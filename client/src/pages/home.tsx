@@ -93,7 +93,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         contactLevel: 'In Person',
         method: 'Voice Recording',
         status: 'Draft',
-        actualDate: new Date().toISOString().split('T')[0],
+        actualDate: new Date().toISOString().slice(0, 16),
         comments: 'Audio recorded, awaiting transcription',
         transcript: data.transcript,
         isDraft: true,
@@ -350,7 +350,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     if (diffHours < 1) return "Just now";
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return past.toLocaleDateString();
+    return past.toLocaleString();
   };
 
   const getStatusColor = (interaction: Interaction) => {

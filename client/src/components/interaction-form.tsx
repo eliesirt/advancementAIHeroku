@@ -89,7 +89,7 @@ export function InteractionForm({
         contactLevel: 'Face-to-face', // Default based on most interactions
         method: 'In-person meeting',
         status: 'Complete',
-        actualDate: new Date().toISOString().split('T')[0],
+        actualDate: new Date().toISOString().slice(0, 16),
         comments: enhancedComments || transcript || '',
       });
 
@@ -377,9 +377,9 @@ export function InteractionForm({
                       name="actualDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Actual Date *</FormLabel>
+                          <FormLabel>Actual Date & Time *</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} />
+                            <Input type="datetime-local" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
