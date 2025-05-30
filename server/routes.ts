@@ -226,13 +226,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/interactions/:id", async (req, res) => {
     try {
       const interactionId = parseInt(req.params.id);
+      console.log("PATCH request body:", JSON.stringify(req.body, null, 2));
       const updates = insertInteractionSchema.partial().parse(req.body);
       const interaction = await storage.updateInteraction(interactionId, updates);
       res.json(interaction);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log("Validation errors:", error.errors);
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
+      console.log("Update error:", error);
       res.status(500).json({ message: "Failed to update interaction", error: (error as Error).message });
     }
   });
