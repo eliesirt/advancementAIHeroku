@@ -115,13 +115,16 @@ export async function generateInteractionSynopsis(
 ): Promise<string> {
   try {
     const synopsisPrompt = `
-Analyze this fundraising interaction and create a comprehensive synopsis for Boston University's Advancement office. Include:
+Analyze this fundraising interaction and create a comprehensive synopsis for Boston University's Advancement office. 
 
-1. Perceived value of this interaction to Boston University and the Advancement office
-2. Interests discussed (professional, personal, philanthropic)
-3. Personal news or new details discussed
-4. Potential opportunities and next steps
-5. Overall assessment of prospect engagement
+Format your response as:
+1. First, write a single comprehensive paragraph that summarizes the overall interaction, relationship value, and strategic significance
+2. Then provide bullet points covering:
+   • Perceived donor capacity and inclination signals
+   • Key interests and motivations discovered
+   • Relationship development opportunities
+   • Potential next steps or follow-up actions
+   • Strategic insights for future cultivation
 
 Transcript: ${transcript}
 
