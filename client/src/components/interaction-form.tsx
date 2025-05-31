@@ -618,35 +618,74 @@ export function InteractionForm({
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Detailed Comments</FormLabel>
-                        {existingInteraction && existingInteraction.transcript && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const currentComments = form.getValues("comments");
+                              
+                              if (existingInteraction && existingInteraction.transcript) {
+                                // Use existing transcript for AI analysis
                                 const response = await apiRequest("POST", `/api/interactions/${existingInteraction.id}/regenerate-synopsis`);
                                 const data = await response.json();
                                 if (data.success) {
                                   form.setValue("comments", data.comments);
                                   toast({
-                                    title: "Synopsis Generated",
-                                    description: "AI synopsis has been added to the comments.",
+                                    title: "AI Analysis Complete",
+                                    description: "AI synopsis has been generated and added to comments.",
                                   });
                                 }
-                              } catch (error) {
+                              } else if (currentComments && currentComments.trim().length > 0) {
+                                // Perform AI analysis on current comments text
+                                const response = await apiRequest("POST", "/api/interactions/analyze-text", {
+                                  text: currentComments,
+                                  prospectName: form.getValues("prospectName") || ''
+                                });
+                                const data = await response.json();
+                                
+                                if (data.extractedInfo) {
+                                  // Update form fields with AI analysis results
+                                  if (data.extractedInfo.summary) {
+                                    form.setValue("summary", data.extractedInfo.summary);
+                                  }
+                                  if (data.extractedInfo.category) {
+                                    form.setValue("category", data.extractedInfo.category);
+                                  }
+                                  if (data.extractedInfo.subcategory) {
+                                    form.setValue("subcategory", data.extractedInfo.subcategory);
+                                  }
+                                  
+                                  // Set suggested affinity tags
+                                  if (data.extractedInfo.suggestedAffinityTags) {
+                                    setSelectedAffinityTags(data.extractedInfo.suggestedAffinityTags);
+                                  }
+                                  
+                                  toast({
+                                    title: "AI Analysis Complete",
+                                    description: "Summary, category, and affinity tags have been generated based on your comments.",
+                                  });
+                                }
+                              } else {
                                 toast({
-                                  title: "Error",
-                                  description: "Failed to generate synopsis. Please try again.",
+                                  title: "No Content to Analyze",
+                                  description: "Please add some detailed comments for AI analysis.",
                                   variant: "destructive",
                                 });
                               }
-                            }}
-                            className="text-xs"
-                          >
-                            Generate AI Synopsis
-                          </Button>
-                        )}
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Failed to perform AI analysis. Please try again.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          className="text-xs"
+                        >
+                          AI Analysis
+                        </Button>
                       </div>
                       <FormControl>
                         <Textarea 

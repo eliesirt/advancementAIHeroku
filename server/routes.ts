@@ -590,6 +590,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analyze text content for AI insights
+  app.post("/api/interactions/analyze-text", async (req, res) => {
+    try {
+      const { text, prospectName } = req.body;
+      
+      if (!text || text.trim().length === 0) {
+        return res.status(400).json({ message: "Text content is required for analysis" });
+      }
+
+      // Extract interaction information from the text
+      const { extractInteractionInfo } = await import("./lib/openai");
+      const extractedInfo = await extractInteractionInfo(text);
+      
+      // If prospect name was provided, use it to override extracted name
+      if (prospectName && prospectName.trim().length > 0) {
+        extractedInfo.prospectName = prospectName.trim();
+      }
+
+      // Match interests to affinity tags
+      const affinityTags = await storage.getAffinityTags();
+      const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+      const affinityMatcher = await createAffinityMatcher(affinityTags);
+      
+      const allInterests = [
+        ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
+        ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
+        ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
+      ];
+      
+      let suggestedAffinityTags: string[] = [];
+      if (allInterests.length > 0) {
+        const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+        suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+      }
+
+      // Add matched affinity tags to extracted info
+      extractedInfo.suggestedAffinityTags = suggestedAffinityTags;
+
+      res.json({ 
+        success: true,
+        extractedInfo,
+        message: "Text analysis completed successfully" 
+      });
+    } catch (error) {
+      console.error("Text analysis error:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze text", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Bulk process interactions with batch tag matching
   app.post("/api/interactions/bulk-process", async (req, res) => {
     try {
