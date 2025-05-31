@@ -193,6 +193,24 @@ export function InteractionForm({
         comments: enhancedComments || transcript || '',
       });
       setSelectedAffinityTags(extractedInfo.suggestedAffinityTags || []);
+    } else {
+      // New interaction without extracted info - reset to default values
+      form.reset({
+        prospectName: '',
+        firstName: '',
+        lastName: '',
+        buid: '',
+        bbecGuid: '',
+        summary: '',
+        category: '',
+        subcategory: '',
+        contactLevel: '',
+        method: '',
+        status: 'Complete',
+        actualDate: new Date().toISOString().slice(0, 16),
+        comments: '',
+      });
+      setSelectedAffinityTags([]);
     }
   }, [extractedInfo, existingInteraction, enhancedComments, transcript, form]);
 
