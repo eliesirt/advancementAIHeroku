@@ -18,7 +18,8 @@ import {
   Trash2,
   CheckSquare,
   Square,
-  Tag
+  Tag,
+  RefreshCw
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -535,6 +536,17 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-lg">Recent Interactions</CardTitle>
             <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+                }}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
               {recentInteractions.length > 0 && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
