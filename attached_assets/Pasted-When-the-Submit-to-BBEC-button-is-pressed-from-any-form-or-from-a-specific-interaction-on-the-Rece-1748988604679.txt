@@ -1,0 +1,51 @@
+When the "Submit to BBEC" button is pressed from any form or from a specific interaction on the Recent Interactions, or History sections:  Initiate an API call to BBEC using the DataFormSave method (details below) to insert the record.  Once you receive a 200 code signaling that the API call succeeded, the interaction record can be removed from this database and all lists.  For the API data mapping, <ContextRecordID> hould be filled with the constituent BBEC GUID fro the interaction form, <fv ID="STATUSCODE"> should always be 1 for now (this will change in the future), <fv ID="FUNDRAISERID"> should always be the User Profile GUID from the settings tab, <fv ID="INTERACTIONTYPECODEID"> should always be D081262B-4430-416D-8A6E-D0CBDFFDBC8F for now, <fv ID="EXPECTEDDATE"> should be the Actual Date of the interaction,  <fv ID="OBJECTIVE"> should be the value in the Summary field of the interaction, <fv ID="COMMENT"> should be the value in the Detailed Comments field of the interaction.  Here are the API details in an example that works in POSTMAN - replace the example values with the variables described above.
+
+Request Header:
+Host: crm30656d.sky.blackbaud.com
+Content-Type: text/xml; charset=utf-8
+SOAPAction: Blackbaud.AppFx.WebService.API.1/DataFormSave
+Authorization: <<Replace with secret BLACKBAUD_API_AUTHENTICATION>>
+User-Agent: PostmanRuntime/7.44.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 2e60dc1c-146b-4a78-b7fa-a9ee70871c66
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Cookie: ApplicationGatewayAffinity=0b7ff9ea9dd0b9dc4505695499b274bda7ee0645f25d2e2b1ddce49bfadd4f86; ApplicationGatewayAffinityCORS=0b7ff9ea9dd0b9dc4505695499b274bda7ee0645f25d2e2b1ddce49bfadd4f86
+
+Request body:
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+            <FormID>2cdea15f-ab2d-4e27-a0a4-5ef728a892ea</FormID>
+            <ContextRecordID>34e0c896-76b2-4041-b035-6591356ca1ad</ContextRecordID>
+            <DataFormItem>
+                <Values xmlns="bb_appfx_dataforms">
+                    <fv ID="STATUSCODE">
+                        <Value xsi:type="xsd:int">1</Value>
+                    </fv>
+                    <fv ID="FUNDRAISERID">
+                        <Value xsi:type="xsd:string">1140D6BF-FE77-4D15-983A-78325205515F</Value>
+                    </fv>
+                    <fv ID="INTERACTIONTYPECODEID">
+                        <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
+                    </fv>
+                    <fv ID="EXPECTEDDATE">
+                        <Value xsi:type="xsd:date">2023-06-15</Value>
+                    </fv>
+                    <fv ID="OBJECTIVE">
+                        <Value xsi:type="xsd:string">Visit with Elie</Value>
+                    </fv>
+                    <fv ID="COMMENT">
+                        <Value xsi:type="xsd:string">Additional Comments Here.  I Can ramble on all day</Value>
+                    </fv>
+                </Values>
+            </DataFormItem>
+            <ClientAppInfo REDatabaseToUse="30656d"/>
+        </DataFormSaveRequest>
+    </soap:Body>
+</soap:Envelope>

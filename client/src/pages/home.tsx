@@ -653,78 +653,70 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                             <span>{getStatusText(interaction)}</span>
                           </div>
                         </div>
-                        {interaction.isDraft && (
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditingInteraction(interaction);
-                                setExtractedInfo(null);
-                                setCurrentTranscript("");
-                                setEnhancedComments("");
-                                setShowInteractionForm(true);
-                              }}
-                              className="h-7 px-2 text-xs"
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Delete
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Interaction</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{interaction.prospectName}"? 
-                                    This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteInteraction.mutate(interaction.id)}>
+                        <div className="flex items-center space-x-2">
+                          {interaction.isDraft && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingInteraction(interaction);
+                                  setExtractedInfo(null);
+                                  setCurrentTranscript("");
+                                  setEnhancedComments("");
+                                  setShowInteractionForm(true);
+                                }}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
                                     Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Interaction</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{interaction.prospectName}"? 
+                                      This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteInteraction.mutate(interaction.id)}>
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </>
+                          )}
+                          
+                          {/* Submit to BBEC button for all interactions that haven't been submitted */}
+                          {!interaction.bbecSubmitted && (
                             <Button
                               variant="default"
                               size="sm"
+                              disabled={submitToBBEC.isPending}
                               onClick={() => {
-                                // Use the existing submitToBBEC mutation
-                                apiRequest("POST", `/api/interactions/${interaction.id}/submit-bbec`).then(() => {
-                                  toast({
-                                    title: "Success",
-                                    description: "Interaction submitted to BBEC successfully.",
-                                  });
-                                  queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
-                                  queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-                                }).catch((error) => {
-                                  console.error("BBEC submission error:", error);
-                                  toast({
-                                    title: "Submission Error", 
-                                    description: "Failed to submit to BBEC. Please try again.",
-                                    variant: "destructive",
-                                  });
-                                });
+                                submitToBBEC.mutate(interaction.id);
                               }}
                               className="h-7 px-2 text-xs"
                             >
                               <Send className="h-3 w-3 mr-1" />
-                              Submit to BBEC
+                              {submitToBBEC.isPending ? "Submitting..." : "Submit to BBEC"}
                             </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

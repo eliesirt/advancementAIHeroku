@@ -174,16 +174,7 @@ class BBECSOAPClient {
 
   async submitInteraction(interaction: BBECInteractionSubmission): Promise<string> {
     try {
-      // First, search for the constituent to get their ID
-      const constituents = await this.searchConstituent(interaction.prospectName);
-      
-      if (constituents.length === 0) {
-        throw new Error(`No constituent found with name: ${interaction.prospectName}`);
-      }
-      
-      const constituentId = constituents[0].id;
-      
-      // Build the DataFormSave request
+      // Build the DataFormSave request using the constituent GUID from the interaction
       const soapBody = `<?xml version="1.0" encoding="utf-8"?>
         <soap:Envelope 
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -191,17 +182,28 @@ class BBECSOAPClient {
         xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             <soap:Body>
                 <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
-                    <FormID>41953129-062a-45e6-9540-a1153f9250fa</FormID>
+                    <FormID>2cdea15f-ab2d-4e27-a0a4-5ef728a892ea</FormID>
+                    <ContextRecordID>${interaction.constituentId}</ContextRecordID>
                     <DataFormItem>
-                        <Values>
-                            <SimpleDataListItem Key="CONSTITUENTID" Value="${constituentId}"/>
-                            <SimpleDataListItem Key="CONTACTLEVEL" Value="${interaction.contactLevel}"/>
-                            <SimpleDataListItem Key="CONTACTMETHOD" Value="${interaction.method}"/>
-                            <SimpleDataListItem Key="SUMMARY" Value="${interaction.summary}"/>
-                            <SimpleDataListItem Key="CATEGORY" Value="${interaction.category}"/>
-                            <SimpleDataListItem Key="SUBCATEGORY" Value="${interaction.subcategory}"/>
-                            <SimpleDataListItem Key="ACTUALDATE" Value="${interaction.actualDate}"/>
-                            <SimpleDataListItem Key="COMMENTS" Value="${interaction.comments || ''}"/>
+                        <Values xmlns="bb_appfx_dataforms">
+                            <fv ID="STATUSCODE">
+                                <Value xsi:type="xsd:int">1</Value>
+                            </fv>
+                            <fv ID="FUNDRAISERID">
+                                <Value xsi:type="xsd:string">1140D6BF-FE77-4D15-983A-78325205515F</Value>
+                            </fv>
+                            <fv ID="INTERACTIONTYPECODEID">
+                                <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
+                            </fv>
+                            <fv ID="EXPECTEDDATE">
+                                <Value xsi:type="xsd:date">${interaction.actualDate}</Value>
+                            </fv>
+                            <fv ID="OBJECTIVE">
+                                <Value xsi:type="xsd:string">${interaction.summary}</Value>
+                            </fv>
+                            <fv ID="COMMENT">
+                                <Value xsi:type="xsd:string">${interaction.comments || ''}</Value>
+                            </fv>
                         </Values>
                     </DataFormItem>
                     <ClientAppInfo REDatabaseToUse="30656d"/>

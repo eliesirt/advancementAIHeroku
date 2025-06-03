@@ -248,6 +248,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Submit interaction to BBEC and remove from local database
+  app.post("/api/interactions/:id/submit-bbec", async (req, res) => {
+    try {
+      const interactionId = parseInt(req.params.id);
+      const interaction = await storage.getInteraction(interactionId);
+      
+      if (!interaction) {
+        return res.status(404).json({ message: "Interaction not found" });
+      }
+
+      // Check if interaction has constituent GUID
+      if (!interaction.constituentGuid) {
+        return res.status(400).json({ 
+          message: "Interaction missing constituent GUID - please select a constituent first" 
+        });
+      }
+
+      // Prepare interaction data for BBEC submission
+      const bbecInteraction = {
+        constituentId: interaction.constituentGuid,
+        prospectName: interaction.prospectName,
+        contactLevel: interaction.contactLevel,
+        method: interaction.method,
+        summary: interaction.summary,
+        category: interaction.category,
+        subcategory: interaction.subcategory,
+        status: interaction.status,
+        actualDate: interaction.actualDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        owner: interaction.owner || 'system',
+        comments: interaction.comments,
+        affinityTags: interaction.affinityTags
+      };
+
+      console.log("Submitting interaction to BBEC:", bbecInteraction);
+
+      // Submit to BBEC
+      const bbecInteractionId = await bbecClient.submitInteraction(bbecInteraction);
+      
+      // If submission successful (no error thrown), remove from local database
+      const deleted = await storage.deleteInteraction(interactionId);
+      
+      if (!deleted) {
+        console.warn(`BBEC submission succeeded but failed to delete local interaction ${interactionId}`);
+      }
+
+      res.json({ 
+        success: true, 
+        bbecInteractionId,
+        message: "Interaction submitted to BBEC and removed from local database"
+      });
+
+    } catch (error) {
+      console.error("BBEC submission error:", error);
+      res.status(500).json({ 
+        message: "Failed to submit interaction to BBEC", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Update interaction
   app.put("/api/interactions/:id", async (req, res) => {
     try {

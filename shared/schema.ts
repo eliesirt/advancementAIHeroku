@@ -24,6 +24,8 @@ export const interactions = pgTable("interactions", {
   lastName: text("last_name"),
   buid: text("buid"),
   bbecGuid: text("bbec_guid"),
+  constituentGuid: text("constituent_guid"),
+  owner: text("owner"),
   summary: text("summary").notNull(),
   category: text("category").notNull(),
   subcategory: text("subcategory").notNull(),
