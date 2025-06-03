@@ -19,8 +19,8 @@ export interface BBECInteractionSubmission {
   status: string;
   actualDate: string;
   owner: string;
-  comments?: string;
-  affinityTags?: string[];
+  comments?: string | null;
+  affinityTags?: string[] | null;
 }
 
 class BBECSOAPClient {

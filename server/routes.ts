@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { transcribeAudio, extractInteractionInfo, enhanceInteractionComments, type ExtractedInteractionInfo } from "./lib/openai";
-import { bbecClient } from "./lib/soap-client";
+import { bbecClient, type BBECInteractionSubmission } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
@@ -266,8 +266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Prepare interaction data for BBEC submission
-      const bbecInteraction = {
-        constituentId: interaction.constituentGuid,
+      const bbecInteraction: BBECInteractionSubmission = {
+        constituentId: interaction.constituentGuid || '',
         prospectName: interaction.prospectName,
         contactLevel: interaction.contactLevel,
         method: interaction.method,
@@ -277,8 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: interaction.status,
         actualDate: interaction.actualDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
         owner: interaction.owner || 'system',
-        comments: interaction.comments,
-        affinityTags: interaction.affinityTags
+        comments: interaction.comments || undefined,
+        affinityTags: interaction.affinityTags || undefined
       };
 
       console.log("Submitting interaction to BBEC:", bbecInteraction);
