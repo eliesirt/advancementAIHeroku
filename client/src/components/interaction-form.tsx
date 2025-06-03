@@ -23,6 +23,7 @@ const formSchema = z.object({
   lastName: z.string().optional(),
   buid: z.string().optional(),
   bbecGuid: z.string().optional(),
+  constituentGuid: z.string().optional(),
   contactLevel: z.string().min(1, 'Contact level is required'),
   method: z.string().min(1, 'Method is required'),
   summary: z.string().min(1, 'Summary is required'),
@@ -419,6 +420,7 @@ export function InteractionForm({
                                 form.setValue("lastName", constituent.last_name || '');
                                 form.setValue("buid", constituent.uid || '');
                                 form.setValue("bbecGuid", constituent.guid || '');
+                                form.setValue("constituentGuid", constituent.guid || '');
                               }}
                             />
                           </div>

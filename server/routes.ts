@@ -258,8 +258,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Interaction not found" });
       }
 
-      // Check if interaction has constituent GUID
-      if (!interaction.constituentGuid) {
+      // Check if interaction has constituent GUID, fallback to bbecGuid if available
+      let constituentGuid = interaction.constituentGuid;
+      if (!constituentGuid && interaction.bbecGuid) {
+        // Update the interaction to use bbecGuid as constituentGuid
+        constituentGuid = interaction.bbecGuid;
+        await storage.updateInteraction(interactionId, { constituentGuid });
+      }
+      
+      if (!constituentGuid) {
         return res.status(400).json({ 
           message: "Interaction missing constituent GUID - please select a constituent first" 
         });
@@ -267,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Prepare interaction data for BBEC submission
       const bbecInteraction: BBECInteractionSubmission = {
-        constituentId: interaction.constituentGuid || '',
+        constituentId: constituentGuid,
         prospectName: interaction.prospectName,
         contactLevel: interaction.contactLevel,
         method: interaction.method,
