@@ -428,7 +428,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-primary text-white px-4 py-3 shadow-sm">
+      <header className="text-white px-4 py-3 shadow-sm" style={{ backgroundColor: '#CC0000' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <User className="h-6 w-6" />
