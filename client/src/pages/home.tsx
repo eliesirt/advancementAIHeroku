@@ -433,8 +433,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           <div className="flex items-center space-x-3">
             <User className="h-6 w-6" />
             <div>
-              <div className="font-medium text-sm">{user?.name || "Loading..."}</div>
-              <div className="text-xs opacity-90">{user?.role || ""}</div>
+              <div className="font-medium text-sm">
+                {user?.firstName && user?.lastName 
+                  ? `${user.firstName} ${user.lastName}` 
+                  : user?.name || "Loading..."
+                }
+              </div>
+              <div className="text-xs opacity-90">{user?.email || ""}</div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
