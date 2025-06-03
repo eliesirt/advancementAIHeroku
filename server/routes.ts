@@ -258,6 +258,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Interaction not found" });
       }
 
+      // Get the user's BBEC GUID for the fundraiser ID
+      const user = await storage.getUser(interaction.userId);
+      if (!user?.bbecGuid) {
+        return res.status(400).json({ 
+          message: "User missing BBEC GUID - please update your profile in Settings" 
+        });
+      }
+
       // Check if interaction has constituent GUID, fallback to bbecGuid if available
       let constituentGuid = interaction.constituentGuid;
       if (!constituentGuid && interaction.bbecGuid) {
@@ -285,7 +293,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actualDate: interaction.actualDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
         owner: interaction.owner || 'system',
         comments: interaction.comments || undefined,
-        affinityTags: interaction.affinityTags || undefined
+        affinityTags: interaction.affinityTags || undefined,
+        fundraiserGuid: user.bbecGuid // Add the user's BBEC GUID as fundraiser ID
       };
 
       console.log("Submitting interaction to BBEC:", bbecInteraction);
@@ -362,6 +371,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Interaction already submitted to BBEC" });
       }
 
+      // Get the user's BBEC GUID for the fundraiser ID
+      const user = await storage.getUser(interaction.userId);
+      if (!user?.bbecGuid) {
+        return res.status(400).json({ 
+          message: `User missing BBEC GUID for interaction ${interaction.id}` 
+        });
+      }
+
       // Submit to BBEC via SOAP API using the proper workflow
       const bbecInteractionId = await bbecClient.submitInteraction({
         constituentId: "", // Will be determined by searchConstituent
@@ -375,7 +392,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actualDate: interaction.actualDate.toISOString().split('T')[0],
         owner: "sarah.thompson",
         comments: interaction.comments || "",
-        affinityTags: interaction.affinityTags || []
+        affinityTags: interaction.affinityTags || [],
+        fundraiserGuid: user.bbecGuid
       });
 
       // Update interaction as submitted

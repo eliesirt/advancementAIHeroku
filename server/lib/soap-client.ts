@@ -21,6 +21,7 @@ export interface BBECInteractionSubmission {
   owner: string;
   comments?: string | null;
   affinityTags?: string[] | null;
+  fundraiserGuid: string;
 }
 
 class BBECSOAPClient {
@@ -190,7 +191,7 @@ class BBECSOAPClient {
                                 <Value xsi:type="xsd:int">1</Value>
                             </fv>
                             <fv ID="FUNDRAISERID">
-                                <Value xsi:type="xsd:string">1140D6BF-FE77-4D15-983A-78325205515F</Value>
+                                <Value xsi:type="xsd:string">${interaction.fundraiserGuid}</Value>
                             </fv>
                             <fv ID="INTERACTIONTYPECODEID">
                                 <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
