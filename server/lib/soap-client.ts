@@ -202,7 +202,7 @@ class BBECSOAPClient {
                         <Value xsi:type="xsd:date">${interaction.actualDate}</Value>
                     </fv>
                     <fv ID="OBJECTIVE">
-                        <Value xsi:type="xsd:string">${interaction.summary}</Value>
+                        <Value xsi:type="xsd:string">${interaction.summary.length > 100 ? interaction.summary.substring(0, 100) : interaction.summary}</Value>
                     </fv>
                     <fv ID="COMMENT">
                         <Value xsi:type="xsd:string">${interaction.comments || ''}</Value>
