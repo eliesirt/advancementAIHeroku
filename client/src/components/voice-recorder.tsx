@@ -72,7 +72,7 @@ export function VoiceRecorder({
               disabled={disabled}
               size="lg"
               className={cn(
-                "w-24 h-24 rounded-full transition-all duration-200",
+                "w-32 h-32 rounded-full transition-all duration-200",
                 state.isRecording 
                   ? "animate-pulse" 
                   : ""
@@ -83,9 +83,9 @@ export function VoiceRecorder({
               }}
             >
               {state.isRecording ? (
-                <Square className="h-8 w-8 text-white" />
+                <Square className="h-10 w-10 text-white" />
               ) : (
-                <div className="bg-white rounded-sm p-1 w-20 h-10">
+                <div className="bg-white rounded-sm p-2 w-24 h-12">
                   <img 
                     src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
                     alt="Boston University Logo"

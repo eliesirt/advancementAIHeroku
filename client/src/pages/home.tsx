@@ -510,13 +510,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
               <Button
                 onClick={() => setShowVoiceRecorder(true)}
                 size="lg"
-                className="w-24 h-24 rounded-full mb-4"
+                className="w-32 h-32 rounded-full mb-4"
                 style={{ 
                   backgroundColor: '#CC0000',
                   borderColor: '#CC0000'
                 }}
               >
-                <div className="bg-white rounded-sm p-1 w-20 h-10">
+                <div className="bg-white rounded-sm p-2 w-24 h-12">
                   <img 
                     src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
                     alt="Boston University Logo"
