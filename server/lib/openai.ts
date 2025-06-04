@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import FormData from "form-data";
+import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -34,35 +35,37 @@ export async function transcribeAudio(audioData: string): Promise<string> {
       const audioBuffer = Buffer.from(audioData, 'base64');
       console.log(`Audio buffer size: ${audioBuffer.length} bytes`);
       
-      // Create a temporary file
-      tempFilePath = path.join(os.tmpdir(), `audio_${Date.now()}_${attempt}.wav`);
-      fs.writeFileSync(tempFilePath, audioBuffer);
-      
-      const transcription = await openai.audio.transcriptions.create({
-        file: await openai.toFile(fs.createReadStream(tempFilePath), 'audio.wav'),
-        model: "whisper-1",
+      // Create form data with the audio buffer
+      const form = new FormData();
+      form.append('file', audioBuffer, {
+        filename: 'audio.wav',
+        contentType: 'audio/wav'
       });
+      form.append('model', 'whisper-1');
+      
+      // Make direct API call to OpenAI transcription endpoint
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          ...form.getHeaders()
+        },
+        body: form as any
+      });
+      
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json() as { text: string };
+      const transcription = { text: result.text };
 
       console.log(`Transcription successful: ${transcription.text.substring(0, 100)}...`);
-      
-      // Clean up temp file
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
-      }
       
       return transcription.text;
     } catch (error) {
       lastError = error as Error;
       console.error(`Audio transcription error (attempt ${attempt}/${maxRetries}):`, error);
-      
-      // Clean up temp file on error
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        try {
-          fs.unlinkSync(tempFilePath);
-        } catch (cleanupError) {
-          console.error('Error cleaning up temp file:', cleanupError);
-        }
-      }
       
       // If this is a connection error and we have retries left, wait and try again
       if (attempt < maxRetries && (error as any)?.cause?.code === 'ECONNRESET') {
