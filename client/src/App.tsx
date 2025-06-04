@@ -92,9 +92,6 @@ function AppContent() {
             />
           } />
           <Route path="/history" component={HistoryPage} />
-          <Route path="/pending" component={() => 
-            <HistoryPage initialFilter="pending" />
-          } />
           <Route path="/settings" component={SettingsPage} />
           <Route component={NotFound} />
         </Switch>
@@ -105,7 +102,6 @@ function AppContent() {
         <BottomNavigation
           currentPage={currentPage}
           onNavigate={handleNavigate}
-          pendingCount={stats?.pendingInteractions || 0}
         />
       )}
 
