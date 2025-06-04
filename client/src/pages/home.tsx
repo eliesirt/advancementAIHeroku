@@ -516,11 +516,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                   borderColor: '#CC0000'
                 }}
               >
-                <div className="bg-white rounded-sm p-1">
+                <div className="bg-white rounded-sm p-2">
                   <img 
                     src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
                     alt="Boston University Logo"
-                    className="w-6 h-6 object-contain"
+                    className="w-10 h-10 object-contain"
                   />
                 </div>
               </Button>
