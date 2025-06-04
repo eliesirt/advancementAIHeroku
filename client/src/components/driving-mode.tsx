@@ -95,14 +95,14 @@ export function DrivingMode({
   const availableCommands = voiceCommands?.getCommands() || [];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-orange-600 to-orange-800 z-50 flex flex-col text-white">
+    <div className="fixed inset-0 z-50 flex flex-col text-white" style={{ background: 'linear-gradient(to bottom right, #CC0000, #990000)' }}>
       {/* Header */}
       <div className="p-6 text-center">
         <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <Car className="h-12 w-12" />
         </div>
         <h1 className="text-3xl font-bold mb-2">Driving Mode</h1>
-        <p className="text-orange-100 text-lg">Hands-free voice control active</p>
+        <p className="text-red-100 text-lg">Hands-free voice control active</p>
       </div>
 
       {/* Voice Status */}
@@ -124,7 +124,7 @@ export function DrivingMode({
             )}
 
             <div className="space-y-2">
-              <p className="text-orange-100">Say one of these commands:</p>
+              <p className="text-red-100">Say one of these commands:</p>
               <div className="text-left space-y-1">
                 <div className="font-medium">"Log interaction" - Start recording</div>
                 <div className="font-medium">"Stop recording" - End session</div>
@@ -148,8 +148,8 @@ export function DrivingMode({
 
         {/* Safety Message */}
         <div className="text-center">
-          <p className="text-orange-100 text-sm font-medium mb-2">Keep your eyes on the road</p>
-          <p className="text-orange-200 text-xs">Use voice commands only when safe to do so</p>
+          <p className="text-red-100 text-sm font-medium mb-2">Keep your eyes on the road</p>
+          <p className="text-red-200 text-xs">Use voice commands only when safe to do so</p>
         </div>
       </div>
 
@@ -177,7 +177,7 @@ export function DrivingMode({
               {availableCommands.slice(0, 6).map((command, index) => (
                 <div key={index} className="flex justify-between items-center">
                   <span className="font-medium">"{command.patterns[0]}"</span>
-                  <span className="text-orange-200 text-xs">{command.description}</span>
+                  <span className="text-red-200 text-xs">{command.description}</span>
                 </div>
               ))}
             </div>
