@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-import { Readable } from "stream";
+import FormData from "form-data";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -21,6 +24,7 @@ export interface ExtractedInteractionInfo {
 export async function transcribeAudio(audioData: string): Promise<string> {
   const maxRetries = 3;
   let lastError: Error = new Error("No attempts made");
+  let tempFilePath: string | null = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -30,23 +34,35 @@ export async function transcribeAudio(audioData: string): Promise<string> {
       const audioBuffer = Buffer.from(audioData, 'base64');
       console.log(`Audio buffer size: ${audioBuffer.length} bytes`);
       
-      // Create a readable stream from the buffer
-      const audioStream = Readable.from(audioBuffer);
-      
-      // Add necessary properties for the OpenAI API
-      (audioStream as any).path = 'audio.wav';
-      (audioStream as any).name = 'audio.wav';
+      // Create a temporary file
+      tempFilePath = path.join(os.tmpdir(), `audio_${Date.now()}_${attempt}.wav`);
+      fs.writeFileSync(tempFilePath, audioBuffer);
       
       const transcription = await openai.audio.transcriptions.create({
-        file: audioStream as any,
+        file: await openai.toFile(fs.createReadStream(tempFilePath), 'audio.wav'),
         model: "whisper-1",
       });
 
       console.log(`Transcription successful: ${transcription.text.substring(0, 100)}...`);
+      
+      // Clean up temp file
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      
       return transcription.text;
     } catch (error) {
       lastError = error as Error;
       console.error(`Audio transcription error (attempt ${attempt}/${maxRetries}):`, error);
+      
+      // Clean up temp file on error
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        try {
+          fs.unlinkSync(tempFilePath);
+        } catch (cleanupError) {
+          console.error('Error cleaning up temp file:', cleanupError);
+        }
+      }
       
       // If this is a connection error and we have retries left, wait and try again
       if (attempt < maxRetries && (error as any)?.cause?.code === 'ECONNRESET') {
