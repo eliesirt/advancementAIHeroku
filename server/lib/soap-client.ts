@@ -229,7 +229,10 @@ class BBECSOAPClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`BBEC submission failed with ${response.status}: ${response.statusText}`);
+        console.error('Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText.substring(0, 500)}`);
       }
 
       const responseText = await response.text();
