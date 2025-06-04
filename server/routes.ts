@@ -283,6 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Prepare interaction data for BBEC submission
       const bbecInteraction: BBECInteractionSubmission = {
         constituentId: constituentGuid,
+        interactionBbecGuid: interaction.bbecGuid || '',
         prospectName: interaction.prospectName,
         contactLevel: interaction.contactLevel,
         method: interaction.method,
@@ -382,6 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Submit to BBEC via SOAP API using the proper workflow
       const bbecInteractionId = await bbecClient.submitInteraction({
         constituentId: "", // Will be determined by searchConstituent
+        interactionBbecGuid: interaction.bbecGuid || "",
         prospectName: interaction.prospectName || "Unknown",
         contactLevel: interaction.contactLevel,
         method: interaction.method,

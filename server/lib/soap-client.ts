@@ -10,6 +10,7 @@ export interface BBECInteractionField {
 
 export interface BBECInteractionSubmission {
   constituentId: string;
+  interactionBbecGuid: string;
   prospectName: string;
   contactLevel: string;
   method: string;
@@ -184,7 +185,7 @@ class BBECSOAPClient {
     <soap:Body>
         <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
             <FormID>2cdea15f-ab2d-4e27-a0a4-5ef728a892ea</FormID>
-            <ContextRecordID>${interaction.constituentId}</ContextRecordID>
+            <ContextRecordID>${interaction.interactionBbecGuid}</ContextRecordID>
             <FileUploadKey>00000000-0000-0000-0000-000000000000</FileUploadKey>
             <DataFormItem>
                 <Values xmlns="bb_appfx_dataforms">
@@ -192,7 +193,7 @@ class BBECSOAPClient {
                         <Value xsi:type="xsd:int">1</Value>
                     </fv>
                     <fv ID="FUNDRAISERID">
-                        <Value xsi:type="xsd:string">1140D6BF-FE77-4D15-983A-78325205515F</Value>
+                        <Value xsi:type="xsd:string">${interaction.fundraiserGuid}</Value>
                     </fv>
                     <fv ID="INTERACTIONTYPECODEID">
                         <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
