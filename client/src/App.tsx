@@ -26,11 +26,7 @@ function AppContent() {
   // Get current page from location
   const currentPage = location === "/" ? "home" : location.replace("/", "");
 
-  // Fetch pending interactions count for navigation badge
-  const { data: stats } = useQuery({
-    queryKey: ["/api/stats"],
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
+
 
   const handleNavigate = (page: string) => {
     if (page === "home") {
