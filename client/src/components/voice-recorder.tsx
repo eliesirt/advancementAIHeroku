@@ -74,14 +74,46 @@ export function VoiceRecorder({
               className={cn(
                 "w-24 h-24 rounded-full transition-all duration-200",
                 state.isRecording 
-                  ? "bg-red-600 hover:bg-red-700 animate-pulse" 
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? "animate-pulse" 
+                  : ""
               )}
+              style={{ 
+                backgroundColor: '#CC0000',
+                borderColor: '#CC0000'
+              }}
             >
               {state.isRecording ? (
                 <Square className="h-8 w-8 text-white" />
               ) : (
-                <Mic className="h-8 w-8 text-white" />
+                <svg 
+                  width="32" 
+                  height="32" 
+                  viewBox="0 0 32 32" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-white"
+                >
+                  {/* Rhett Boston University Mascot - Simplified Terrier */}
+                  <g fill="white">
+                    {/* Head */}
+                    <ellipse cx="16" cy="12" rx="8" ry="6"/>
+                    {/* Ears */}
+                    <ellipse cx="11" cy="8" rx="2" ry="3"/>
+                    <ellipse cx="21" cy="8" rx="2" ry="3"/>
+                    {/* Eyes */}
+                    <circle cx="13" cy="11" r="1" fill="black"/>
+                    <circle cx="19" cy="11" r="1" fill="black"/>
+                    {/* Nose */}
+                    <ellipse cx="16" cy="14" rx="1" ry="0.5" fill="black"/>
+                    {/* Body */}
+                    <ellipse cx="16" cy="22" rx="6" ry="5"/>
+                    {/* Legs */}
+                    <rect x="12" y="26" width="2" height="4" rx="1"/>
+                    <rect x="18" y="26" width="2" height="4" rx="1"/>
+                    {/* Tail */}
+                    <ellipse cx="23" cy="20" rx="1.5" ry="3" transform="rotate(20 23 20)"/>
+                  </g>
+                </svg>
               )}
             </Button>
           </div>

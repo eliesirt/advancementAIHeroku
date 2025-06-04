@@ -510,9 +510,41 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
               <Button
                 onClick={() => setShowVoiceRecorder(true)}
                 size="lg"
-                className="w-24 h-24 rounded-full bg-accent hover:bg-accent/90 mb-4"
+                className="w-24 h-24 rounded-full mb-4"
+                style={{ 
+                  backgroundColor: '#CC0000',
+                  borderColor: '#CC0000'
+                }}
               >
-                <Mic className="h-8 w-8" />
+                <svg 
+                  width="32" 
+                  height="32" 
+                  viewBox="0 0 32 32" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-white"
+                >
+                  {/* Rhett Boston University Mascot - Simplified Terrier */}
+                  <g fill="white">
+                    {/* Head */}
+                    <ellipse cx="16" cy="12" rx="8" ry="6"/>
+                    {/* Ears */}
+                    <ellipse cx="11" cy="8" rx="2" ry="3"/>
+                    <ellipse cx="21" cy="8" rx="2" ry="3"/>
+                    {/* Eyes */}
+                    <circle cx="13" cy="11" r="1" fill="black"/>
+                    <circle cx="19" cy="11" r="1" fill="black"/>
+                    {/* Nose */}
+                    <ellipse cx="16" cy="14" rx="1" ry="0.5" fill="black"/>
+                    {/* Body */}
+                    <ellipse cx="16" cy="22" rx="6" ry="5"/>
+                    {/* Legs */}
+                    <rect x="12" y="26" width="2" height="4" rx="1"/>
+                    <rect x="18" y="26" width="2" height="4" rx="1"/>
+                    {/* Tail */}
+                    <ellipse cx="23" cy="20" rx="1.5" ry="3" transform="rotate(20 23 20)"/>
+                  </g>
+                </svg>
               </Button>
               <p className="text-gray-600 mb-4">
                 Tap to start recording your interaction report
