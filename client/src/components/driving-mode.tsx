@@ -99,7 +99,13 @@ export function DrivingMode({
       {/* Header */}
       <div className="p-6 text-center">
         <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Car className="h-12 w-12" />
+          <div className="bg-white rounded-sm p-2 w-16 h-8">
+            <img 
+              src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
+              alt="Boston University Logo"
+              className="w-full h-full object-contain"
+            />
+          </div>
         </div>
         <h1 className="text-3xl font-bold mb-2">Driving Mode</h1>
         <p className="text-red-100 text-lg">Hands-free voice control active</p>
