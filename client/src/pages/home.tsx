@@ -516,12 +516,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                   borderColor: '#CC0000'
                 }}
               >
-                <img 
-                  src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
-                  alt="Boston University Logo"
-                  className="w-8 h-8 object-contain"
-                  style={{ filter: 'brightness(0) invert(1)' }}
-                />
+                <div className="bg-white rounded-sm p-1">
+                  <img 
+                    src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
+                    alt="Boston University Logo"
+                    className="w-6 h-6 object-contain"
+                  />
+                </div>
               </Button>
               <p className="text-gray-600 mb-4">
                 Tap to start recording your interaction report

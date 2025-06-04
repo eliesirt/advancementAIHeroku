@@ -85,12 +85,13 @@ export function VoiceRecorder({
               {state.isRecording ? (
                 <Square className="h-8 w-8 text-white" />
               ) : (
-                <img 
-                  src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
-                  alt="Boston University Logo"
-                  className="w-8 h-8 object-contain"
-                  style={{ filter: 'brightness(0) invert(1)' }}
-                />
+                <div className="bg-white rounded-sm p-1">
+                  <img 
+                    src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
+                    alt="Boston University Logo"
+                    className="w-6 h-6 object-contain"
+                  />
+                </div>
               )}
             </Button>
           </div>
