@@ -175,42 +175,43 @@ class BBECSOAPClient {
 
   async submitInteraction(interaction: BBECInteractionSubmission): Promise<string> {
     try {
-      // Build the DataFormSave request using the constituent GUID from the interaction
+      // Build the DataFormSave request using the correct format from working Postman example
       const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope 
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-            <soap:Body>
-                <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
-                    <FormID>2cdea15f-ab2d-4e27-a0a4-5ef728a892ea</FormID>
-                    <ContextRecordID>${interaction.constituentId}</ContextRecordID>
-                    <DataFormItem>
-                        <Values xmlns="bb_appfx_dataforms">
-                            <fv ID="STATUSCODE">
-                                <Value xsi:type="xsd:int">1</Value>
-                            </fv>
-                            <fv ID="FUNDRAISERID">
-                                <Value xsi:type="xsd:string">${interaction.fundraiserGuid}</Value>
-                            </fv>
-                            <fv ID="INTERACTIONTYPECODEID">
-                                <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
-                            </fv>
-                            <fv ID="EXPECTEDDATE">
-                                <Value xsi:type="xsd:date">${interaction.actualDate}</Value>
-                            </fv>
-                            <fv ID="OBJECTIVE">
-                                <Value xsi:type="xsd:string">${interaction.summary}</Value>
-                            </fv>
-                            <fv ID="COMMENT">
-                                <Value xsi:type="xsd:string">${interaction.comments || ''}</Value>
-                            </fv>
-                        </Values>
-                    </DataFormItem>
-                    <ClientAppInfo REDatabaseToUse="30656d"/>
-                </DataFormSaveRequest>
-            </soap:Body>
-        </soap:Envelope>`;
+<soap:Envelope 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <DataFormSaveRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+            <FormID>2cdea15f-ab2d-4e27-a0a4-5ef728a892ea</FormID>
+            <ContextRecordID>${interaction.constituentId}</ContextRecordID>
+            <FileUploadKey>00000000-0000-0000-0000-000000000000</FileUploadKey>
+            <DataFormItem>
+                <Values xmlns="bb_appfx_dataforms">
+                    <fv ID="STATUSCODE">
+                        <Value xsi:type="xsd:int">1</Value>
+                    </fv>
+                    <fv ID="FUNDRAISERID">
+                        <Value xsi:type="xsd:string">1140D6BF-FE77-4D15-983A-78325205515F</Value>
+                    </fv>
+                    <fv ID="INTERACTIONTYPECODEID">
+                        <Value xsi:type="xsd:string">D081262B-4430-416D-8A6E-D0CBDFFDBC8F</Value>
+                    </fv>
+                    <fv ID="EXPECTEDDATE">
+                        <Value xsi:type="xsd:date">${interaction.actualDate}</Value>
+                    </fv>
+                    <fv ID="OBJECTIVE">
+                        <Value xsi:type="xsd:string">${interaction.summary}</Value>
+                    </fv>
+                    <fv ID="COMMENT">
+                        <Value xsi:type="xsd:string">${interaction.comments || ''}</Value>
+                    </fv>
+                </Values>
+            </DataFormItem>
+            <ClientAppInfo REDatabaseToUse="30656d"/>
+        </DataFormSaveRequest>
+    </soap:Body>
+</soap:Envelope>`;
 
       const response = await fetch(this.apiUrl, {
         method: 'POST',
