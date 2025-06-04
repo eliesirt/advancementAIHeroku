@@ -85,11 +85,11 @@ export function VoiceRecorder({
               {state.isRecording ? (
                 <Square className="h-8 w-8 text-white" />
               ) : (
-                <div className="bg-white rounded-sm p-2">
+                <div className="bg-white rounded-sm p-1 w-16 h-12">
                   <img 
                     src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
                     alt="Boston University Logo"
-                    className="w-10 h-10 object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               )}
