@@ -655,16 +655,20 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        // Based on the query structure: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid
-        if (values.length >= 2 && values[0]) {
-          users.push({
+        console.log('Parsed values:', JSON.stringify(values));
+        
+        // Based on the actual SOAP response order: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid, [6] = QUERYRECID
+        if (values.length >= 6 && values[0]) {
+          const user = {
             uid: values[0] || '',
             name: values[1] || '',
             email: values[2] || '',
             first_name: values[3] || '',
             last_name: values[4] || '',
             guid: values[5] || ''
-          });
+          };
+          console.log('Created user object:', JSON.stringify(user));
+          users.push(user);
         }
       }
       
