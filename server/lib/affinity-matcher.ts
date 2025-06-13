@@ -85,7 +85,7 @@ export class AffinityMatcher {
         const tag = result.item;
         const score = 1 - (result.score || 0);
         
-        if (!seenTags.has(tag.id) && score > 0.7) {
+        if (!seenTags.has(tag.id) && score > 0.5) {
           matches.push({
             tag,
             score,

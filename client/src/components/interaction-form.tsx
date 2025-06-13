@@ -698,9 +698,15 @@ export function InteractionForm({
                                   }
                                   
                                   // Set suggested affinity tags
-                                  if (data.extractedInfo.suggestedAffinityTags) {
+                                  console.log("Raw extractedInfo:", data.extractedInfo);
+                                  console.log("suggestedAffinityTags field:", data.extractedInfo.suggestedAffinityTags);
+                                  console.log("Type of suggestedAffinityTags:", typeof data.extractedInfo.suggestedAffinityTags);
+                                  
+                                  if (data.extractedInfo.suggestedAffinityTags && Array.isArray(data.extractedInfo.suggestedAffinityTags) && data.extractedInfo.suggestedAffinityTags.length > 0) {
                                     console.log("Setting affinity tags:", data.extractedInfo.suggestedAffinityTags);
                                     setSelectedAffinityTags(data.extractedInfo.suggestedAffinityTags);
+                                  } else {
+                                    console.log("No valid affinity tags found or empty array");
                                   }
                                   
                                   // Generate enhanced comments with synopsis

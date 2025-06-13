@@ -708,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let suggestedAffinityTags: string[] = [];
       if (allInterests.length > 0) {
-        const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+        const matchedTags = affinityMatcher.matchInterests(allInterests, 0.2);
         suggestedAffinityTags = matchedTags.map(match => match.tag.name);
       }
 
