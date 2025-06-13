@@ -789,7 +789,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       {/* Interaction Form */}
       <InteractionForm
         isVisible={showInteractionForm}
-        extractedInfo={extractedInfo}
+        extractedInfo={extractedInfo || undefined}
         existingInteraction={editingInteraction}
         transcript={currentTranscript}
         enhancedComments={enhancedComments}

@@ -196,30 +196,24 @@ export function InteractionForm({
       });
       setSelectedAffinityTags(extractedInfo.suggestedAffinityTags || []);
     } else {
-      // New interaction without extracted info - only reset if completely new
-      const currentProspectName = form.getValues("prospectName");
-      const hasContent = currentProspectName && currentProspectName !== "Draft Interaction" && currentProspectName.trim() !== "";
-      
-      // Only reset if this is a truly new form, not when AI analysis updates fields
-      if (!hasContent && selectedAffinityTags.length === 0) {
-        form.reset({
-          prospectName: '',
-          firstName: '',
-          lastName: '',
-          buid: '',
-          bbecGuid: '',
-          constituentGuid: '',
-          summary: '',
-          category: '',
-          subcategory: '',
-          contactLevel: '',
-          method: '',
-          status: 'Complete',
-          actualDate: new Date().toISOString().slice(0, 16),
-          comments: '',
-        });
-        setSelectedAffinityTags([]);
-      }
+      // New interaction without extracted info - always reset form to blank
+      form.reset({
+        prospectName: '',
+        firstName: '',
+        lastName: '',
+        buid: '',
+        bbecGuid: '',
+        constituentGuid: '',
+        summary: '',
+        category: '',
+        subcategory: '',
+        contactLevel: '',
+        method: '',
+        status: 'Complete',
+        actualDate: new Date().toISOString().slice(0, 16),
+        comments: '',
+      });
+      setSelectedAffinityTags([]);
     }
   }, [extractedInfo, existingInteraction, enhancedComments, transcript, form]);
 
