@@ -646,17 +646,13 @@ class BBECSOAPClient {
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
         const valuesContent = rowMatch[1];
         
-        // Debug the exact content we're parsing
-        console.log('Values content to parse:', valuesContent);
-        
-        // Extract all <v> values from the row using a more precise regex that handles empty tags
+        // Extract all <v> values from the row, handling both empty self-closing tags and content tags
         const values: string[] = [];
         
         // Replace self-closing tags with empty content tags for consistent parsing
         const normalizedContent = valuesContent.replace(/<v\s*\/>/g, '<v></v>');
-        console.log('Normalized content:', normalizedContent);
         
-        // Now extract all values using a simple regex
+        // Extract all values using regex
         const valueRegex = /<v>(.*?)<\/v>/g;
         let valueMatch;
         
@@ -664,20 +660,16 @@ class BBECSOAPClient {
           values.push(valueMatch[1]);
         }
         
-        console.log('Parsed values:', JSON.stringify(values));
-        
-        // Based on actual SOAP response: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid, [6] = QUERYRECID
+        // Map values to user object: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid, [6] = QUERYRECID
         if (values.length >= 6 && values[0]) {
-          const user = {
+          users.push({
             uid: values[0] || '',
             name: values[1] || '',
             email: values[2] || '',
             first_name: values[3] || '',
             last_name: values[4] || '',
             guid: values[5] || ''
-          };
-          console.log('Created user object:', JSON.stringify(user));
-          users.push(user);
+          });
         }
       }
       
