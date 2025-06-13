@@ -657,9 +657,12 @@ export function InteractionForm({
                           onClick={async () => {
                             try {
                               const currentComments = form.getValues("comments");
+                              console.log("AI Analysis - Current comments:", currentComments);
+                              console.log("AI Analysis - Existing interaction:", existingInteraction);
                               
                               if (existingInteraction && existingInteraction.transcript) {
                                 // Use existing transcript for AI analysis
+                                console.log("Using regenerate-synopsis for existing interaction");
                                 const response = await apiRequest("POST", `/api/interactions/${existingInteraction.id}/regenerate-synopsis`);
                                 const data = await response.json();
                                 if (data.success) {
@@ -671,35 +674,67 @@ export function InteractionForm({
                                 }
                               } else if (currentComments && currentComments.trim().length > 0) {
                                 // Perform AI analysis on current comments text
+                                console.log("Using analyze-text for manual comments");
                                 const response = await apiRequest("POST", "/api/interactions/analyze-text", {
                                   text: currentComments,
                                   prospectName: form.getValues("prospectName") || ''
                                 });
                                 const data = await response.json();
+                                console.log("AI Analysis response:", data);
                                 
-                                if (data.extractedInfo) {
+                                if (data.success && data.extractedInfo) {
                                   // Update form fields with AI analysis results
                                   if (data.extractedInfo.summary) {
+                                    console.log("Setting summary:", data.extractedInfo.summary);
                                     form.setValue("summary", data.extractedInfo.summary);
                                   }
                                   if (data.extractedInfo.category) {
+                                    console.log("Setting category:", data.extractedInfo.category);
                                     form.setValue("category", data.extractedInfo.category);
                                   }
                                   if (data.extractedInfo.subcategory) {
+                                    console.log("Setting subcategory:", data.extractedInfo.subcategory);
                                     form.setValue("subcategory", data.extractedInfo.subcategory);
                                   }
                                   
                                   // Set suggested affinity tags
                                   if (data.extractedInfo.suggestedAffinityTags) {
+                                    console.log("Setting affinity tags:", data.extractedInfo.suggestedAffinityTags);
                                     setSelectedAffinityTags(data.extractedInfo.suggestedAffinityTags);
+                                  }
+                                  
+                                  // Generate enhanced comments with synopsis
+                                  try {
+                                    console.log("Generating enhanced comments...");
+                                    const enhanceResponse = await apiRequest("POST", "/api/interactions/enhance-comments", {
+                                      transcript: currentComments,
+                                      extractedInfo: data.extractedInfo
+                                    });
+                                    const enhanceData = await enhanceResponse.json();
+                                    
+                                    if (enhanceData.enhancedComments) {
+                                      console.log("Setting enhanced comments:", enhanceData.enhancedComments);
+                                      form.setValue("comments", enhanceData.enhancedComments);
+                                    }
+                                  } catch (enhanceError) {
+                                    console.error("Failed to enhance comments:", enhanceError);
+                                    // Continue without enhanced comments if this fails
                                   }
                                   
                                   toast({
                                     title: "AI Analysis Complete",
-                                    description: "Summary, category, and affinity tags have been generated based on your comments.",
+                                    description: "Summary, category, affinity tags, and enhanced synopsis have been generated.",
+                                  });
+                                } else {
+                                  console.error("Invalid response from analyze-text:", data);
+                                  toast({
+                                    title: "Analysis Error",
+                                    description: "AI analysis completed but returned unexpected results.",
+                                    variant: "destructive",
                                   });
                                 }
                               } else {
+                                console.log("No comments to analyze");
                                 toast({
                                   title: "No Content to Analyze",
                                   description: "Please add some detailed comments for AI analysis.",
@@ -707,6 +742,7 @@ export function InteractionForm({
                                 });
                               }
                             } catch (error) {
+                              console.error("AI Analysis error:", error);
                               toast({
                                 title: "Error",
                                 description: "Failed to perform AI analysis. Please try again.",
