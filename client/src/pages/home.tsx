@@ -112,6 +112,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       return response.json();
     },
     onSuccess: (recording) => {
+      // Store the draft interaction ID for later use
+      setVoiceRecordingDraftId(recording.interactionId);
+      
       // Refresh data to show the new draft
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -206,6 +209,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         setExtractedInfo(null);
         setCurrentTranscript("");
         setEnhancedComments("");
+        setVoiceRecordingDraftId(null);
         queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
         queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       }
@@ -236,6 +240,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setCurrentTranscript("");
       setExtractedInfo(null);
       setEnhancedComments("");
+      setVoiceRecordingDraftId(null);
       
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
@@ -343,6 +348,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     if (editingInteraction) {
       // Update existing interaction
       updateInteraction.mutate({ id: editingInteraction.id, data });
+    } else if (voiceRecordingDraftId) {
+      // Update the voice recording draft instead of creating new
+      updateInteraction.mutate({ id: voiceRecordingDraftId, data });
     } else {
       // Create new interaction
       createInteraction.mutate(data);
