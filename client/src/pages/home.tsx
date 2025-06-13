@@ -540,7 +540,14 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setShowInteractionForm(true)}
+                  onClick={() => {
+                    // Clear all form state to ensure a blank form
+                    setExtractedInfo(null);
+                    setEditingInteraction(null);
+                    setCurrentTranscript("");
+                    setEnhancedComments("");
+                    setShowInteractionForm(true);
+                  }}
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Type Instead
