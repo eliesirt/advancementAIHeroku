@@ -695,24 +695,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedInfo.prospectName = prospectName.trim();
       }
 
-      // Match interests to affinity tags
+      // Clear any AI-suggested affinity tags and use our matcher instead
+      extractedInfo.suggestedAffinityTags = [];
+
+      // Match interests to affinity tags using our precise matcher
       const affinityTags = await storage.getAffinityTags();
       const { createAffinityMatcher } = await import("./lib/affinity-matcher");
       const affinityMatcher = await createAffinityMatcher(affinityTags);
       
-      const allInterests = [
-        ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
-        ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
-        ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
-      ];
+      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
       
       let suggestedAffinityTags: string[] = [];
-      if (allInterests.length > 0) {
-        const matchedTags = affinityMatcher.matchInterests(allInterests, 0.2);
+      if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
+        const matchedTags = affinityMatcher.matchInterests(
+          professionalInterests,
+          personalInterests,
+          philanthropicPriorities
+        );
         suggestedAffinityTags = matchedTags.map(match => match.tag.name);
       }
 
-      // Add matched affinity tags to extracted info
+      // Replace with matcher results
       extractedInfo.suggestedAffinityTags = suggestedAffinityTags;
 
       res.json({ 
