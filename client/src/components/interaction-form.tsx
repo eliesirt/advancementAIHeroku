@@ -256,10 +256,19 @@ export function InteractionForm({
 
   const handleSaveDraft = () => {
     const data = form.getValues();
-    onSaveDraft({
+    const draftData = {
       ...data,
-      affinityTags: selectedAffinityTags
-    });
+      affinityTags: selectedAffinityTags,
+      isDraft: true
+    };
+    
+    // If editing existing interaction, call onSubmit instead of onSaveDraft
+    // to trigger update instead of creating new draft
+    if (existingInteraction) {
+      onSubmit(draftData);
+    } else {
+      onSaveDraft(draftData);
+    }
   };
 
   if (!isVisible) {
