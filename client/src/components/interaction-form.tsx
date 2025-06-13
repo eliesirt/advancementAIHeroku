@@ -406,8 +406,18 @@ export function InteractionForm({
                             <ConstituentSearch
                               lastName={field.value || ''}
                               onSelectConstituent={(constituent) => {
-                                form.setValue("firstName", constituent.first_name || '');
-                                form.setValue("lastName", constituent.last_name || '');
+                                const firstName = constituent.first_name || '';
+                                const lastName = constituent.last_name || '';
+                                
+                                // Populate name fields
+                                form.setValue("firstName", firstName);
+                                form.setValue("lastName", lastName);
+                                
+                                // Populate prospect name with full name or just last name if first name is empty
+                                const prospectName = firstName.trim() ? `${firstName} ${lastName}`.trim() : lastName;
+                                form.setValue("prospectName", prospectName);
+                                
+                                // Populate other fields
                                 form.setValue("buid", constituent.uid || '');
                                 form.setValue("bbecGuid", constituent.guid || '');
                                 form.setValue("constituentGuid", constituent.guid || '');
@@ -434,8 +444,18 @@ export function InteractionForm({
                             <BuidSearch
                               buid={field.value || ''}
                               onSelectConstituent={(constituent) => {
-                                form.setValue("firstName", constituent.first_name || '');
-                                form.setValue("lastName", constituent.last_name || '');
+                                const firstName = constituent.first_name || '';
+                                const lastName = constituent.last_name || '';
+                                
+                                // Populate name fields
+                                form.setValue("firstName", firstName);
+                                form.setValue("lastName", lastName);
+                                
+                                // Populate prospect name with full name or just last name if first name is empty
+                                const prospectName = firstName.trim() ? `${firstName} ${lastName}`.trim() : lastName;
+                                form.setValue("prospectName", prospectName);
+                                
+                                // Populate other fields
                                 form.setValue("buid", constituent.uid || '');
                                 form.setValue("bbecGuid", constituent.guid || '');
                                 form.setValue("constituentGuid", constituent.guid || '');
