@@ -58,6 +58,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
   const [enhancedComments, setEnhancedComments] = useState("");
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
+  const [voiceRecordingDraftId, setVoiceRecordingDraftId] = useState<number | null>(null);
 
   const { toast } = useToast();
 
