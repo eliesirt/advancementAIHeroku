@@ -31,31 +31,43 @@ export class AffinityMatcher {
       ...(Array.isArray(philanthropicPriorities) ? philanthropicPriorities : [])
     ];
 
+    console.log('DEBUG: Matching interests:', allInterests);
+
     const matches: MatchedAffinityTag[] = [];
     const seenTags = new Set<number>();
 
     for (const interest of allInterests) {
       const searchResults = this.fuse.search(interest);
+      console.log(`DEBUG: Interest "${interest}" found ${searchResults.length} results`);
       
       for (const result of searchResults.slice(0, 3)) { // Top 3 matches per interest
         const tag = result.item;
         const score = 1 - (result.score || 0); // Convert to similarity score
         
-        if (!seenTags.has(tag.id) && score > 0.4) { // Minimum similarity threshold
+        console.log(`DEBUG: Interest "${interest}" -> Tag "${tag.name}" (score: ${score.toFixed(3)})`);
+        
+        if (!seenTags.has(tag.id) && score > 0.6) { // Minimum similarity threshold - increased for accuracy
+          console.log(`DEBUG: MATCH ACCEPTED: "${interest}" -> "${tag.name}" (score: ${score.toFixed(3)})`);
           matches.push({
             tag,
             score,
             matchedInterest: interest
           });
           seenTags.add(tag.id);
+        } else if (score <= 0.4) {
+          console.log(`DEBUG: MATCH REJECTED: Score too low (${score.toFixed(3)} <= 0.4)`);
         }
       }
     }
 
     // Sort by score (highest first) and limit to top 10
-    return matches
+    const sortedMatches = matches
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
+    
+    console.log('DEBUG: Final matched tags:', sortedMatches.map(m => `${m.tag.name} (${m.score.toFixed(3)})`));
+    
+    return sortedMatches;
   }
 
   findSimilarTags(searchTerm: string, limit: number = 5): AffinityTag[] {

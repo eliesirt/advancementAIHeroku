@@ -89,6 +89,9 @@ Analyze this fundraiser interaction transcript and extract structured informatio
 Focus on identifying the prospect's professional interests, personal interests, and philanthropic priorities.
 Also categorize the interaction type according to fundraising best practices.
 
+Be precise and only extract interests that are explicitly mentioned or clearly implied from the conversation.
+Do not infer interests that are not directly supported by the text.
+
 Transcript: "${transcript}"
 
 Please respond with JSON in exactly this format:
@@ -97,12 +100,14 @@ Please respond with JSON in exactly this format:
   "summary": "Brief 1-2 sentence summary of the interaction",
   "category": "One of: Cultivation, Solicitation, Stewardship, Research",
   "subcategory": "One of: Initial Contact, Follow-up, Presentation, Social, Event, Meeting",
-  "professionalInterests": ["array of professional interests mentioned"],
-  "personalInterests": ["array of personal hobbies/interests mentioned"],
-  "philanthropicPriorities": ["array of charitable causes/priorities mentioned"],
+  "professionalInterests": ["array of professional interests explicitly mentioned"],
+  "personalInterests": ["array of personal hobbies/interests explicitly mentioned"],
+  "philanthropicPriorities": ["array of charitable causes/priorities explicitly mentioned"],
   "keyPoints": ["array of 3-5 key discussion points"],
-  "suggestedAffinityTags": ["array of potential affinity tags based on interests"]
+  "suggestedAffinityTags": []
 }
+
+Important: Leave suggestedAffinityTags as an empty array. The system will match interests to available affinity tags automatically.
 `;
 
     const response = await openai.chat.completions.create({
