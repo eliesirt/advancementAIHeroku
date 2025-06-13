@@ -37,11 +37,11 @@ export class AffinityMatcher {
     for (const interest of allInterests) {
       const searchResults = this.fuse.search(interest);
       
-      for (const result of searchResults.slice(0, 2)) { // Top 2 matches per interest
+      for (const result of searchResults.slice(0, 3)) { // Top 3 matches per interest
         const tag = result.item;
         const score = 1 - (result.score || 0); // Convert to similarity score
         
-        if (!seenTags.has(tag.id) && score > 0.6) { // Minimum similarity threshold
+        if (!seenTags.has(tag.id) && score > 0.4) { // Minimum similarity threshold
           matches.push({
             tag,
             score,
