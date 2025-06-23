@@ -536,6 +536,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test BBEC connection and credentials
+  app.get("/api/bbec/test-connection", async (req, res) => {
+    try {
+      const authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+      const apiUrl = 'https://crm30656d.sky.blackbaud.com/7d6e1ca0-9d84-4282-a36c-7f5b5b3b90b5/webapi/AppFx.asmx';
+      
+      console.log('Testing BBEC connection with auth header format:', authHeader ? `${authHeader.substring(0, 30)}...` : 'EMPTY');
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'crm30656d.sky.blackbaud.com',
+          'Content-Type': 'text/xml; charset=utf-8',
+          'Authorization': authHeader,
+          'User-Agent': 'NodeJS-BBEC-Client/1.0'
+        },
+        body: `<?xml version="1.0" encoding="utf-8"?>
+          <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body>
+              <DataListLoadRequest xmlns="Blackbaud.AppFx.WebService.API.1">
+                <DataListID>1d1f6c6f-6804-421a-9964-9e3a7fda5727</DataListID>
+                <ClientAppInfo REDatabaseToUse="30656d"/>
+              </DataListLoadRequest>
+            </soap:Body>
+          </soap:Envelope>`
+      });
+      
+      res.json({
+        success: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        authHeaderPresent: !!authHeader,
+        authHeaderLength: authHeader.length,
+        responseHeaders: Object.fromEntries(response.headers.entries())
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Get affinity tags info (count, last refresh, etc.)
   app.get("/api/affinity-tags/info", async (req, res) => {
     try {

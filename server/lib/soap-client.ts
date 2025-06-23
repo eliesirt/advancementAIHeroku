@@ -48,6 +48,7 @@ class BBECSOAPClient {
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
     console.log('BBEC credentials refreshed from environment');
+    console.log('Auth header format:', this.authHeader ? `${this.authHeader.substring(0, 20)}...` : 'EMPTY');
   }
 
   async initialize(): Promise<void> {
