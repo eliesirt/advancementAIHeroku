@@ -517,7 +517,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Detailed refresh error:', error);
-      res.status(500).json({ message: "Failed to refresh affinity tags", error: (error as Error).message });
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes('401') || errorMessage.includes('Authentication failed')) {
+        res.status(401).json({ 
+          message: "Authentication failed. Please update your BLACKBAUD_API_AUTHENTICATION credentials.", 
+          error: "Invalid or expired authentication credentials"
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to refresh affinity tags from BBEC", 
+          error: errorMessage 
+        });
+      }
     }
   });
 

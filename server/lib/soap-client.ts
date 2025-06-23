@@ -391,50 +391,79 @@ class BBECSOAPClient {
   }
 
   async getAffinityTags(): Promise<any[]> {
-    try {
-      const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope 
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-            <soap:Body>
-                <DataListLoadRequest xmlns="Blackbaud.AppFx.WebService.API.1" >
-                    <DataListID>1d1f6c6f-6804-421a-9964-9e3a7fda5727</DataListID>
-                    <ClientAppInfo REDatabaseToUse="30656d"/>
-                </DataListLoadRequest>
-            </soap:Body>
-        </soap:Envelope>`;
+    let lastError: Error;
+    
+    // Try up to 2 times with credential refresh
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        // Refresh auth header from environment on retry
+        if (attempt === 2) {
+          this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+          console.log('Refreshing authentication credentials for retry...');
+        }
 
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Host': 'crm30656d.sky.blackbaud.com',
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/DataListLoad',
-          'Authorization': this.authHeader,
-          'User-Agent': 'NodeJS-BBEC-Client/1.0',
-          'Accept': '*/*',
-          'Cache-Control': 'no-cache',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive'
-        },
-        body: soapBody
-      });
+        const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+          <soap:Envelope 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+          xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+              <soap:Body>
+                  <DataListLoadRequest xmlns="Blackbaud.AppFx.WebService.API.1" >
+                      <DataListID>1d1f6c6f-6804-421a-9964-9e3a7fda5727</DataListID>
+                      <ClientAppInfo REDatabaseToUse="30656d"/>
+                  </DataListLoadRequest>
+              </soap:Body>
+          </soap:Envelope>`;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const response = await fetch(this.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Host': 'crm30656d.sky.blackbaud.com',
+            'Content-Type': 'text/xml; charset=utf-8',
+            'SOAPAction': 'Blackbaud.AppFx.WebService.API.1/DataListLoad',
+            'Authorization': this.authHeader,
+            'User-Agent': 'NodeJS-BBEC-Client/1.0',
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive'
+          },
+          body: soapBody
+        });
+
+        if (!response.ok) {
+          if (response.status === 401 && attempt === 1) {
+            console.log(`Authentication failed (attempt ${attempt}), will retry with fresh credentials...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            continue;
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const responseText = await response.text();
+        console.log('Blackbaud API Response:', responseText);
+        
+        // Parse the SOAP response to extract affinity tags
+        const tags = this.parseAffinityTagsResponse(responseText);
+        return tags;
+        
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`Affinity tags retrieval error (attempt ${attempt}/2):`, error);
+        
+        if (attempt === 1 && (error as any)?.message?.includes('401')) {
+          continue;
+        }
+        break;
       }
-
-      const responseText = await response.text();
-      console.log('Blackbaud API Response:', responseText);
-      
-      // Parse the SOAP response to extract affinity tags
-      const tags = this.parseAffinityTagsResponse(responseText);
-      return tags;
-    } catch (error) {
-      console.error('Affinity tags retrieval error:', error);
-      throw new Error('Failed to retrieve affinity tags from BBEC API: ' + (error as Error).message);
     }
+    
+    // If we get here, both attempts failed
+    if (lastError!.message.includes('401')) {
+      throw new Error('Authentication failed. Please check that your BLACKBAUD_API_AUTHENTICATION credentials are valid and up to date.');
+    }
+    
+    throw new Error('Failed to retrieve affinity tags from BBEC API: ' + lastError!.message);
   }
 
   private parseAffinityTagsResponse(soapResponse: string): any[] {
