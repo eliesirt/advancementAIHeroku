@@ -42,6 +42,14 @@ class BBECSOAPClient {
     this.password = process.env.BLACKBAUD_PASSWORD || "";
   }
 
+  // Method to refresh credentials from environment
+  refreshCredentials(): void {
+    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    this.username = process.env.BLACKBAUD_USERNAME || "";
+    this.password = process.env.BLACKBAUD_PASSWORD || "";
+    console.log('BBEC credentials refreshed from environment');
+  }
+
   async initialize(): Promise<void> {
     try {
       // Create SOAP client with Authorization header for WSDL access

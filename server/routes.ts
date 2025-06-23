@@ -495,6 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Refresh affinity tags from BBEC (manual trigger)
   app.post("/api/affinity-tags/refresh", async (req, res) => {
     try {
+      // Refresh BBEC client credentials before attempting API call
+      bbecClient.refreshCredentials();
+      
       // Clear existing affinity tags before refreshing
       await storage.clearAffinityTags();
       
