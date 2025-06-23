@@ -2,13 +2,15 @@
 import fetch from 'node-fetch';
 
 async function testBBECAuth() {
-  const authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+  const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+  const authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
   const apiUrl = 'https://crm30656d.sky.blackbaud.com/7d6e1ca0-9d84-4282-a36c-7f5b5b3b90b5/webapi/AppFx.asmx';
   
   console.log('Testing BBEC authentication...');
-  console.log('Auth header format:', authHeader ? `${authHeader.substring(0, 20)}...` : 'EMPTY');
-  console.log('Auth header length:', authHeader.length);
-  console.log('Starts with "Basic":', authHeader.startsWith('Basic '));
+  console.log('Raw auth format:', rawAuth ? `${rawAuth.substring(0, 20)}...` : 'EMPTY');
+  console.log('Final auth format:', authHeader ? `${authHeader.substring(0, 30)}...` : 'EMPTY');
+  console.log('Raw auth length:', rawAuth.length);
+  console.log('Final auth length:', authHeader.length);
   
   // Test with current auth header
   try {

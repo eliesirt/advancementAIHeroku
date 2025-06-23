@@ -34,7 +34,7 @@ class BBECSOAPClient {
   private password: string;
 
   constructor() {
-    this.apiUrl = 'https://crm30656d.sky.blackbaud.com/7d6e1ca0-9d84-4282-a36c-7f5b5b3b90b5/webapi/AppFx.asmx';
+    this.apiUrl = 'https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx';
     this.wsdlUrl = this.apiUrl + "?WSDL";
     // Use the Authorization header from environment variable - add Basic prefix if not present
     const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
@@ -50,7 +50,9 @@ class BBECSOAPClient {
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
     console.log('BBEC credentials refreshed from environment');
-    console.log('Auth header format:', this.authHeader ? `${this.authHeader.substring(0, 20)}...` : 'EMPTY');
+    console.log('Auth header format:', this.authHeader ? `${this.authHeader.substring(0, 30)}...` : 'EMPTY');
+    console.log('Raw auth length:', rawAuth.length);
+    console.log('Final auth length:', this.authHeader.length);
   }
 
   async initialize(): Promise<void> {
