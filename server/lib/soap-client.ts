@@ -34,17 +34,19 @@ class BBECSOAPClient {
   private password: string;
 
   constructor() {
-    this.apiUrl = process.env.BLACKBAUD_API_URL || "https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx";
+    this.apiUrl = 'https://crm30656d.sky.blackbaud.com/7d6e1ca0-9d84-4282-a36c-7f5b5b3b90b5/webapi/AppFx.asmx';
     this.wsdlUrl = this.apiUrl + "?WSDL";
-    // Use the Authorization header from environment variable
-    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    // Use the Authorization header from environment variable - add Basic prefix if not present
+    const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
   }
 
   // Method to refresh credentials from environment
   refreshCredentials(): void {
-    this.authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+    this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
     console.log('BBEC credentials refreshed from environment');
@@ -424,6 +426,9 @@ class BBECSOAPClient {
               </soap:Body>
           </soap:Envelope>`;
 
+        console.log('BBEC Request - Auth header:', this.authHeader.substring(0, 30) + '...');
+        console.log('BBEC Request - URL:', this.apiUrl);
+        
         const response = await fetch(this.apiUrl, {
           method: 'POST',
           headers: {
