@@ -50,9 +50,6 @@ class BBECSOAPClient {
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
     console.log('BBEC credentials refreshed from environment');
-    console.log('Auth header format:', this.authHeader ? `${this.authHeader.substring(0, 30)}...` : 'EMPTY');
-    console.log('Raw auth length:', rawAuth.length);
-    console.log('Final auth length:', this.authHeader.length);
   }
 
   async initialize(): Promise<void> {
@@ -428,9 +425,6 @@ class BBECSOAPClient {
               </soap:Body>
           </soap:Envelope>`;
 
-        console.log('BBEC Request - Auth header:', this.authHeader.substring(0, 30) + '...');
-        console.log('BBEC Request - URL:', this.apiUrl);
-        
         const response = await fetch(this.apiUrl, {
           method: 'POST',
           headers: {
