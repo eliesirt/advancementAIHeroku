@@ -942,6 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/constituents/search/:lastName", async (req, res) => {
     try {
       const { lastName } = req.params;
+      const { firstName } = req.query;
       
       if (!lastName) {
         return res.status(400).json({ message: "Last name is required" });
@@ -950,7 +951,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { bbecClient } = await import("./lib/soap-client");
       await bbecClient.initialize();
       
-      const constituents = await bbecClient.searchConstituentsByLastName(lastName);
+      let constituents = await bbecClient.searchConstituentsByLastName(lastName);
+      
+      // Sort by last name then first name (ascending)
+      constituents.sort((a, b) => {
+        const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
+        if (lastNameComparison !== 0) {
+          return lastNameComparison;
+        }
+        return (a.first_name || '').localeCompare(b.first_name || '');
+      });
+      
+      // If firstName is provided, prioritize matches with both first and last name
+      if (firstName && typeof firstName === 'string' && firstName.trim()) {
+        const firstNameTrim = firstName.trim().toLowerCase();
+        
+        // Separate matches into two groups
+        const exactMatches = constituents.filter(c => 
+          c.first_name && c.first_name.toLowerCase().includes(firstNameTrim)
+        );
+        const otherMatches = constituents.filter(c => 
+          !c.first_name || !c.first_name.toLowerCase().includes(firstNameTrim)
+        );
+        
+        // Sort each group independently
+        exactMatches.sort((a, b) => {
+          const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
+          if (lastNameComparison !== 0) {
+            return lastNameComparison;
+          }
+          return (a.first_name || '').localeCompare(b.first_name || '');
+        });
+        
+        otherMatches.sort((a, b) => {
+          const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
+          if (lastNameComparison !== 0) {
+            return lastNameComparison;
+          }
+          return (a.first_name || '').localeCompare(b.first_name || '');
+        });
+        
+        // Combine with exact matches first
+        constituents = [...exactMatches, ...otherMatches];
+      }
       
       res.json(constituents);
     } catch (error) {

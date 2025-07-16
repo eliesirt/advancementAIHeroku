@@ -399,6 +399,7 @@ export function InteractionForm({
                             </FormControl>
                             <ConstituentSearch
                               lastName={field.value || ''}
+                              firstName={form.getValues('firstName') || ''}
                               onSelectConstituent={(constituent) => {
                                 const firstName = constituent.first_name || '';
                                 const lastName = constituent.last_name || '';

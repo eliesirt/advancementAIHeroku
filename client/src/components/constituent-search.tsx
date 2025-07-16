@@ -23,10 +23,11 @@ interface Constituent {
 
 interface ConstituentSearchProps {
   lastName: string;
+  firstName?: string;
   onSelectConstituent: (constituent: Constituent) => void;
 }
 
-export function ConstituentSearch({ lastName, onSelectConstituent }: ConstituentSearchProps) {
+export function ConstituentSearch({ lastName, firstName, onSelectConstituent }: ConstituentSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Constituent[]>([]);
@@ -46,7 +47,12 @@ export function ConstituentSearch({ lastName, onSelectConstituent }: Constituent
     setSearchResults([]); // Clear previous results
     
     try {
-      const response = await apiRequest("GET", `/api/constituents/search/${encodeURIComponent(lastName)}`);
+      // Include firstName in the query if available
+      const url = firstName?.trim() 
+        ? `/api/constituents/search/${encodeURIComponent(lastName)}?firstName=${encodeURIComponent(firstName)}`
+        : `/api/constituents/search/${encodeURIComponent(lastName)}`;
+      
+      const response = await apiRequest("GET", url);
       
       if (response.ok) {
         const results = await response.json();
