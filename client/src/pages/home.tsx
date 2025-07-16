@@ -60,6 +60,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
   const [voiceRecordingDraftId, setVoiceRecordingDraftId] = useState<number | null>(null);
   const [expandedQualityTips, setExpandedQualityTips] = useState<Set<number>>(new Set());
+  const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -227,6 +228,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Submit to BBEC mutation
   const submitToBBEC = useMutation({
     mutationFn: async (interactionId: number) => {
+      setSubmittingInteractionId(interactionId);
       const response = await apiRequest("POST", `/api/interactions/${interactionId}/submit-bbec`);
       return response.json();
     },
@@ -242,12 +244,14 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setExtractedInfo(null);
       setEnhancedComments("");
       setVoiceRecordingDraftId(null);
+      setSubmittingInteractionId(null);
       
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
     onError: (error) => {
+      setSubmittingInteractionId(null);
       toast({
         title: "BBEC Submission Error",
         description: "Failed to submit to Blackbaud CRM. The interaction was saved as a draft.",
@@ -798,14 +802,14 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                             <Button
                               variant="default"
                               size="sm"
-                              disabled={submitToBBEC.isPending}
+                              disabled={submittingInteractionId === interaction.id}
                               onClick={() => {
                                 submitToBBEC.mutate(interaction.id);
                               }}
                               className="h-7 px-2 text-xs"
                             >
                               <Send className="h-3 w-3 mr-1" />
-                              {submitToBBEC.isPending ? "Submitting..." : "Submit to BBEC"}
+                              {submittingInteractionId === interaction.id ? "Submitting..." : "Submit to BBEC"}
                             </Button>
                           )}
                         </div>

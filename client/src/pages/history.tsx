@@ -58,6 +58,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
   const [enhancedComments, setEnhancedComments] = useState("");
   const [editingInteractionId, setEditingInteractionId] = useState<number | null>(null);
+  const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
   
   const { toast } = useToast();
 
@@ -168,10 +169,12 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
   // Submit to BBEC mutation
   const submitToBBEC = useMutation({
     mutationFn: async (interactionId: number) => {
+      setSubmittingInteractionId(interactionId);
       const response = await apiRequest("POST", `/api/interactions/${interactionId}/submit-bbec`);
       return response.json();
     },
     onSuccess: () => {
+      setSubmittingInteractionId(null);
       toast({
         title: "Success",
         description: "Interaction submitted to BBEC successfully.",
@@ -181,6 +184,7 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
     onError: () => {
+      setSubmittingInteractionId(null);
       toast({
         title: "Submission Error",
         description: "Failed to submit to BBEC. Please try again.",
@@ -574,11 +578,12 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                               <Button
                                 variant="default"
                                 size="sm"
+                                disabled={submittingInteractionId === interaction.id}
                                 onClick={() => submitToBBEC.mutate(interaction.id)}
                                 className="h-7 px-2 text-xs"
                               >
                                 <Send className="h-3 w-3 mr-1" />
-                                Submit to BBEC
+                                {submittingInteractionId === interaction.id ? "Submitting..." : "Submit to BBEC"}
                               </Button>
                             )}
                           </div>
