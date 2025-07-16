@@ -375,6 +375,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       console.log("PATCH request body:", JSON.stringify(req.body, null, 2));
+      
+      // Handle reprocessAffinity flag separately since it's not part of schema
+      const reprocessAffinity = req.body.reprocessAffinity;
+      
       const updates = insertInteractionSchema.partial().parse(req.body);
       
       // Preserve quality scores when saving as draft (don't clear them)
@@ -428,6 +432,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error('Quality assessment error during update:', error);
           // Don't fail the update if quality assessment fails
+        }
+      }
+      
+      // Special handling for affinity reprocessing
+      if (reprocessAffinity && currentInteraction?.extractedInfo) {
+        try {
+          // Parse the existing extracted info
+          const extractedInfo = typeof currentInteraction.extractedInfo === 'string' 
+            ? JSON.parse(currentInteraction.extractedInfo) 
+            : currentInteraction.extractedInfo;
+          
+          // Match interests to affinity tags with improved logic
+          const affinityTags = await storage.getAffinityTags();
+          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+          const affinityMatcher = await createAffinityMatcher(affinityTags);
+          
+          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+          
+          const matchedTags = affinityMatcher.matchInterests(
+            professionalInterests,
+            personalInterests,
+            philanthropicPriorities
+          );
+          
+          const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+          
+          // Update the affinity tags
+          updates.affinityTags = suggestedAffinityTags;
+          
+        } catch (error) {
+          console.error('Affinity reprocessing error:', error);
+          // Don't fail the update if affinity reprocessing fails
         }
       }
       

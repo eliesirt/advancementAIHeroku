@@ -15,9 +15,34 @@ export class AffinityMatcher {
     this.affinityTags = affinityTags;
     this.fuse = new Fuse(affinityTags, {
       keys: ['name', 'category'],
-      threshold: 0.4, // Allow somewhat fuzzy matching
+      threshold: 0.35, // Lowered threshold for better matching
       includeScore: true,
     });
+  }
+
+  // Preprocess interest strings to improve matching
+  private preprocessInterest(interest: string): string[] {
+    const variations = [interest]; // Always include original
+    
+    // Remove common prefixes and suffixes
+    const cleaned = interest
+      .replace(/^(Friends of |Support for |Supporting |Funding for |Donation to |Gift to )/i, '')
+      .replace(/\s+(program|initiative|fund|foundation|department|college|school)$/i, '')
+      .replace(/\s+at\s+\w+/i, '') // Remove "at Boston University" type phrases
+      .replace(/\s+BU\s+/i, ' ') // Remove "BU" abbreviation
+      .replace(/\s+Boston University\s+/i, ' ') // Remove "Boston University"
+      .trim();
+    
+    if (cleaned !== interest) {
+      variations.push(cleaned);
+    }
+    
+    // Add specific sport variations
+    if (interest.toLowerCase().includes('ice hockey')) {
+      variations.push('Men\'s Hockey', 'Women\'s Hockey', 'Hockey');
+    }
+    
+    return variations;
   }
 
   matchInterests(
@@ -35,19 +60,24 @@ export class AffinityMatcher {
     const seenTags = new Set<number>();
 
     for (const interest of allInterests) {
-      const searchResults = this.fuse.search(interest);
+      // Get variations of the interest for better matching
+      const variations = this.preprocessInterest(interest);
       
-      for (const result of searchResults.slice(0, 3)) { // Top 3 matches per interest
-        const tag = result.item;
-        const score = 1 - (result.score || 0); // Convert to similarity score
+      for (const variation of variations) {
+        const searchResults = this.fuse.search(variation);
         
-        if (!seenTags.has(tag.id) && score > 0.4) { // Minimum similarity threshold - lowered for better matching
-          matches.push({
-            tag,
-            score,
-            matchedInterest: interest
-          });
-          seenTags.add(tag.id);
+        for (const result of searchResults.slice(0, 3)) { // Top 3 matches per variation
+          const tag = result.item;
+          const score = 1 - (result.score || 0); // Convert to similarity score
+          
+          if (!seenTags.has(tag.id) && score > 0.25) { // Lowered threshold for better matching
+            matches.push({
+              tag,
+              score,
+              matchedInterest: interest
+            });
+            seenTags.add(tag.id);
+          }
         }
       }
     }

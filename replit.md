@@ -111,3 +111,13 @@ Preferred communication style: Simple, everyday language.
 - **Settings**: User and system configuration options
 
 The system follows a mobile-first, voice-enabled design philosophy with strong integration to Blackbaud CRM while maintaining local data persistence and offline capabilities.
+
+## Recent Changes
+
+### July 16, 2025 - Enhanced Affinity Tag Matching
+- **Fixed critical affinity matching issue**: "Friends of BU Men's Ice Hockey" now correctly matches "Men's Hockey" affinity tag
+- **Improved fuzzy matching algorithm**: Lowered threshold from 0.4 to 0.25 for better coverage
+- **Added preprocessing logic**: Handles common prefixes like "Friends of", "Support for", "BU", "Boston University"
+- **Enhanced sport-specific matching**: "ice hockey" variations now properly match hockey-related affinity tags
+- **Added comprehensive quality assessment**: AI now provides 3+ specific improvement recommendations
+- **Database schema enhancement**: Added qualityRecommendations field to store actionable suggestions
