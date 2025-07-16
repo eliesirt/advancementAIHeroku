@@ -37,6 +37,8 @@ export const interactions = pgTable("interactions", {
   transcript: text("transcript"),
   affinityTags: text("affinity_tags").array(),
   extractedInfo: jsonb("extracted_info"),
+  qualityScore: integer("quality_score"), // 0-25 based on rubric
+  qualityExplanation: text("quality_explanation"), // AI explanation of score
   bbecSubmitted: boolean("bbec_submitted").default(false),
   bbecInteractionId: text("bbec_interaction_id"),
   isDraft: boolean("is_draft").default(false),

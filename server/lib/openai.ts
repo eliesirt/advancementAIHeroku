@@ -22,6 +22,19 @@ export interface ExtractedInteractionInfo {
   suggestedAffinityTags: string[];
 }
 
+export interface InteractionQualityAssessment {
+  qualityScore: number; // 0-25 based on rubric
+  qualityExplanation: string; // Detailed explanation of score
+  categoryScores: {
+    completeness: number; // out of 5
+    relationshipInsights: number; // out of 5
+    strategicAssessment: number; // out of 5
+    communicationEffectiveness: number; // out of 5
+    followupPotential: number; // out of 5
+    bonusPoints: number; // out of 5
+  };
+}
+
 export async function transcribeAudio(audioData: string): Promise<string> {
   const maxRetries = 3;
   let lastError: Error = new Error("No attempts made");
@@ -234,5 +247,144 @@ Synopsis could not be generated due to processing error.
 
 TRANSCRIPT:
 ${transcript}`;
+  }
+}
+
+export async function evaluateInteractionQuality(
+  transcript: string,
+  extractedInfo: ExtractedInteractionInfo,
+  interactionData: {
+    prospectName?: string;
+    firstName?: string;
+    lastName?: string;
+    contactLevel?: string;
+    method?: string;
+    actualDate?: string;
+    comments?: string;
+    summary?: string;
+    category?: string;
+    subcategory?: string;
+  }
+): Promise<InteractionQualityAssessment> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert fundraising professional who evaluates the quality of donor interaction reports. 
+
+Your task is to assess the quality of a fundraising interaction based on the following 5-point rubric (each category worth 5 points, total 25):
+
+1) Completeness of Information (0-5 points):
+- Full contact details present
+- Date and time of interaction documented
+- Method of communication specified
+- Comprehensive meeting/conversation notes
+
+2) Quality of Relationship Insights (0-5 points):
+- Captures donor's motivations clearly
+- Notes emotional/personal context
+- Identifies potential connection points
+- Highlights donor's philanthropic interests
+
+3) Strategic Assessment (0-5 points):
+- Clear analysis of donor's capacity
+- Potential giving level assessment
+- Likelihood of future engagement noted
+- Recommended next steps provided
+
+4) Communication Effectiveness (0-5 points):
+- Professional tone maintained
+- Clear, concise language used
+- Objective observations recorded
+- Grammatical accuracy demonstrated
+
+5) Follow-up Potential (0-5 points):
+- Specific action items identified
+- Timeline for next contact established
+- Potential cultivation strategies outlined
+- Alignment with organizational goals noted
+
+Bonus Points (0-5 points):
+- Unique insights captured
+- Potential major gift indicators identified
+- Personal connection details recorded
+
+Scoring Scale:
+0-10: Needs significant improvement
+11-15: Developing
+16-20: Proficient
+21-25: Excellent
+
+Provide your assessment in JSON format with detailed explanations for each category score.`
+        },
+        {
+          role: "user",
+          content: `Please evaluate the quality of this fundraising interaction:
+
+TRANSCRIPT:
+${transcript}
+
+EXTRACTED INFORMATION:
+- Prospect Name: ${extractedInfo.prospectName || 'Not specified'}
+- Summary: ${extractedInfo.summary}
+- Category: ${extractedInfo.category}
+- Subcategory: ${extractedInfo.subcategory}
+- Professional Interests: ${extractedInfo.professionalInterests.join(', ') || 'None identified'}
+- Personal Interests: ${extractedInfo.personalInterests.join(', ') || 'None identified'}
+- Philanthropic Priorities: ${extractedInfo.philanthropicPriorities.join(', ') || 'None identified'}
+- Key Points: ${extractedInfo.keyPoints.join(', ') || 'None identified'}
+
+INTERACTION DATA:
+- Prospect Name: ${interactionData.prospectName || 'Not specified'}
+- First Name: ${interactionData.firstName || 'Not specified'}
+- Last Name: ${interactionData.lastName || 'Not specified'}
+- Contact Level: ${interactionData.contactLevel || 'Not specified'}
+- Method: ${interactionData.method || 'Not specified'}
+- Date: ${interactionData.actualDate || 'Not specified'}
+- Comments: ${interactionData.comments || 'Not specified'}
+- Summary: ${interactionData.summary || 'Not specified'}
+- Category: ${interactionData.category || 'Not specified'}
+- Subcategory: ${interactionData.subcategory || 'Not specified'}
+
+Provide your evaluation in JSON format with this structure:
+{
+  "qualityScore": <total score 0-25>,
+  "categoryScores": {
+    "completeness": <score 0-5>,
+    "relationshipInsights": <score 0-5>,
+    "strategicAssessment": <score 0-5>,
+    "communicationEffectiveness": <score 0-5>,
+    "followupPotential": <score 0-5>,
+    "bonusPoints": <score 0-5>
+  },
+  "qualityExplanation": "<detailed explanation covering each category with specific examples and recommendations for improvement>"
+}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1000,
+      response_format: { type: "json_object" }
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    // Validate and ensure all required fields are present
+    return {
+      qualityScore: Math.max(0, Math.min(25, result.qualityScore || 0)),
+      qualityExplanation: result.qualityExplanation || 'No explanation provided',
+      categoryScores: {
+        completeness: Math.max(0, Math.min(5, result.categoryScores?.completeness || 0)),
+        relationshipInsights: Math.max(0, Math.min(5, result.categoryScores?.relationshipInsights || 0)),
+        strategicAssessment: Math.max(0, Math.min(5, result.categoryScores?.strategicAssessment || 0)),
+        communicationEffectiveness: Math.max(0, Math.min(5, result.categoryScores?.communicationEffectiveness || 0)),
+        followupPotential: Math.max(0, Math.min(5, result.categoryScores?.followupPotential || 0)),
+        bonusPoints: Math.max(0, Math.min(5, result.categoryScores?.bonusPoints || 0))
+      }
+    };
+  } catch (error) {
+    console.error('Error evaluating interaction quality:', error);
+    throw new Error('Failed to evaluate interaction quality: ' + (error as Error).message);
   }
 }

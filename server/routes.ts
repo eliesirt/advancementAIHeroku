@@ -178,6 +178,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const prospectName = extractedInfo.prospectName || 'Voice Recording';
         const { firstName, lastName } = parseProspectName(prospectName);
         
+        // Get current interaction data for quality assessment
+        const currentInteraction = await storage.getInteraction(recording.interactionId);
+        
+        // Evaluate interaction quality
+        const { evaluateInteractionQuality } = await import("./lib/openai");
+        const qualityAssessment = await evaluateInteractionQuality(
+          transcript,
+          extractedInfo,
+          {
+            prospectName,
+            firstName,
+            lastName,
+            contactLevel: currentInteraction?.contactLevel,
+            method: currentInteraction?.method,
+            actualDate: currentInteraction?.actualDate?.toISOString(),
+            comments: enhancedComments,
+            summary: conciseSummary,
+            category: extractedInfo.category || 'General',
+            subcategory: extractedInfo.subcategory || 'Other'
+          }
+        );
+        
         await storage.updateInteraction(recording.interactionId, {
           transcript,
           extractedInfo: JSON.stringify(extractedInfo),
@@ -188,7 +210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category: extractedInfo.category || 'General',
           subcategory: extractedInfo.subcategory || 'Other',
           affinityTags: suggestedAffinityTags,
-          comments: enhancedComments
+          comments: enhancedComments,
+          qualityScore: qualityAssessment.qualityScore,
+          qualityExplanation: qualityAssessment.qualityExplanation
         });
       }
 
@@ -346,6 +370,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const interactionId = parseInt(req.params.id);
       console.log("PATCH request body:", JSON.stringify(req.body, null, 2));
       const updates = insertInteractionSchema.partial().parse(req.body);
+      
+      // If this is a manual submission (not a draft), evaluate quality
+      if (!updates.isDraft && updates.status !== 'Draft') {
+        try {
+          const currentInteraction = await storage.getInteraction(interactionId);
+          
+          // Check if we have enough data to evaluate quality
+          if (currentInteraction && (currentInteraction.transcript || updates.comments)) {
+            const { evaluateInteractionQuality } = await import("./lib/openai");
+            
+            // Create mock extracted info if not available
+            const extractedInfo = currentInteraction.extractedInfo || {
+              prospectName: updates.prospectName || currentInteraction.prospectName,
+              summary: updates.summary || currentInteraction.summary,
+              category: updates.category || currentInteraction.category,
+              subcategory: updates.subcategory || currentInteraction.subcategory,
+              professionalInterests: [],
+              personalInterests: [],
+              philanthropicPriorities: [],
+              keyPoints: [],
+              suggestedAffinityTags: currentInteraction.affinityTags || []
+            };
+            
+            const qualityAssessment = await evaluateInteractionQuality(
+              currentInteraction.transcript || updates.comments || '',
+              extractedInfo,
+              {
+                prospectName: updates.prospectName || currentInteraction.prospectName,
+                firstName: updates.firstName || currentInteraction.firstName,
+                lastName: updates.lastName || currentInteraction.lastName,
+                contactLevel: updates.contactLevel || currentInteraction.contactLevel,
+                method: updates.method || currentInteraction.method,
+                actualDate: updates.actualDate?.toString() || currentInteraction.actualDate?.toISOString(),
+                comments: updates.comments || currentInteraction.comments,
+                summary: updates.summary || currentInteraction.summary,
+                category: updates.category || currentInteraction.category,
+                subcategory: updates.subcategory || currentInteraction.subcategory
+              }
+            );
+            
+            // Add quality assessment to updates
+            updates.qualityScore = qualityAssessment.qualityScore;
+            updates.qualityExplanation = qualityAssessment.qualityExplanation;
+          }
+        } catch (qualityError) {
+          console.warn("Quality assessment failed:", qualityError);
+          // Continue with update even if quality assessment fails
+        }
+      }
+      
       const interaction = await storage.updateInteraction(interactionId, updates);
       res.json(interaction);
     } catch (error) {

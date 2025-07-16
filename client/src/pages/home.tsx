@@ -665,6 +665,34 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                           )}
                         </div>
                       )}
+
+                      {/* Quality Assessment */}
+                      {interaction.qualityScore !== null && interaction.qualityScore !== undefined && (
+                        <div className="mb-2 p-2 bg-blue-50 rounded border border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div className="text-xs font-medium text-blue-900">Quality</div>
+                              <Badge 
+                                variant="outline"
+                                className={`text-xs ${
+                                  interaction.qualityScore >= 21 ? 'bg-green-100 text-green-800 border-green-300' :
+                                  interaction.qualityScore >= 16 ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                  interaction.qualityScore >= 11 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                  'bg-red-100 text-red-800 border-red-300'
+                                }`}
+                              >
+                                {interaction.qualityScore}/25
+                              </Badge>
+                            </div>
+                            <div className="text-xs text-blue-700">
+                              {interaction.qualityScore >= 21 ? 'Excellent' :
+                               interaction.qualityScore >= 16 ? 'Proficient' :
+                               interaction.qualityScore >= 11 ? 'Developing' :
+                               'Needs Improvement'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
