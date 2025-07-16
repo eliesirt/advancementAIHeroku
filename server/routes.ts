@@ -887,15 +887,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate enhanced comments with synopsis
       const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
       
-      // Update interaction with enhanced comments
-      await storage.updateInteraction(interactionId, {
-        comments: enhancedComments
+      // Perform quality assessment
+      const { evaluateInteractionQuality } = await import("./lib/openai");
+      const qualityAssessment = await evaluateInteractionQuality(
+        interaction.transcript,
+        extractedInfo,
+        {
+          prospectName: interaction.prospectName,
+          firstName: interaction.firstName,
+          lastName: interaction.lastName,
+          contactLevel: interaction.contactLevel,
+          method: interaction.method,
+          actualDate: interaction.actualDate?.toISOString(),
+          comments: enhancedComments,
+          summary: interaction.summary,
+          category: interaction.category,
+          subcategory: interaction.subcategory
+        }
+      );
+      
+      // Update interaction with enhanced comments and quality assessment
+      const updatedInteraction = await storage.updateInteraction(interactionId, {
+        comments: enhancedComments,
+        qualityScore: qualityAssessment.qualityScore,
+        qualityExplanation: qualityAssessment.qualityExplanation,
+        qualityRecommendations: qualityAssessment.recommendations
       });
 
       res.json({ 
         success: true,
         comments: enhancedComments,
-        message: "Synopsis generated successfully" 
+        qualityScore: qualityAssessment.qualityScore,
+        qualityExplanation: qualityAssessment.qualityExplanation,
+        qualityRecommendations: qualityAssessment.recommendations,
+        interaction: updatedInteraction,
+        message: "Synopsis and quality assessment completed successfully" 
       });
     } catch (error) {
       console.error("Synopsis generation error:", error);
@@ -949,10 +975,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Replace with matcher results
       extractedInfo.suggestedAffinityTags = suggestedAffinityTags;
 
+      // Perform quality assessment on the analyzed text
+      const { evaluateInteractionQuality } = await import("./lib/openai");
+      const qualityAssessment = await evaluateInteractionQuality(
+        text,
+        extractedInfo,
+        {
+          prospectName: extractedInfo.prospectName || prospectName || '',
+          firstName: '',
+          lastName: '',
+          contactLevel: '',
+          method: '',
+          actualDate: new Date().toISOString(),
+          comments: text,
+          summary: extractedInfo.summary,
+          category: extractedInfo.category,
+          subcategory: extractedInfo.subcategory
+        }
+      );
+
       res.json({ 
         success: true,
         extractedInfo,
-        message: "Text analysis completed successfully" 
+        qualityScore: qualityAssessment.qualityScore,
+        qualityExplanation: qualityAssessment.qualityExplanation,
+        qualityRecommendations: qualityAssessment.recommendations,
+        message: "Text analysis and quality assessment completed successfully" 
       });
     } catch (error) {
       console.error("Text analysis error:", error);
