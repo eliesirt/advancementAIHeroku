@@ -85,6 +85,7 @@ export function InteractionForm({
 }: InteractionFormProps) {
   const [selectedAffinityTags, setSelectedAffinityTags] = useState<string[]>([]);
   const [validationResult, setValidationResult] = useState<SOPValidationResult>({ isValid: true, errors: [], warnings: [] });
+  const [expandedQualityTips, setExpandedQualityTips] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -773,6 +774,67 @@ export function InteractionForm({
                     </FormItem>
                   )}
                 />
+
+                {/* Quality Assessment */}
+                {existingInteraction && existingInteraction.qualityScore !== null && existingInteraction.qualityScore !== undefined && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-sm font-semibold text-blue-900">Quality Assessment</div>
+                          <Badge 
+                            variant="outline"
+                            className={`text-sm ${
+                              existingInteraction.qualityScore >= 21 ? 'bg-green-100 text-green-800 border-green-300' :
+                              existingInteraction.qualityScore >= 16 ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              existingInteraction.qualityScore >= 11 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              'bg-red-100 text-red-800 border-red-300'
+                            }`}
+                          >
+                            {existingInteraction.qualityScore}/25
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-blue-700 font-medium">
+                          {existingInteraction.qualityScore >= 21 ? 'Excellent' :
+                           existingInteraction.qualityScore >= 16 ? 'Proficient' :
+                           existingInteraction.qualityScore >= 11 ? 'Developing' :
+                           'Needs Improvement'}
+                        </div>
+                      </div>
+                      
+                      {existingInteraction.qualityRecommendations && existingInteraction.qualityRecommendations.length > 0 && (
+                        <div className="pt-3 border-t border-blue-200">
+                          <div className="text-sm font-medium text-blue-900 mb-2">Improvement Tips:</div>
+                          <ul className="text-sm text-blue-800 space-y-2">
+                            {(expandedQualityTips 
+                              ? existingInteraction.qualityRecommendations 
+                              : existingInteraction.qualityRecommendations.slice(0, 2)
+                            ).map((rec: string, idx: number) => (
+                              <li key={idx} className="flex items-start">
+                                <span className="text-blue-600 mr-2 mt-1">•</span>
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                            {existingInteraction.qualityRecommendations.length > 2 && (
+                              <li className="text-blue-600 text-sm">
+                                <button 
+                                  type="button"
+                                  onClick={() => setExpandedQualityTips(!expandedQualityTips)}
+                                  className="hover:text-blue-800 underline cursor-pointer"
+                                >
+                                  {expandedQualityTips 
+                                    ? "Show less" 
+                                    : `+${existingInteraction.qualityRecommendations.length - 2} more suggestions`
+                                  }
+                                </button>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Form Actions */}
                 <div className="flex space-x-3 pt-4 border-t">
