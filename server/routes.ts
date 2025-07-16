@@ -136,14 +136,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const affinityTags = await storage.getAffinityTags();
       const affinityMatcher = await createAffinityMatcher(affinityTags);
       
-      const allInterests = [
-        ...(Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : []),
-        ...(Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : []),
-        ...(Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [])
-      ];
+      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
       
-      const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+      const matchedTags = affinityMatcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities
+      );
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+      
+      console.log("Extracted interests:", { professionalInterests, personalInterests, philanthropicPriorities });
+      console.log("Matched affinity tags:", suggestedAffinityTags);
       
       // Update recording with transcript
       await storage.updateVoiceRecording(recordingId, {
@@ -371,13 +376,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PATCH request body:", JSON.stringify(req.body, null, 2));
       const updates = insertInteractionSchema.partial().parse(req.body);
       
-      // If this is a manual submission (not a draft), evaluate quality
-      if (!updates.isDraft && updates.status !== 'Draft') {
+      // Preserve quality scores when saving as draft (don't clear them)
+      const currentInteraction = await storage.getInteraction(interactionId);
+      if (updates.isDraft === true && updates.status === 'Draft') {
+        if (currentInteraction && currentInteraction.qualityScore && !updates.qualityScore) {
+          updates.qualityScore = currentInteraction.qualityScore;
+          updates.qualityExplanation = currentInteraction.qualityExplanation;
+        }
+      }
+      
+      // If this is a manual submission (not a draft) OR completing a draft, evaluate quality
+      if ((!updates.isDraft && updates.status !== 'Draft') || (updates.isDraft === false && updates.status === 'Complete')) {
         try {
-          const currentInteraction = await storage.getInteraction(interactionId);
-          
           // Check if we have enough data to evaluate quality
-          if (currentInteraction && (currentInteraction.transcript || updates.comments)) {
+          if (currentInteraction && (currentInteraction.transcript || updates.comments || currentInteraction.comments)) {
             const { evaluateInteractionQuality } = await import("./lib/openai");
             
             // Create mock extracted info if not available
@@ -394,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
             
             const qualityAssessment = await evaluateInteractionQuality(
-              currentInteraction.transcript || updates.comments || '',
+              currentInteraction.transcript || updates.comments || currentInteraction.comments || '',
               extractedInfo,
               {
                 prospectName: updates.prospectName || currentInteraction.prospectName,

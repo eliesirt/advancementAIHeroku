@@ -41,7 +41,7 @@ export class AffinityMatcher {
         const tag = result.item;
         const score = 1 - (result.score || 0); // Convert to similarity score
         
-        if (!seenTags.has(tag.id) && score > 0.6) { // Minimum similarity threshold - increased for accuracy
+        if (!seenTags.has(tag.id) && score > 0.4) { // Minimum similarity threshold - lowered for better matching
           matches.push({
             tag,
             score,
