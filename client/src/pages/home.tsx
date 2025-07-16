@@ -691,6 +691,24 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                                'Needs Improvement'}
                             </div>
                           </div>
+                          {interaction.qualityRecommendations && interaction.qualityRecommendations.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-blue-200">
+                              <div className="text-xs font-medium text-blue-900 mb-1">Improvement Tips:</div>
+                              <ul className="text-xs text-blue-800 space-y-1">
+                                {interaction.qualityRecommendations.slice(0, 2).map((rec: string, idx: number) => (
+                                  <li key={idx} className="flex items-start">
+                                    <span className="text-blue-600 mr-1">•</span>
+                                    <span>{rec}</span>
+                                  </li>
+                                ))}
+                                {interaction.qualityRecommendations.length > 2 && (
+                                  <li className="text-blue-600 text-xs">
+                                    +{interaction.qualityRecommendations.length - 2} more suggestions
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       )}
                       

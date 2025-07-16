@@ -217,7 +217,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           affinityTags: suggestedAffinityTags,
           comments: enhancedComments,
           qualityScore: qualityAssessment.qualityScore,
-          qualityExplanation: qualityAssessment.qualityExplanation
+          qualityExplanation: qualityAssessment.qualityExplanation,
+          qualityRecommendations: qualityAssessment.recommendations
         });
       }
 
@@ -382,6 +383,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (currentInteraction && currentInteraction.qualityScore && !updates.qualityScore) {
           updates.qualityScore = currentInteraction.qualityScore;
           updates.qualityExplanation = currentInteraction.qualityExplanation;
+          updates.qualityRecommendations = currentInteraction.qualityRecommendations;
+        }
+      }
+      
+      // Force quality assessment if quality score is null (for testing recommendations)
+      if (!currentInteraction?.qualityScore && updates.status === 'Complete') {
+        try {
+          const { evaluateInteractionQuality } = await import("./lib/openai");
+          
+          // Create basic extracted info for quality assessment
+          const extractedInfo = {
+            prospectName: updates.prospectName || currentInteraction?.prospectName || '',
+            summary: updates.summary || currentInteraction?.summary || '',
+            category: updates.category || currentInteraction?.category || '',
+            subcategory: updates.subcategory || currentInteraction?.subcategory || '',
+            professionalInterests: [],
+            personalInterests: [],
+            philanthropicPriorities: [],
+            keyPoints: [],
+            suggestedAffinityTags: []
+          };
+          
+          const qualityAssessment = await evaluateInteractionQuality(
+            currentInteraction?.transcript || updates.comments || '',
+            extractedInfo,
+            {
+              prospectName: updates.prospectName || currentInteraction?.prospectName,
+              firstName: updates.firstName || currentInteraction?.firstName,
+              lastName: updates.lastName || currentInteraction?.lastName,
+              contactLevel: updates.contactLevel || currentInteraction?.contactLevel,
+              method: updates.method || currentInteraction?.method,
+              actualDate: updates.actualDate?.toString() || currentInteraction?.actualDate?.toISOString(),
+              comments: updates.comments || currentInteraction?.comments,
+              summary: updates.summary || currentInteraction?.summary,
+              category: updates.category || currentInteraction?.category,
+              subcategory: updates.subcategory || currentInteraction?.subcategory
+            }
+          );
+          
+          updates.qualityScore = qualityAssessment.qualityScore;
+          updates.qualityExplanation = qualityAssessment.qualityExplanation;
+          updates.qualityRecommendations = qualityAssessment.recommendations;
+        } catch (error) {
+          console.error('Quality assessment error during update:', error);
+          // Don't fail the update if quality assessment fails
         }
       }
       
@@ -425,6 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add quality assessment to updates
             updates.qualityScore = qualityAssessment.qualityScore;
             updates.qualityExplanation = qualityAssessment.qualityExplanation;
+            updates.qualityRecommendations = qualityAssessment.recommendations;
           }
         } catch (qualityError) {
           console.warn("Quality assessment failed:", qualityError);
@@ -1138,6 +1185,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to update user profile", 
         error: (error as Error).message 
       });
+    }
+  });
+
+  // Test endpoint for quality assessment
+  app.post('/api/test-quality-assessment', async (req, res) => {
+    try {
+      const { transcript, extractedInfo, interactionData } = req.body;
+      
+      const { evaluateInteractionQuality } = await import("./lib/openai");
+      const qualityAssessment = await evaluateInteractionQuality(
+        transcript,
+        extractedInfo,
+        interactionData
+      );
+      
+      res.json({ qualityAssessment });
+    } catch (error) {
+      console.error('Quality assessment test error:', error);
+      res.status(500).json({ error: 'Quality assessment failed' });
     }
   });
 

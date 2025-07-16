@@ -640,6 +640,20 @@ export default function HistoryPage({ initialFilter = "all" }: HistoryPageProps)
                                 </div>
                               </details>
                             )}
+                            {interaction.qualityRecommendations && interaction.qualityRecommendations.length > 0 && (
+                              <details className="text-xs text-blue-800 mt-2">
+                                <summary className="cursor-pointer hover:text-blue-600">
+                                  View Improvement Recommendations
+                                </summary>
+                                <div className="mt-2 p-2 bg-white rounded border border-blue-200">
+                                  <ul className="space-y-1 list-disc list-inside">
+                                    {interaction.qualityRecommendations.map((rec: string, idx: number) => (
+                                      <li key={idx} className="text-blue-800">{rec}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </details>
+                            )}
                           </div>
                         )}
 

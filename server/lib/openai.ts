@@ -33,6 +33,7 @@ export interface InteractionQualityAssessment {
     followupPotential: number; // out of 5
     bonusPoints: number; // out of 5
   };
+  recommendations: string[]; // Specific actionable recommendations for improvement
 }
 
 export async function transcribeAudio(audioData: string): Promise<string> {
@@ -317,7 +318,9 @@ Scoring Scale:
 16-20: Proficient
 21-25: Excellent
 
-Provide your assessment in JSON format with detailed explanations for each category score.`
+Provide your assessment in JSON format with detailed explanations for each category score and specific actionable recommendations for improvement.
+
+IMPORTANT: Always include at least 3 specific, actionable recommendations in the "recommendations" array to help the fundraiser improve their interaction quality. These should be practical suggestions they can implement immediately.`
         },
         {
           role: "user",
@@ -359,12 +362,17 @@ Provide your evaluation in JSON format with this structure:
     "followupPotential": <score 0-5>,
     "bonusPoints": <score 0-5>
   },
-  "qualityExplanation": "<detailed explanation covering each category with specific examples and recommendations for improvement>"
+  "qualityExplanation": "<detailed explanation covering each category with specific examples>",
+  "recommendations": [
+    "<specific actionable recommendation 1>",
+    "<specific actionable recommendation 2>",
+    "<specific actionable recommendation 3>"
+  ]
 }`
         }
       ],
       temperature: 0.3,
-      max_tokens: 1000,
+      max_tokens: 2000,
       response_format: { type: "json_object" }
     });
 
@@ -381,7 +389,8 @@ Provide your evaluation in JSON format with this structure:
         communicationEffectiveness: Math.max(0, Math.min(5, result.categoryScores?.communicationEffectiveness || 0)),
         followupPotential: Math.max(0, Math.min(5, result.categoryScores?.followupPotential || 0)),
         bonusPoints: Math.max(0, Math.min(5, result.categoryScores?.bonusPoints || 0))
-      }
+      },
+      recommendations: Array.isArray(result.recommendations) ? result.recommendations : []
     };
   } catch (error) {
     console.error('Error evaluating interaction quality:', error);
