@@ -15,7 +15,7 @@ export class AffinityMatcher {
     this.affinityTags = affinityTags;
     this.fuse = new Fuse(affinityTags, {
       keys: ['name', 'category'],
-      threshold: 0.35, // Lowered threshold for better matching
+      threshold: 0.50, // Midrange threshold for better matching
       includeScore: true,
     });
   }
@@ -24,7 +24,7 @@ export class AffinityMatcher {
   private preprocessInterest(interest: string): string[] {
     const variations = [interest]; // Always include original
     
-    // Remove common prefixes and suffixes
+    // Remove common prefixes and suffixesOpen
     const cleaned = interest
       .replace(/^(Friends of |Support for |Supporting |Funding for |Donation to |Gift to )/i, '')
       .replace(/\s+(program|initiative|fund|foundation|department|college|school)$/i, '')

@@ -59,6 +59,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [enhancedComments, setEnhancedComments] = useState("");
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
   const [voiceRecordingDraftId, setVoiceRecordingDraftId] = useState<number | null>(null);
+  const [expandedQualityTips, setExpandedQualityTips] = useState<Set<number>>(new Set());
 
   const { toast } = useToast();
 
@@ -695,7 +696,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                             <div className="mt-2 pt-2 border-t border-blue-200">
                               <div className="text-xs font-medium text-blue-900 mb-1">Improvement Tips:</div>
                               <ul className="text-xs text-blue-800 space-y-1">
-                                {interaction.qualityRecommendations.slice(0, 2).map((rec: string, idx: number) => (
+                                {(expandedQualityTips.has(interaction.id) 
+                                  ? interaction.qualityRecommendations 
+                                  : interaction.qualityRecommendations.slice(0, 2)
+                                ).map((rec: string, idx: number) => (
                                   <li key={idx} className="flex items-start">
                                     <span className="text-blue-600 mr-1">•</span>
                                     <span>{rec}</span>
@@ -703,7 +707,23 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                                 ))}
                                 {interaction.qualityRecommendations.length > 2 && (
                                   <li className="text-blue-600 text-xs">
-                                    +{interaction.qualityRecommendations.length - 2} more suggestions
+                                    <button 
+                                      onClick={() => {
+                                        const newExpanded = new Set(expandedQualityTips);
+                                        if (newExpanded.has(interaction.id)) {
+                                          newExpanded.delete(interaction.id);
+                                        } else {
+                                          newExpanded.add(interaction.id);
+                                        }
+                                        setExpandedQualityTips(newExpanded);
+                                      }}
+                                      className="hover:text-blue-800 underline cursor-pointer"
+                                    >
+                                      {expandedQualityTips.has(interaction.id) 
+                                        ? "Show less" 
+                                        : `+${interaction.qualityRecommendations.length - 2} more suggestions`
+                                      }
+                                    </button>
                                   </li>
                                 )}
                               </ul>
