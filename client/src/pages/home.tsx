@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { VoiceRecorder } from "@/components/voice-recorder";
 import { ProcessingOverlay } from "@/components/processing-overlay";
 import { InteractionForm } from "@/components/interaction-form";
+import { TypeInteractionForm } from "@/components/type-interaction-form";
 
 // Types
 import type { Interaction } from "@shared/schema";
@@ -54,6 +55,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showProcessing, setShowProcessing] = useState(false);
   const [showInteractionForm, setShowInteractionForm] = useState(false);
+  const [showTypeForm, setShowTypeForm] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
   const [enhancedComments, setEnhancedComments] = useState("");
@@ -403,6 +405,16 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     setShowBulkActions(selectedInteractions.length > 0);
   }, [selectedInteractions]);
 
+  // Handle completion from TypeInteractionForm (same as voice recording completion)
+  const handleTypeComplete = (transcript: string, extractedInfo: ExtractedInfo, enhancedComments: string) => {
+    // Set the state to show the full interaction form with processed data
+    setCurrentTranscript(transcript);
+    setExtractedInfo(extractedInfo);
+    setEnhancedComments(enhancedComments);
+    setEditingInteraction(null); // Ensure this is a new interaction, not editing existing
+    setShowInteractionForm(true);
+  };
+
 
 
   const formatTimeAgo = (date: string | Date) => {
@@ -546,12 +558,8 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    // Clear all form state to ensure a blank form
-                    setExtractedInfo(null);
-                    setEditingInteraction(null);
-                    setCurrentTranscript("");
-                    setEnhancedComments("");
-                    setShowInteractionForm(true);
+                    // Open the simplified type form instead of the full form
+                    setShowTypeForm(true);
                   }}
                 >
                   <Edit className="h-4 w-4 mr-2" />
@@ -873,6 +881,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           setEnhancedComments("");
         }}
         isSubmitting={createInteraction.isPending || updateInteraction.isPending || submitToBBEC.isPending}
+      />
+
+      {/* Type Interaction Form */}
+      <TypeInteractionForm
+        isVisible={showTypeForm}
+        onComplete={handleTypeComplete}
+        onClose={() => setShowTypeForm(false)}
       />
     </div>
   );
