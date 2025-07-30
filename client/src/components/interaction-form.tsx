@@ -91,6 +91,7 @@ export function InteractionForm({
     qualityExplanation: string;
     qualityRecommendations: string[];
   } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
