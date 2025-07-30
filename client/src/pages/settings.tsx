@@ -29,6 +29,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileUpdate } from "@/components/user-profile-update";
+import { useCallback } from "react";
 
 interface VoiceSettings {
   enabled: boolean;
@@ -195,12 +196,30 @@ export default function SettingsPage() {
     setBbecSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  // Debounced version for slider to prevent excessive API calls
+  const debouncedUpdateAffinitySettings = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (settings: AffinityTagSettings) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          updateAffinitySettings.mutate(settings);
+        }, 500); // Wait 500ms after last change
+      };
+    })(),
+    [updateAffinitySettings]
+  );
+
   const updateAffinityTagSetting = (key: keyof AffinityTagSettings, value: any) => {
     const newSettings = { ...affinityTagSettings, [key]: value };
     setAffinityTagSettings(newSettings);
     
-    // Auto-save settings when changed
-    updateAffinitySettings.mutate(newSettings);
+    // Use debounced update for matchingThreshold, immediate for others
+    if (key === 'matchingThreshold') {
+      debouncedUpdateAffinitySettings(newSettings);
+    } else {
+      updateAffinitySettings.mutate(newSettings);
+    }
   };
 
   const handleManualRefresh = () => {
