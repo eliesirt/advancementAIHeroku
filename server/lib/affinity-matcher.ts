@@ -10,9 +10,11 @@ export interface MatchedAffinityTag {
 export class AffinityMatcher {
   private fuse: Fuse<AffinityTag>;
   private affinityTags: AffinityTag[];
+  private matchingThreshold: number;
 
-  constructor(affinityTags: AffinityTag[]) {
+  constructor(affinityTags: AffinityTag[], matchingThreshold: number = 0.25) {
     this.affinityTags = affinityTags;
+    this.matchingThreshold = matchingThreshold;
     this.fuse = new Fuse(affinityTags, {
       keys: ['name', 'category'],
       threshold: 0.50, // Midrange threshold for better matching
@@ -70,7 +72,7 @@ export class AffinityMatcher {
           const tag = result.item;
           const score = 1 - (result.score || 0); // Convert to similarity score
           
-          if (!seenTags.has(tag.id) && score > 0.25) { // Lowered threshold for better matching
+          if (!seenTags.has(tag.id) && score > this.matchingThreshold) { // Configurable threshold
             matches.push({
               tag,
               score,
@@ -131,6 +133,6 @@ export class AffinityMatcher {
 }
 
 // Utility function to create matcher with fresh data
-export async function createAffinityMatcher(affinityTags: AffinityTag[]): Promise<AffinityMatcher> {
-  return new AffinityMatcher(affinityTags);
+export async function createAffinityMatcher(affinityTags: AffinityTag[], matchingThreshold?: number): Promise<AffinityMatcher> {
+  return new AffinityMatcher(affinityTags, matchingThreshold);
 }

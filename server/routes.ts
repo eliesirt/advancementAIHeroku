@@ -8,6 +8,19 @@ import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Helper function to get current matching threshold
+async function getMatchingThreshold(): Promise<number> {
+  try {
+    const settings = await storage.getAffinityTagSettings();
+    const threshold = settings?.matchingThreshold || 25;
+    // Convert from 0-100 scale to 0-1 scale for the matcher
+    return threshold / 100;
+  } catch (error) {
+    console.warn("Failed to get matching threshold, using default:", error);
+    return 0.25; // Default threshold
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Get current user (simplified for demo)
@@ -134,7 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Match interests to affinity tags
       const affinityTags = await storage.getAffinityTags();
-      const affinityMatcher = await createAffinityMatcher(affinityTags);
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
       
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
@@ -446,7 +460,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Match interests to affinity tags with improved logic
           const affinityTags = await storage.getAffinityTags();
           const { createAffinityMatcher } = await import("./lib/affinity-matcher");
-          const affinityMatcher = await createAffinityMatcher(affinityTags);
+          const threshold = await getMatchingThreshold();
+          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
           
           const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
           const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
@@ -649,7 +664,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const affinityTags = await storage.getAffinityTags();
-      const matcher = await createAffinityMatcher(affinityTags);
+      const threshold = await getMatchingThreshold();
+      const matcher = await createAffinityMatcher(affinityTags, threshold);
       
       const matches = matcher.matchInterests(
         professionalInterests,
@@ -760,7 +776,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: tags.length,
         lastRefresh: settings?.lastRefresh,
         autoRefresh: settings?.autoRefresh || false,
-        refreshInterval: settings?.refreshInterval || 'daily'
+        refreshInterval: settings?.refreshInterval || 'daily',
+        matchingThreshold: settings?.matchingThreshold || 25
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get affinity tags info", error: (error as Error).message });
@@ -770,13 +787,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update affinity tag settings
   app.post("/api/affinity-tags/settings", async (req, res) => {
     try {
-      const { autoRefresh, refreshInterval, lastRefresh, totalTags } = req.body;
+      const { autoRefresh, refreshInterval, lastRefresh, totalTags, matchingThreshold } = req.body;
       
       const settings = {
         autoRefresh: Boolean(autoRefresh),
         refreshInterval: refreshInterval || 'daily',
         lastRefresh: lastRefresh ? new Date(lastRefresh) : null,
         totalTags: totalTags || 0,
+        matchingThreshold: typeof matchingThreshold === 'number' ? Math.max(0, Math.min(100, matchingThreshold)) : 25,
         nextRefresh: null
       };
 
@@ -956,7 +974,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Match interests to affinity tags using our precise matcher
       const affinityTags = await storage.getAffinityTags();
       const { createAffinityMatcher } = await import("./lib/affinity-matcher");
-      const affinityMatcher = await createAffinityMatcher(affinityTags);
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
       
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
@@ -1034,7 +1053,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get affinity tags once for all interactions
       const affinityTags = await storage.getAffinityTags();
-      const affinityMatcher = await createAffinityMatcher(affinityTags);
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
 
       const results = [];
 

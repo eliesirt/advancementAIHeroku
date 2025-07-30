@@ -73,6 +73,7 @@ export const affinityTagSettings = pgTable("affinity_tag_settings", {
   lastRefresh: timestamp("last_refresh"),
   totalTags: integer("total_tags").default(0),
   nextRefresh: timestamp("next_refresh"),
+  matchingThreshold: integer("matching_threshold").default(25), // 0-100, stored as integer for precision
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 

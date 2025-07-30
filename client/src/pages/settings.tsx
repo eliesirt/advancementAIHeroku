@@ -58,6 +58,7 @@ interface AffinityTagSettings {
   refreshInterval: 'hourly' | 'daily' | 'weekly';
   lastRefresh?: string;
   totalTags?: number;
+  matchingThreshold?: number;
 }
 
 
@@ -90,7 +91,8 @@ export default function SettingsPage() {
     autoRefresh: false,
     refreshInterval: 'daily',
     lastRefresh: undefined,
-    totalTags: 0
+    totalTags: 0,
+    matchingThreshold: 25
   });
 
   const { toast } = useToast();
@@ -120,7 +122,8 @@ export default function SettingsPage() {
         autoRefresh: affinityTagsInfo.autoRefresh || false,
         refreshInterval: affinityTagsInfo.refreshInterval || 'daily',
         lastRefresh: affinityTagsInfo.lastRefresh,
-        totalTags: affinityTagsInfo.total || 0
+        totalTags: affinityTagsInfo.total || 0,
+        matchingThreshold: affinityTagsInfo.matchingThreshold || 25
       }));
     }
   }, [affinityTagsInfo]);
@@ -594,6 +597,30 @@ export default function SettingsPage() {
                   <span className="text-gray-900">
                     {formatLastRefresh(affinityTagsInfo?.lastRefresh || affinityTagSettings.lastRefresh)}
                   </span>
+                </div>
+              </div>
+
+              {/* Matching Threshold Slider */}
+              <div className="space-y-2">
+                <Label htmlFor="matching-threshold">Affinity Tag Matching Confidence</Label>
+                <p className="text-sm text-gray-600">Adjust how tightly or loosely affinity tags are matched to interaction text</p>
+                <input
+                  id="matching-threshold"
+                  type="range"
+                  min="5"
+                  max="95"
+                  step="5"
+                  value={affinityTagSettings.matchingThreshold || 25}
+                  onChange={(e) => updateAffinityTagSetting('matchingThreshold', parseInt(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Loose (5%)</span>
+                  <span>{affinityTagSettings.matchingThreshold || 25}% confidence</span>
+                  <span>Strict (95%)</span>
+                </div>
+                <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                  <strong>Tip:</strong> Lower values match more tags but may include less relevant ones. Higher values are more precise but may miss some matches.
                 </div>
               </div>
 

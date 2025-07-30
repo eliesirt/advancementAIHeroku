@@ -114,6 +114,13 @@ The system follows a mobile-first, voice-enabled design philosophy with strong i
 
 ## Recent Changes
 
+### July 30, 2025 - Added Configurable Affinity Tag Matching
+- **Added matching threshold slider**: Configurable confidence threshold (5%-95%) in Settings tab
+- **Database schema enhancement**: Added matchingThreshold field to affinityTagSettings table
+- **Updated affinity matcher**: Modified AffinityMatcher class to accept configurable threshold parameter
+- **Backend integration**: Updated all createAffinityMatcher calls to use stored threshold setting
+- **User-friendly interface**: Added slider with helpful labels and usage tips for adjusting matching strictness
+
 ### July 30, 2025 - Removed History Tab
 - **Removed History tab**: Completely removed History tab from bottom navigation as requested
 - **Updated navigation layout**: Changed from 3-column to 2-column grid (Home and Settings only)
