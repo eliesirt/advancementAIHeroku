@@ -689,11 +689,73 @@ export function InteractionForm({
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Detailed Comments</FormLabel>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isAnalyzing}
+                            onClick={async () => {
+                              if (isAnalyzing) return;
+                              
+                              setIsAnalyzing(true);
+                              try {
+                                const currentComments = form.getValues("comments");
+                                
+                                if (!currentComments || currentComments.trim().length === 0) {
+                                  toast({
+                                    title: "No Content",
+                                    description: "Please add some comments to analyze for affinity tags.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                
+                                // Call the affinity tag identification endpoint
+                                const response = await apiRequest("POST", "/api/interactions/identify-affinity-tags", {
+                                  text: currentComments,
+                                  prospectName: form.getValues("prospectName") || ''
+                                });
+                                const data = await response.json();
+                                
+                                if (data && data.affinityTags) {
+                                  // Update only the affinity tags
+                                  setSelectedAffinityTags(data.affinityTags);
+                                  
+                                  toast({
+                                    title: "Affinity Tags Identified",
+                                    description: `Found ${data.affinityTags.length} matching affinity tags for this interaction.`,
+                                  });
+                                } else {
+                                  toast({
+                                    title: "No Tags Found",
+                                    description: "No matching affinity tags were identified for this content.",
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to identify affinity tags. Please try again.",
+                                  variant: "destructive",
+                                });
+                              } finally {
+                                setIsAnalyzing(false);
+                              }
+                            }}
+                            className="text-xs"
+                          >
+                            <Tag className="h-3 w-3 mr-1" />
+                            Find Tags
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isAnalyzing}
+                            onClick={async () => {
+                              if (isAnalyzing) return;
+                              
+                              setIsAnalyzing(true);
                             try {
                               const currentComments = form.getValues("comments");
                               
@@ -791,12 +853,15 @@ export function InteractionForm({
                                 description: "Failed to perform AI analysis. Please try again.",
                                 variant: "destructive",
                               });
+                            } finally {
+                              setIsAnalyzing(false);
                             }
                           }}
                           className="text-xs"
                         >
                           AI Analysis
                         </Button>
+                        </div>
                       </div>
                       <FormControl>
                         <Textarea 

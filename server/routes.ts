@@ -950,6 +950,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Identify affinity tags for interaction text
+  app.post("/api/interactions/identify-affinity-tags", async (req, res) => {
+    try {
+      const { text, prospectName } = req.body;
+      
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ message: "Text content is required" });
+      }
+      
+      // Extract interests from the text
+      const extractedInfo = await extractInteractionInfo(text);
+      
+      // Match interests to affinity tags
+      const affinityTags = await storage.getAffinityTags();
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+      
+      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+      
+      const matchedTags = affinityMatcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities
+      );
+      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+      
+      console.log("Affinity tag identification:", { 
+        professionalInterests, 
+        personalInterests, 
+        philanthropicPriorities,
+        matchedTags: suggestedAffinityTags 
+      });
+      
+      res.json({
+        success: true,
+        affinityTags: suggestedAffinityTags,
+        interests: {
+          professionalInterests,
+          personalInterests,
+          philanthropicPriorities
+        }
+      });
+    } catch (error) {
+      console.error('Affinity tag identification error:', error);
+      res.status(500).json({ message: "Failed to identify affinity tags", error: (error as Error).message });
+    }
+  });
+
   // Analyze text content for AI insights
   app.post("/api/interactions/analyze-text", async (req, res) => {
     try {
