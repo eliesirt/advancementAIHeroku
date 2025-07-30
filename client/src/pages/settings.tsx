@@ -130,10 +130,19 @@ export default function SettingsPage() {
         totalTags: affinityTagsInfo.total || 0,
         matchingThreshold: threshold
       }));
-      setTempThreshold(threshold);
-      setHasUnsavedThreshold(false);
+      // Only update tempThreshold if we don't have unsaved changes
+      if (!hasUnsavedThreshold) {
+        setTempThreshold(threshold);
+      }
     }
-  }, [affinityTagsInfo]);
+  }, [affinityTagsInfo, hasUnsavedThreshold]);
+
+  // Sync tempThreshold when affinityTagSettings.matchingThreshold changes (from successful save)
+  useEffect(() => {
+    if (!hasUnsavedThreshold && affinityTagSettings.matchingThreshold !== undefined) {
+      setTempThreshold(affinityTagSettings.matchingThreshold);
+    }
+  }, [affinityTagSettings.matchingThreshold, hasUnsavedThreshold]);
 
   // Fetch affinity tags list
   const { data: affinityTags = [] } = useQuery({
@@ -218,8 +227,8 @@ export default function SettingsPage() {
   const saveThreshold = () => {
     const newSettings = { ...affinityTagSettings, matchingThreshold: tempThreshold };
     setAffinityTagSettings(newSettings);
-    updateAffinitySettings.mutate(newSettings);
     setHasUnsavedThreshold(false);
+    updateAffinitySettings.mutate(newSettings);
   };
 
   // Reset threshold to saved value
