@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileUpdate } from "@/components/user-profile-update";
-import { useCallback } from "react";
 
 interface VoiceSettings {
   enabled: boolean;
@@ -196,19 +195,18 @@ export default function SettingsPage() {
     setBbecSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  // Debounced version for slider to prevent excessive API calls
-  const debouncedUpdateAffinitySettings = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (settings: AffinityTagSettings) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          updateAffinitySettings.mutate(settings);
-        }, 500); // Wait 500ms after last change
-      };
-    })(),
-    [updateAffinitySettings]
-  );
+  // Create a ref to hold the timeout ID
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  // Debounced function to save settings
+  const debouncedSave = useCallback((settings: AffinityTagSettings) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      updateAffinitySettings.mutate(settings);
+    }, 1000); // Wait 1 second after last change
+  }, [updateAffinitySettings]);
 
   const updateAffinityTagSetting = (key: keyof AffinityTagSettings, value: any) => {
     const newSettings = { ...affinityTagSettings, [key]: value };
@@ -216,7 +214,7 @@ export default function SettingsPage() {
     
     // Use debounced update for matchingThreshold, immediate for others
     if (key === 'matchingThreshold') {
-      debouncedUpdateAffinitySettings(newSettings);
+      debouncedSave(newSettings);
     } else {
       updateAffinitySettings.mutate(newSettings);
     }
