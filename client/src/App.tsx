@@ -7,7 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Pages
 import HomePage from "@/pages/home";
-import HistoryPage from "@/pages/history";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
@@ -53,11 +52,6 @@ function AppContent() {
     console.log("Submit interaction from driving mode");
   };
 
-  const handleShowHistory = () => {
-    setIsDrivingMode(false);
-    navigate("/history");
-  };
-
   const handleShowSettings = () => {
     setIsDrivingMode(false);
     navigate("/settings");
@@ -87,7 +81,6 @@ function AppContent() {
               isDrivingMode={isDrivingMode}
             />
           } />
-          <Route path="/history" component={HistoryPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route component={NotFound} />
         </Switch>
@@ -108,7 +101,6 @@ function AppContent() {
         onStartRecording={handleStartRecording}
         onStopRecording={handleStopRecording}
         onSubmitInteraction={handleSubmitInteraction}
-        onShowHistory={handleShowHistory}
         onShowSettings={handleShowSettings}
       />
 

@@ -114,6 +114,13 @@ The system follows a mobile-first, voice-enabled design philosophy with strong i
 
 ## Recent Changes
 
+### July 30, 2025 - Removed History Tab
+- **Removed History tab**: Completely removed History tab from bottom navigation as requested
+- **Updated navigation layout**: Changed from 3-column to 2-column grid (Home and Settings only)
+- **Cleaned up routing**: Removed history route and related handlers from App.tsx
+- **Updated voice commands**: Removed "show history" voice commands from driving mode
+- **Simplified navigation**: Streamlined user interface to focus on core interaction functionality
+
 ### July 16, 2025 - Enhanced Affinity Tag Matching
 - **Fixed critical affinity matching issue**: "Friends of BU Men's Ice Hockey" now correctly matches "Men's Hockey" affinity tag
 - **Improved fuzzy matching algorithm**: Lowered threshold from 0.4 to 0.25 for better coverage

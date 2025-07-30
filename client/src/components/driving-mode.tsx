@@ -11,7 +11,6 @@ interface DrivingModeProps {
   onStartRecording: () => void;
   onStopRecording: () => void;
   onSubmitInteraction: () => void;
-  onShowHistory: () => void;
   onShowSettings: () => void;
 }
 
@@ -21,7 +20,6 @@ export function DrivingMode({
   onStartRecording,
   onStopRecording,
   onSubmitInteraction,
-  onShowHistory,
   onShowSettings
 }: DrivingModeProps) {
   const [voiceCommands, setVoiceCommands] = useState<VoiceCommandManager | null>(null);
@@ -53,10 +51,6 @@ export function DrivingMode({
           speak('Exiting driving mode');
           onExit();
         },
-        onShowHistory: () => {
-          speak('Opening interaction history');
-          onShowHistory();
-        },
         onShowSettings: () => {
           speak('Opening settings');
           onShowSettings();
@@ -86,7 +80,7 @@ export function DrivingMode({
       setIsListening(false);
       stopSpeech();
     }
-  }, [isActive, speak, stopSpeech, onStartRecording, onStopRecording, onSubmitInteraction, onExit, onShowHistory, onShowSettings]);
+  }, [isActive, speak, stopSpeech, onStartRecording, onStopRecording, onSubmitInteraction, onExit, onShowSettings]);
 
   if (!isActive) {
     return null;

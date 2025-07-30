@@ -111,7 +111,6 @@ export function createDefaultVoiceCommands(callbacks: {
   onStopRecording: () => void;
   onSubmitInteraction: () => void;
   onExitDrivingMode: () => void;
-  onShowHistory: () => void;
   onShowSettings: () => void;
 }): VoiceCommandManager {
   const manager = new VoiceCommandManager();
@@ -136,12 +135,6 @@ export function createDefaultVoiceCommands(callbacks: {
   );
 
   // Navigation commands
-  manager.addCommand(
-    ['show history', 'view history', 'recent interactions', 'past interactions'],
-    callbacks.onShowHistory,
-    'View interaction history'
-  );
-
   manager.addCommand(
     ['show settings', 'open settings', 'preferences', 'options'],
     callbacks.onShowSettings,

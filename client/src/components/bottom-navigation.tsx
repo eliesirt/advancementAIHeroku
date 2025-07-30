@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Home, History, Settings } from 'lucide-react';
+import { Home, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BottomNavigationProps {
@@ -19,12 +19,6 @@ export function BottomNavigation({
       active: currentPage === 'home'
     },
     {
-      id: 'history',
-      label: 'History',
-      icon: History,
-      active: currentPage === 'history'
-    },
-    {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
@@ -34,7 +28,7 @@ export function BottomNavigation({
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-      <div className="grid grid-cols-3 h-16">
+      <div className="grid grid-cols-2 h-16">
         {navItems.map((item) => {
           const IconComponent = item.icon;
           return (
