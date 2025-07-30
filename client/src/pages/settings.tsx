@@ -95,6 +95,10 @@ export default function SettingsPage() {
     matchingThreshold: 25
   });
 
+  // Local state for slider value before saving
+  const [tempThreshold, setTempThreshold] = useState<number>(25);
+  const [hasUnsavedThreshold, setHasUnsavedThreshold] = useState<boolean>(false);
+
   const { toast } = useToast();
 
   // Fetch user data
@@ -117,14 +121,17 @@ export default function SettingsPage() {
   // Load settings when affinityTagsInfo is available
   useEffect(() => {
     if (affinityTagsInfo) {
+      const threshold = affinityTagsInfo.matchingThreshold || 25;
       setAffinityTagSettings(prev => ({
         ...prev,
         autoRefresh: affinityTagsInfo.autoRefresh || false,
         refreshInterval: affinityTagsInfo.refreshInterval || 'daily',
         lastRefresh: affinityTagsInfo.lastRefresh,
         totalTags: affinityTagsInfo.total || 0,
-        matchingThreshold: affinityTagsInfo.matchingThreshold || 25
+        matchingThreshold: threshold
       }));
+      setTempThreshold(threshold);
+      setHasUnsavedThreshold(false);
     }
   }, [affinityTagsInfo]);
 
@@ -195,29 +202,30 @@ export default function SettingsPage() {
     setBbecSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  // Create a ref to hold the timeout ID
-  const timeoutRef = useRef<NodeJS.Timeout>();
-
-  // Debounced function to save settings
-  const debouncedSave = useCallback((settings: AffinityTagSettings) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      updateAffinitySettings.mutate(settings);
-    }, 1000); // Wait 1 second after last change
-  }, [updateAffinitySettings]);
-
   const updateAffinityTagSetting = (key: keyof AffinityTagSettings, value: any) => {
     const newSettings = { ...affinityTagSettings, [key]: value };
     setAffinityTagSettings(newSettings);
-    
-    // Use debounced update for matchingThreshold, immediate for others
-    if (key === 'matchingThreshold') {
-      debouncedSave(newSettings);
-    } else {
-      updateAffinitySettings.mutate(newSettings);
-    }
+    updateAffinitySettings.mutate(newSettings);
+  };
+
+  // Handle threshold slider changes (local state only)
+  const handleThresholdChange = (value: number) => {
+    setTempThreshold(value);
+    setHasUnsavedThreshold(value !== affinityTagSettings.matchingThreshold);
+  };
+
+  // Save threshold to backend
+  const saveThreshold = () => {
+    const newSettings = { ...affinityTagSettings, matchingThreshold: tempThreshold };
+    setAffinityTagSettings(newSettings);
+    updateAffinitySettings.mutate(newSettings);
+    setHasUnsavedThreshold(false);
+  };
+
+  // Reset threshold to saved value
+  const resetThreshold = () => {
+    setTempThreshold(affinityTagSettings.matchingThreshold || 25);
+    setHasUnsavedThreshold(false);
   };
 
   const handleManualRefresh = () => {
@@ -618,7 +626,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Matching Threshold Slider */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="matching-threshold">Affinity Tag Matching Confidence</Label>
                 <p className="text-sm text-gray-600">Adjust how tightly or loosely affinity tags are matched to interaction text</p>
                 <input
@@ -627,15 +635,41 @@ export default function SettingsPage() {
                   min="5"
                   max="95"
                   step="5"
-                  value={affinityTagSettings.matchingThreshold || 25}
-                  onChange={(e) => updateAffinityTagSetting('matchingThreshold', parseInt(e.target.value))}
+                  value={tempThreshold}
+                  onChange={(e) => handleThresholdChange(parseInt(e.target.value))}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>Loose (5%)</span>
-                  <span>{affinityTagSettings.matchingThreshold || 25}% confidence</span>
+                  <span className={hasUnsavedThreshold ? "font-semibold text-orange-600" : ""}>{tempThreshold}% confidence</span>
                   <span>Strict (95%)</span>
                 </div>
+                
+                {hasUnsavedThreshold && (
+                  <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded">
+                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm text-orange-700">You have unsaved changes</span>
+                    <div className="flex gap-2 ml-auto">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={resetThreshold}
+                        className="text-xs"
+                      >
+                        Reset
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={saveThreshold}
+                        disabled={updateAffinitySettings.isPending}
+                        className="text-xs"
+                      >
+                        {updateAffinitySettings.isPending ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
                   <strong>Tip:</strong> Lower values match more tags but may include less relevant ones. Higher values are more precise but may miss some matches.
                 </div>
