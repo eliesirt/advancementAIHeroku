@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           comments: enhancedComments,
           qualityScore: qualityAssessment.qualityScore,
           qualityExplanation: qualityAssessment.qualityExplanation,
-          qualityRecommendations: qualityAssessment.qualityRecommendations
+          qualityRecommendations: qualityAssessment.recommendations
         });
       }
 
@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add quality assessment to updates
             updates.qualityScore = qualityAssessment.qualityScore;
             updates.qualityExplanation = qualityAssessment.qualityExplanation;
-            updates.qualityRecommendations = qualityAssessment.qualityRecommendations;
+            updates.qualityRecommendations = qualityAssessment.recommendations;
           }
         } catch (qualityError) {
           console.warn("Quality assessment failed:", qualityError);
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations
+        qualityRecommendations: qualityAssessment.recommendations
       });
 
       res.json({ 
@@ -957,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations,
+        qualityRecommendations: qualityAssessment.recommendations,
         interaction: updatedInteraction,
         message: "Synopsis and quality assessment completed successfully" 
       });
@@ -1088,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedInfo,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations,
+        qualityRecommendations: qualityAssessment.recommendations,
         message: "Text analysis and quality assessment completed successfully" 
       });
     } catch (error) {
