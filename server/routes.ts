@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           comments: enhancedComments,
           qualityScore: qualityAssessment.qualityScore,
           qualityExplanation: qualityAssessment.qualityExplanation,
-          qualityRecommendations: qualityAssessment.recommendations || []
+          qualityRecommendations: qualityAssessment.qualityRecommendations || []
         });
       }
 
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.recommendations
+        qualityRecommendations: qualityAssessment.qualityRecommendations
       });
 
       res.json({ 
@@ -957,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.recommendations,
+        qualityRecommendations: qualityAssessment.qualityRecommendations,
         interaction: updatedInteraction,
         message: "Synopsis and quality assessment completed successfully" 
       });
@@ -1088,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedInfo,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.recommendations,
+        qualityRecommendations: qualityAssessment.qualityRecommendations,
         message: "Text analysis and quality assessment completed successfully" 
       });
     } catch (error) {
