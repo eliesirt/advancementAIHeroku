@@ -1,0 +1,118 @@
+Waiting on build...
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 537 packages, and audited 538 packages in 6s
+       
+       72 packages are looking for funding
+         run `npm fund` for details
+       
+       11 vulnerabilities (3 low, 7 moderate, 1 critical)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       server/lib/soap-client.ts(607,55): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+       server/routes.ts(221,41): error TS2339: Property 'contactLevel' does not exist on type 'ExtractedInteractionInfo'.
+       server/routes.ts(918,89): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(924,9): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(1144,89): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+       server/routes.ts(1180,13): error TS2322: Type 'unknown' is not assignable to type 'Json | undefined'.
+       server/storage.ts(178,11): error TS2322: Type '{ id: number; userId: any; createdAt: Date; updatedAt: Date; status: string; transcript: string | null; method: string; summary: string; prospectName: string; contactLevel: string; ... 17 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }'.
+         Types of property 'owner' are incompatible.
+           Type 'string | null | undefined' is not assignable to type 'string | null'.
+             Type 'undefined' is not assignable to type 'string | null'.
+       server/storage.ts(181,33): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/storage.ts(308,5): error TS2322: Type '{ updatedAt: Date; autoRefresh?: boolean | null | undefined; refreshInterval?: string | null | undefined; lastRefresh?: Date | null | undefined; totalTags?: number | null | undefined; nextRefresh?: Date | ... 1 more ... | undefined; matchingThreshold?: number | ... 1 more ... | undefined; id: number; }' is not assignable to type '{ id: number; updatedAt: Date; autoRefresh: boolean | null; refreshInterval: string | null; lastRefresh: Date | null; totalTags: number | null; nextRefresh: Date | null; matchingThreshold: number | null; }'.
+         Types of property 'autoRefresh' are incompatible.
+           Type 'boolean | null | undefined' is not assignable to type 'boolean | null'.
+             Type 'undefined' is not assignable to type 'boolean | null'.
+       server/storage.ts(367,26): error TS2339: Property 'transcript' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(368,18): error TS2339: Property 'id' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(369,22): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(370,22): error TS2339: Property 'method' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(371,23): error TS2339: Property 'summary' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(372,22): error TS2339: Property 'status' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(373,28): error TS2339: Property 'prospectName' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(374,28): error TS2339: Property 'contactLevel' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(375,26): error TS2339: Property 'actualDate' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(376,21): error TS2339: Property 'owner' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(377,24): error TS2339: Property 'category' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(378,27): error TS2339: Property 'subcategory' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(379,37): error TS2339: Property 'professionalInterests' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(380,33): error TS2339: Property 'personalInterests' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(381,26): error TS2339: Property 'keyPhrases' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(382,34): error TS2339: Property 'aiGeneratedSummary' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(383,35): error TS2339: Property 'aiGeneratedKeywords' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(384,35): error TS2339: Property 'aiGeneratedCategory' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(385,38): error TS2339: Property 'aiGeneratedSubcategory' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(386,28): error TS2339: Property 'qualityScore' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(387,38): error TS2339: Property 'qualityRecommendations' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(388,29): error TS2339: Property 'extractedInfo' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(389,28): error TS2339: Property 'affinityTags' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(390,23): error TS2339: Property 'isDraft' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(391,32): error TS2339: Property 'bbecSubmissionId' does not exist on type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }[]'.
+       server/storage.ts(505,5): error TS2322: Type '{ id: number; updatedAt: Date; autoRefresh: true | null; refreshInterval: string | null; lastRefresh: Date | null; totalTags: number | null; nextRefresh: Date | null; matchingThreshold: number | null; }' is not assignable to type 'void'.
+       server/vite.ts(40,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; host: string; allowedHosts: (string | RegExp)[]; ... 13 more ...; headers?: OutgoingHttpHeaders; }' is not assignable to type 'ServerOptions'.
+         Types of property 'allowedHosts' are incompatible.
+           Type '(string | RegExp)[]' is not assignable to type 'true | string[] | undefined'.
+             Type '(string | RegExp)[]' is not assignable to type 'string[]'.
+               Type 'string | RegExp' is not assignable to type 'string'.
+                 Type 'RegExp' is not assignable to type 'string'.
+       vite.config.ts(22,48): error TS2769: No overload matches this call.
+         The last overload gave the following error.
+           Type 'RegExp' is not assignable to type 'string'.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
