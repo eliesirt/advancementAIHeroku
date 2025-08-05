@@ -1,6 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+
+// Handle module resolution gracefully
+let registerRoutes: any;
+let setupVite: any;
+let serveStatic: any;
+let log: any;
+
+try {
+  ({ registerRoutes } = await import("./routes"));
+  ({ setupVite, serveStatic, log } = await import("./vite"));
+} catch (error) {
+  console.error("Failed to import modules:", error);
+  process.exit(1);
+}
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
