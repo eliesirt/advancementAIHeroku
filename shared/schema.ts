@@ -116,3 +116,16 @@ export type VoiceRecording = typeof voiceRecordings.$inferSelect;
 export type InsertVoiceRecording = z.infer<typeof insertVoiceRecordingSchema>;
 export type AffinityTagSettings = typeof affinityTagSettings.$inferSelect;
 export type InsertAffinityTagSettings = z.infer<typeof insertAffinityTagSettingsSchema>;
+
+export interface ExtractedInteractionInfo {
+  summary: string;
+  category: string;
+  subcategory: string;
+  professionalInterests: string[];
+  personalInterests: string[];
+  philanthropicPriorities: string[];
+  keyPoints: string[];
+  suggestedAffinityTags: string[];
+  prospectName?: string;
+  contactLevel?: string;
+}

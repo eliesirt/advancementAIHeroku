@@ -151,7 +151,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           personalInterests: [],
           philanthropicPriorities: [],
           keyPoints: [],
-          suggestedAffinityTags: []
+          suggestedAffinityTags: [],
+          prospectName: '',
+          contactLevel: ''
         };
 
       // Match interests to affinity tags
@@ -428,7 +430,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             personalInterests: [],
             philanthropicPriorities: [],
             keyPoints: [],
-            suggestedAffinityTags: []
+            suggestedAffinityTags: [],
+            prospectName: '',
+            contactLevel: ''
           };
 
           const qualityAssessment = await evaluateInteractionQuality(
@@ -510,7 +514,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   personalInterests: [],
                   philanthropicPriorities: [],
                   keyPoints: [],
-                  suggestedAffinityTags: []
+                  suggestedAffinityTags: [],
+                  prospectName: '',
+                  contactLevel: ''
                 };
 
             const qualityAssessment = await evaluateInteractionQuality(
@@ -903,16 +909,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Use stored extracted info or create basic structure
-      const extractedInfo = interaction.extractedInfo || {
-        summary: '',
-        category: '',
-        subcategory: '',
-        professionalInterests: [],
-        personalInterests: [],
-        philanthropicPriorities: [],
-        keyPoints: [],
-        suggestedAffinityTags: []
-      } as ExtractedInteractionInfo;
+      const extractedInfo: ExtractedInteractionInfo = typeof interaction.extractedInfo === 'string' 
+        ? JSON.parse(interaction.extractedInfo)
+        : interaction.extractedInfo || {
+            summary: '',
+            category: '',
+            subcategory: '',
+            professionalInterests: [],
+            personalInterests: [],
+            philanthropicPriorities: [],
+            keyPoints: [],
+            suggestedAffinityTags: [],
+            prospectName: '',
+            contactLevel: ''
+          };
 
       // Generate enhanced comments with synopsis
       const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
@@ -1123,7 +1133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process each interaction
       for (const interaction of validInteractions) {
         try {
-          let extractedInfo = interaction.extractedInfo;
+          let extractedInfo: ExtractedInteractionInfo | null = interaction.extractedInfo;
           let enhancedComments = interaction.comments;
           let suggestedAffinityTags = interaction.affinityTags || [];
 
@@ -1136,10 +1146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             summary: '',
             category: '',
             subcategory: '',
-            professionalInterests: '',
-            personalInterests: '',
+            professionalInterests: [],
+            personalInterests: [],
             keyPhrases: '',
-            contactLevel: ''
+            contactLevel: '',
+            prospectName: '',
+            suggestedAffinityTags: []
           };
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
 
@@ -1177,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Update the interaction
           await storage.updateInteraction(interaction.id, {
-            extractedInfo: extractedInfo ? JSON.stringify(extractedInfo) : interaction.extractedInfo,
+            extractedInfo: extractedInfo ? JSON.stringify(extractedInfo) : undefined,
             comments: enhancedComments,
             affinityTags: suggestedAffinityTags
           });

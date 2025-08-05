@@ -358,40 +358,12 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async createInteraction(interaction: any): Promise<any> {
-    const result = await db.insert(interactions).values({
+  async createInteraction(interaction: InsertInteraction): Promise<Interaction> {
+    const [result] = await db.insert(interactions).values({
       ...interaction,
       userId: interaction.userId || 1
     }).returning();
-    return {
-      transcript: result.transcript,
-      id: result.id,
-      userId: result.userId,
-      method: result.method,
-      summary: result.summary,
-      status: result.status,
-      prospectName: result.prospectName,
-      contactLevel: result.contactLevel,
-      actualDate: result.actualDate,
-      owner: result.owner,
-      category: result.category,
-      subcategory: result.subcategory,
-      professionalInterests: result.professionalInterests,
-      personalInterests: result.personalInterests,
-      keyPhrases: result.keyPhrases,
-      aiGeneratedSummary: result.aiGeneratedSummary,
-      aiGeneratedKeywords: result.aiGeneratedKeywords,
-      aiGeneratedCategory: result.aiGeneratedCategory,
-      aiGeneratedSubcategory: result.aiGeneratedSubcategory,
-      qualityScore: result.qualityScore,
-      qualityRecommendations: result.qualityRecommendations,
-      extractedInfo: result.extractedInfo,
-      affinityTags: result.affinityTags,
-      isDraft: result.isDraft,
-      bbecSubmissionId: result.bbecSubmissionId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    return result;
   }
 
   async updateInteraction(id: number, updates: Partial<InsertInteraction>): Promise<Interaction> {
@@ -496,22 +468,6 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         });
     }
-    const result = await this.getAffinityTagSettings();
-
-    if (!result) {
-      throw new Error("Failed to retrieve affinity tag settings after update.");
-    }
-
-    return {
-      id: result.id,
-      updatedAt: result.updatedAt,
-      autoRefresh: result.autoRefresh || null,
-      refreshInterval: result.refreshInterval || null,
-      lastRefresh: result.lastRefresh || null,
-      totalTags: result.totalTags || null,
-      nextRefresh: result.nextRefresh || null,
-      matchingThreshold: result.matchingThreshold || null
-    };
   }
 
   async clearAffinityTags(): Promise<void> {
