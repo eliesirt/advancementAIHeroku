@@ -19,7 +19,9 @@ import {
   CheckSquare,
   Square,
   Tag,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  AlertTriangle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -51,6 +53,24 @@ interface ExtractedInfo {
   suggestedAffinityTags: string[];
 }
 
+// Define a more specific type for user if possible, otherwise use any for now
+type UserType = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+} | null | undefined;
+
+// Define a more specific type for stats if possible, otherwise use any for now
+type StatsType = {
+  todayInteractions: number;
+  thisWeekInteractions: number;
+  pendingInteractions: number;
+  lastWeekInteractions?: number; // Added for potential comparison
+} | null | undefined;
+
+
 export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePageProps) {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showProcessing, setShowProcessing] = useState(false);
@@ -67,12 +87,12 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const { toast } = useToast();
 
   // Fetch user data
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<UserType>({
     queryKey: ["/api/user"],
   });
 
   // Fetch dashboard stats
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<StatsType>({
     queryKey: ["/api/stats"],
     refetchInterval: 60000, // Refresh every minute
   });
@@ -107,7 +127,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         bbecSubmitted: false
       });
       const draft = await draftResponse.json();
-      
+
       // Then create voice recording linked to the draft
       const response = await apiRequest("POST", "/api/voice-recordings", {
         ...data,
@@ -118,11 +138,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     onSuccess: (recording) => {
       // Store the draft interaction ID for later use
       setVoiceRecordingDraftId(recording.interactionId);
-      
+
       // Refresh data to show the new draft
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-      
+
       // Process the recording
       processVoiceRecording.mutate(recording.id);
     },
@@ -144,7 +164,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     onSuccess: async (data) => {
       setCurrentTranscript(data.transcript);
       setExtractedInfo(data.extractedInfo);
-      
+
       // Enhance comments
       try {
         const enhanceResponse = await apiRequest("POST", "/api/interactions/enhance-comments", {
@@ -239,7 +259,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         title: "Success!",
         description: "Interaction successfully submitted to Blackbaud CRM",
       });
-      
+
       // Reset form state
       setShowInteractionForm(false);
       setCurrentTranscript("");
@@ -247,7 +267,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setEnhancedComments("");
       setVoiceRecordingDraftId(null);
       setSubmittingInteractionId(null);
-      
+
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -272,12 +292,12 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         title: "Draft Saved",
         description: "Interaction saved as draft. You can complete it later.",
       });
-      
+
       setShowInteractionForm(false);
       setCurrentTranscript("");
       setExtractedInfo(null);
       setEnhancedComments("");
-      
+
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -342,7 +362,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
 
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
-    
+
     // First save voice recording
     createVoiceRecording.mutate({
       audioData,
@@ -661,7 +681,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                       <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">
                         {interaction.summary}
                       </p>
-                      
+
                       {/* Affinity Tags */}
                       {interaction.affinityTags && interaction.affinityTags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
@@ -743,7 +763,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                           )}
                         </div>
                       )}
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Badge variant="secondary" className="text-xs">
@@ -804,7 +824,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                               </AlertDialog>
                             </>
                           )}
-                          
+
                           {/* Submit to BBEC button for all interactions that haven't been submitted */}
                           {!interaction.bbecSubmitted && (
                             <Button

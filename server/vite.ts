@@ -23,7 +23,7 @@ export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
-    allowedHosts: true,
+    host: '0.0.0.0',
   };
 
   const vite = await createViteServer({
@@ -71,7 +71,7 @@ export function serveStatic(app: Express) {
   console.log("Setting up static file serving...");
   console.log("Current working directory:", process.cwd());
   console.log("__dirname equivalent:", import.meta.dirname);
-  
+
   // Try multiple possible dist paths for Heroku compatibility
   const possiblePaths = [
     path.resolve(import.meta.dirname, "public"),
@@ -80,9 +80,9 @@ export function serveStatic(app: Express) {
     path.resolve(process.cwd(), "dist"),
     path.resolve(process.cwd(), "client", "dist")
   ];
-  
+
   console.log("Checking possible static file paths:", possiblePaths);
-  
+
   let distPath: string | null = null;
   for (const testPath of possiblePaths) {
     console.log(`Checking path: ${testPath}, exists: ${fs.existsSync(testPath)}`);
@@ -100,12 +100,12 @@ export function serveStatic(app: Express) {
   if (!distPath) {
     console.error("Tried these paths for static files:", possiblePaths);
     console.error("Available files in current directory:", fs.readdirSync(process.cwd()));
-    
+
     // Try to create a minimal fallback
     distPath = process.cwd();
     console.log("Using fallback path:", distPath);
   }
-  
+
   console.log(`Serving static files from: ${distPath}`);
 
   app.use(express.static(distPath));

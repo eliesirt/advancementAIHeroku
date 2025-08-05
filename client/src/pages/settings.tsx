@@ -151,7 +151,7 @@ export default function SettingsPage() {
   });
 
   // Manual refresh affinity tags mutation
-  const refreshAffinityTags = useMutation({
+  const refreshAffinityTagsMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/affinity-tags/refresh");
       return response.json();
@@ -179,7 +179,7 @@ export default function SettingsPage() {
   });
 
   // Update auto-refresh settings mutation
-  const updateAffinitySettings = useMutation({
+  const updateAffinitySettingsMutation = useMutation({
     mutationFn: async (settings: AffinityTagSettings) => {
       const response = await apiRequest("POST", "/api/affinity-tags/settings", settings);
       return response.json();
@@ -214,7 +214,7 @@ export default function SettingsPage() {
   const updateAffinityTagSetting = (key: keyof AffinityTagSettings, value: any) => {
     const newSettings = { ...affinityTagSettings, [key]: value };
     setAffinityTagSettings(newSettings);
-    updateAffinitySettings.mutate(newSettings);
+    updateAffinitySettingsMutation.mutate(newSettings);
   };
 
   // Handle threshold slider changes (local state only)
@@ -228,7 +228,7 @@ export default function SettingsPage() {
     const newSettings = { ...affinityTagSettings, matchingThreshold: tempThreshold };
     setAffinityTagSettings(newSettings);
     setHasUnsavedThreshold(false);
-    updateAffinitySettings.mutate(newSettings);
+    updateAffinitySettingsMutation.mutate(newSettings);
   };
 
   // Reset threshold to saved value
@@ -238,7 +238,7 @@ export default function SettingsPage() {
   };
 
   const handleManualRefresh = () => {
-    refreshAffinityTags.mutate();
+    refreshAffinityTagsMutation.mutate();
   };
 
   const formatLastRefresh = (lastRefresh?: string) => {
@@ -281,6 +281,26 @@ export default function SettingsPage() {
     }
   };
 
+  // Dummy state for UserProfileUpdate component if not directly handled
+  const [userProfile, setUserProfile] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    bbecGuid: user?.bbecGuid || '',
+    buid: user?.buid || '',
+  });
+
+  // Update local state if user data changes from query
+  useEffect(() => {
+    setUserProfile({
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+      bbecGuid: user?.bbecGuid || '',
+      buid: user?.buid || '',
+    });
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -304,23 +324,44 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" value={user?.firstName || ""} disabled />
+                <Input
+                  id="firstName"
+                  value={(user as any)?.firstName || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, firstName: e.target.value }))}
+                />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" value={user?.lastName || ""} disabled />
+                <Input
+                  id="lastName"
+                  value={(user as any)?.lastName || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={user?.email || ""} disabled />
+                <Input
+                  id="email"
+                  type="email"
+                  value={(user as any)?.email || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, email: e.target.value }))}
+                />
               </div>
               <div>
                 <Label htmlFor="bbecGuid">BBEC GUID</Label>
-                <Input id="bbecGuid" value={user?.bbecGuid || ""} disabled />
+                <Input
+                  id="bbecGuid"
+                  value={(user as any)?.bbecGuid || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, bbecGuid: e.target.value }))}
+                />
               </div>
               <div>
                 <Label htmlFor="buid">BUID</Label>
-                <Input id="buid" value={user?.buid || ""} disabled />
+                <Input
+                  id="buid"
+                  value={(user as any)?.buid || ''}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, buid: e.target.value }))}
+                />
               </div>
             </div>
             <div className="flex justify-between items-center">
@@ -603,9 +644,9 @@ export default function SettingsPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleManualRefresh}
-                    disabled={refreshAffinityTags.isPending}
+                    disabled={refreshAffinityTagsMutation.isPending}
                   >
-                    {refreshAffinityTags.isPending ? (
+                    {refreshAffinityTagsMutation.isPending ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Refreshing...
@@ -653,7 +694,7 @@ export default function SettingsPage() {
                   <span className={hasUnsavedThreshold ? "font-semibold text-orange-600" : ""}>{tempThreshold}% confidence</span>
                   <span>Strict (95%)</span>
                 </div>
-                
+
                 {hasUnsavedThreshold && (
                   <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded">
                     <AlertCircle className="h-4 w-4 text-orange-600" />
@@ -670,15 +711,15 @@ export default function SettingsPage() {
                       <Button 
                         size="sm" 
                         onClick={saveThreshold}
-                        disabled={updateAffinitySettings.isPending}
+                        disabled={updateAffinitySettingsMutation.isPending}
                         className="text-xs"
                       >
-                        {updateAffinitySettings.isPending ? "Saving..." : "Save"}
+                        {updateAffinitySettingsMutation.isPending ? "Saving..." : "Save"}
                       </Button>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
                   <strong>Tip:</strong> Lower values match more tags but may include less relevant ones. Higher values are more precise but may miss some matches.
                 </div>

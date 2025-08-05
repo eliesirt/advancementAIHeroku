@@ -1,10 +1,10 @@
-import { 
-  users, 
-  interactions, 
-  affinityTags, 
+import {
+  users,
+  interactions,
+  affinityTags,
   voiceRecordings,
   affinityTagSettings,
-  type User, 
+  type User,
   type InsertUser,
   type Interaction,
   type InsertInteraction,
@@ -125,8 +125,8 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
+      ...insertUser,
       id,
       createdAt: new Date(),
       firstName: insertUser.firstName || null,
@@ -144,12 +144,12 @@ export class MemStorage implements IStorage {
     if (!existingUser) {
       throw new Error(`User with id ${id} not found`);
     }
-    
+
     const updatedUser: User = {
       ...existingUser,
       ...updates
     };
-    
+
     this.users.set(id, updatedUser);
     return updatedUser;
   }
@@ -175,13 +175,14 @@ export class MemStorage implements IStorage {
   async createInteraction(insertInteraction: InsertInteraction): Promise<Interaction> {
     const id = this.currentInteractionId++;
     const now = new Date();
-    const interaction: Interaction = { 
+    const interaction: Interaction = {
       ...insertInteraction,
       id,
       userId: insertInteraction.userId,
       createdAt: now,
       updatedAt: now,
-      status: insertInteraction.status || "draft"
+      status: insertInteraction.status || "draft",
+      transcript: insertInteraction.transcript || null,
     };
     this.interactions.set(id, interaction);
     return interaction;
@@ -214,9 +215,9 @@ export class MemStorage implements IStorage {
 
   async getPendingInteractions(userId: number): Promise<Interaction[]> {
     return Array.from(this.interactions.values())
-      .filter(interaction => 
-        interaction.userId === userId && 
-        !interaction.bbecSubmitted && 
+      .filter(interaction =>
+        interaction.userId === userId &&
+        !interaction.bbecSubmitted &&
         !interaction.isDraft
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -230,8 +231,8 @@ export class MemStorage implements IStorage {
 
   async createAffinityTag(insertTag: InsertAffinityTag): Promise<AffinityTag> {
     const id = this.currentAffinityTagId++;
-    const tag: AffinityTag = { 
-      ...insertTag, 
+    const tag: AffinityTag = {
+      ...insertTag,
       id,
       bbecId: insertTag.bbecId || null,
       lastSynced: new Date()
@@ -262,7 +263,7 @@ export class MemStorage implements IStorage {
 
   async createVoiceRecording(insertRecording: InsertVoiceRecording): Promise<VoiceRecording> {
     const id = this.currentVoiceRecordingId++;
-    const recording: VoiceRecording = { 
+    const recording: VoiceRecording = {
       ...insertRecording,
       id,
       createdAt: new Date(),
@@ -357,18 +358,17 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async createInteraction(insertInteraction: InsertInteraction): Promise<Interaction> {
-    try {
-      const [interaction] = await db
-        .insert(interactions)
-        .values(insertInteraction)
-        .returning();
-      return interaction;
-    } catch (error) {
-      console.error("Database insertion error:", error);
-      console.error("Data being inserted:", insertInteraction);
-      throw error;
-    }
+  async createInteraction(interaction: Omit<typeof interactions.$inferInsert, 'id' | 'createdAt' | 'updatedAt'> & { userId?: number }): Promise<typeof interactions.$inferSelect> {
+    const insertResult = await this.db.insert(interactions).values({
+      ...interaction,
+      userId: interaction.userId || 1
+    }).returning();
+    return {
+      ...interaction,
+      transcript: interaction.transcript || null,
+      id: insertResult[0].id,
+      userId: insertResult[0].userId,
+    };
   }
 
   async updateInteraction(id: number, updates: Partial<InsertInteraction>): Promise<Interaction> {
@@ -411,13 +411,13 @@ export class DatabaseStorage implements IStorage {
 
   async updateAffinityTags(tags: InsertAffinityTag[]): Promise<void> {
     if (tags.length === 0) return;
-    
+
     // Since we clear all tags before updating, we can do a simple bulk insert
     const tagsWithTimestamp = tags.map(tag => ({
       ...tag,
       lastSynced: new Date()
     }));
-    
+
     await db.insert(affinityTags).values(tagsWithTimestamp);
   }
 
@@ -456,7 +456,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateAffinityTagSettings(settingsData: InsertAffinityTagSettings): Promise<void> {
     const existingSettings = await this.getAffinityTagSettings();
-    
+
     if (existingSettings) {
       await db
         .update(affinityTagSettings)
@@ -473,6 +473,22 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         });
     }
+    const result = await this.getAffinityTagSettings();
+
+    if (!result) {
+      throw new Error("Failed to retrieve affinity tag settings after update.");
+    }
+
+    return {
+      id: result.id,
+      updatedAt: new Date(),
+      autoRefresh: result.autoRefresh || null,
+      refreshInterval: result.refreshInterval || null,
+      lastRefresh: result.lastRefresh || null,
+      totalTags: result.totalTags || null,
+      nextRefresh: result.nextRefresh || null,
+      matchingThreshold: result.matchingThreshold || null
+    };
   }
 
   async clearAffinityTags(): Promise<void> {

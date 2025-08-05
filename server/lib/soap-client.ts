@@ -60,7 +60,7 @@ class BBECSOAPClient {
           'Authorization': this.authHeader
         }
       };
-      
+
       this.client = await soap.createClientAsync(this.wsdlUrl, options);
       this.client.addHttpHeader('Authorization', this.authHeader);
       console.log('BBEC SOAP client initialized successfully');
@@ -113,7 +113,7 @@ class BBECSOAPClient {
 
       const responseText = await response.text();
       console.log('Constituent search response:', responseText);
-      
+
       // Parse the SOAP response to extract constituent data
       const constituents = this.parseConstituentSearchResponse(responseText);
       return constituents;
@@ -164,7 +164,7 @@ class BBECSOAPClient {
 
       const responseText = await response.text();
       console.log('Form metadata response:', responseText);
-      
+
       // Parse the metadata response to extract field definitions
       const fields = this.parseFormMetadataResponse(responseText);
       return fields;
@@ -249,7 +249,7 @@ class BBECSOAPClient {
 
       const responseText = await response.text();
       console.log('Interaction submission response:', responseText);
-      
+
       // Parse the response to get the interaction ID
       const interactionId = this.parseSubmissionResponse(responseText);
       return interactionId;
@@ -321,7 +321,7 @@ class BBECSOAPClient {
 
       const responseText = await response.text();
       console.log("Constituent search response:", responseText);
-      
+
       return this.parseConstituentSearchResponse(responseText);
     } catch (error) {
       console.error("Error searching constituents by last name:", error);
@@ -391,7 +391,7 @@ class BBECSOAPClient {
 
       const responseText = await response.text();
       console.log('User search response:', responseText);
-      
+
       const users = this.parseUserSearchResponse(responseText);
       return users.length > 0 ? users[0] : null;
     } catch (error) {
@@ -402,7 +402,7 @@ class BBECSOAPClient {
 
   async getAffinityTags(): Promise<any[]> {
     let lastError: Error;
-    
+
     // Try up to 2 times with credential refresh
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
@@ -452,50 +452,50 @@ class BBECSOAPClient {
 
         const responseText = await response.text();
         console.log('Blackbaud API Response:', responseText);
-        
+
         // Parse the SOAP response to extract affinity tags
         const tags = this.parseAffinityTagsResponse(responseText);
         return tags;
-        
+
       } catch (error) {
         lastError = error as Error;
         console.error(`Affinity tags retrieval error (attempt ${attempt}/2):`, error);
-        
+
         if (attempt === 1 && (error as any)?.message?.includes('401')) {
           continue;
         }
         break;
       }
     }
-    
+
     // If we get here, both attempts failed
     if (lastError!.message.includes('401')) {
       throw new Error('Authentication failed. Please check that your BLACKBAUD_API_AUTHENTICATION credentials are valid and up to date.');
     }
-    
+
     throw new Error('Failed to retrieve affinity tags from BBEC API: ' + lastError!.message);
   }
 
   private parseAffinityTagsResponse(soapResponse: string): any[] {
     try {
       const tags: any[] = [];
-      
+
       // Parse the Blackbaud SOAP response structure: <r><Values><v>value1</v><v>value2</v>...</Values></r>
-      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
+      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
       let rowMatch;
-      
+
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
         const valuesContent = rowMatch[1];
-        
+
         // Extract all <v> values from the row
-        const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
+        const valueRegex = /<v>([\s\S]*?)<\/v>/g;
         const values: string[] = [];
         let valueMatch;
-        
+
         while ((valueMatch = valueRegex.exec(valuesContent)) !== null) {
           values.push(valueMatch[1]);
         }
-        
+
         // Based on the structure I can see, the values appear to be:
         // [0] = ID (GUID), [1] = Name, [2] = Active, [3] = Description, [4] = ?, [5] = LastModified
         if (values.length >= 2 && values[1]) {
@@ -507,7 +507,7 @@ class BBECSOAPClient {
           });
         }
       }
-      
+
       console.log(`Parsed ${tags.length} affinity tags from SOAP response`);
       return tags;
     } catch (error) {
@@ -519,43 +519,43 @@ class BBECSOAPClient {
   private parseConstituentSearchResponse(soapResponse: string): any[] {
     try {
       const constituents: any[] = [];
-      
+
       // Extract rows from the SOAP response
       const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
       let rowMatch;
-      
+
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
         const valuesContent = rowMatch[1];
-        
+
         // Extract all <v> values from the row
         const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
         const values: string[] = [];
         let valueMatch;
-        
+
         while ((valueMatch = valueRegex.exec(valuesContent)) !== null) {
           values.push(valueMatch[1]);
         }
-        
+
         // Based on the debug output, I can see the actual structure varies by constituent
         // Let me map based on the pattern I can see:
         // - All have: [0] = BUID, [1] = Full Name
         // - Then varying fields: school, job, company, phone, email
         // - Always end with: first_name, last_name, guid, guid (duplicate)
-        
+
         if (values.length >= 4 && values[1]) {
           // The pattern shows that first_name and last_name are always the 3rd and 2nd to last positions
           // And GUID is always the last two positions (duplicated)
           const firstName = values[values.length - 4] || '';
           const lastName = values[values.length - 3] || '';
           const guid = values[values.length - 2] || '';
-          
+
           // For other fields, try to identify them by position and content
           let email = '';
           let phone = '';
           let jobTitle = '';
           let company = '';
           let school = '';
-          
+
           // Look for patterns in the middle fields
           for (let i = 2; i < values.length - 4; i++) {
             const value = values[i];
@@ -571,7 +571,7 @@ class BBECSOAPClient {
               school = value;
             }
           }
-          
+
           const constituent = {
             uid: values[0] || '',
             name: values[1] ? values[1].replace(/&amp;/g, '&') : '',
@@ -586,12 +586,12 @@ class BBECSOAPClient {
             last_name: lastName,
             guid: guid
           };
-          
+
           console.log('Mapped constituent:', JSON.stringify(constituent, null, 2));
           constituents.push(constituent);
         }
       }
-      
+
       return constituents;
     } catch (error) {
       console.error('Error parsing constituent search response:', error);
@@ -602,18 +602,18 @@ class BBECSOAPClient {
   private parseFormMetadataResponse(soapResponse: string): BBECInteractionField[] {
     try {
       const fields: BBECInteractionField[] = [];
-      
+
       // Extract field definitions from the metadata response
       const fieldRegex = /<Field[^>]*>(.*?)<\/Field>/gs;
       let match;
-      
+
       while ((match = fieldRegex.exec(soapResponse)) !== null) {
         const fieldContent = match[1];
-        
+
         const nameMatch = fieldContent.match(/<Name[^>]*>(.*?)<\/Name>/);
         const typeMatch = fieldContent.match(/<Type[^>]*>(.*?)<\/Type>/);
         const requiredMatch = fieldContent.match(/<Required[^>]*>(.*?)<\/Required>/);
-        
+
         if (nameMatch) {
           fields.push({
             name: nameMatch[1].trim(),
@@ -623,7 +623,7 @@ class BBECSOAPClient {
           });
         }
       }
-      
+
       // Return default fields if parsing fails or no fields found
       if (fields.length === 0) {
         return [
@@ -637,7 +637,7 @@ class BBECSOAPClient {
           { name: "prospectName", type: "text", required: true }
         ];
       }
-      
+
       return fields;
     } catch (error) {
       console.error('Error parsing form metadata response:', error);
@@ -659,13 +659,13 @@ class BBECSOAPClient {
       // Extract the interaction ID from the submission response
       const idMatch = soapResponse.match(/<ID[^>]*>(.*?)<\/ID>/);
       const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
-      
+
       if (idMatch) {
         return idMatch[1].trim();
       } else if (recordIdMatch) {
         return recordIdMatch[1].trim();
       }
-      
+
       // If no ID found, generate a temporary one
       return `temp_${Date.now()}`;
     } catch (error) {
@@ -677,28 +677,28 @@ class BBECSOAPClient {
   private parseUserSearchResponse(soapResponse: string): any[] {
     try {
       const users: any[] = [];
-      
+
       // Extract rows from the SOAP response
       const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
       let rowMatch;
-      
+
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
         const valuesContent = rowMatch[1];
-        
+
         // Extract all <v> values from the row, handling both empty self-closing tags and content tags
         const values: string[] = [];
-        
+
         // Replace self-closing tags with empty content tags for consistent parsing
         const normalizedContent = valuesContent.replace(/<v\s*\/>/g, '<v></v>');
-        
+
         // Extract all values using regex
         const valueRegex = /<v>(.*?)<\/v>/g;
         let valueMatch;
-        
+
         while ((valueMatch = valueRegex.exec(normalizedContent)) !== null) {
           values.push(valueMatch[1]);
         }
-        
+
         // Map values to user object: [0] = uid, [1] = name, [2] = email, [3] = first_name, [4] = last_name, [5] = guid, [6] = QUERYRECID
         if (values.length >= 6 && values[0]) {
           users.push({
@@ -711,7 +711,7 @@ class BBECSOAPClient {
           });
         }
       }
-      
+
       return users;
     } catch (error) {
       console.error('Error parsing user search response:', error);

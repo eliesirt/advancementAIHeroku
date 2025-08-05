@@ -22,7 +22,7 @@ async function getMatchingThreshold(): Promise<number> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Get current user (simplified for demo)
   app.get("/api/user", async (req, res) => {
     try {
@@ -42,10 +42,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = 1; // Default user
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      
+
       const allInteractions = await storage.getInteractionsByUser(userId);
       const todayInteractions = allInteractions.filter(i => i.createdAt >= today).length;
       const thisWeekInteractions = allInteractions.filter(i => i.createdAt >= weekAgo).length;
@@ -99,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/voice-recordings", async (req, res) => {
     try {
       console.log("Voice recording data received:", req.body);
-      
+
       const recordingData = {
         userId: Number(req.body.userId) || 1,
         audioData: req.body.audioData,
@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processed: false,
         interactionId: req.body.interactionId || null
       };
-      
+
       console.log("Processed recording data:", recordingData);
       const recording = await storage.createVoiceRecording(recordingData);
       res.json(recording);
@@ -126,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const recordingId = parseInt(req.params.id);
       const recording = await storage.getVoiceRecording(recordingId);
-      
+
       if (!recording) {
         return res.status(404).json({ message: "Voice recording not found" });
       }
@@ -137,33 +137,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Transcribe audio
       const transcript = await transcribeAudio(recording.audioData);
-      
+
       // Generate concise summary
       const { generateConciseSummary } = await import("./lib/openai");
       const conciseSummary = await generateConciseSummary(transcript);
-      
+
       // Extract interaction information
       const extractedInfo = await extractInteractionInfo(transcript);
-      
+
       // Match interests to affinity tags
       const affinityTags = await storage.getAffinityTags();
       const threshold = await getMatchingThreshold();
       const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-      
+
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
       const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
-      
+
       const matchedTags = affinityMatcher.matchInterests(
         professionalInterests,
         personalInterests,
         philanthropicPriorities
       );
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-      
+
       console.log("Extracted interests:", { professionalInterests, personalInterests, philanthropicPriorities });
       console.log("Matched affinity tags:", suggestedAffinityTags);
-      
+
       // Update recording with transcript
       await storage.updateVoiceRecording(recordingId, {
         transcript,
@@ -175,11 +175,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (recording.interactionId) {
         // Generate enhanced comments with full synopsis and transcript
         const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo);
-        
+
         // Parse first and last name from prospect name
         const parseProspectName = (fullName: string) => {
           if (!fullName || fullName.trim().length === 0) return { firstName: '', lastName: '' };
-          
+
           const nameParts = fullName.trim().split(/\s+/);
           if (nameParts.length === 1) {
             return { firstName: nameParts[0], lastName: '' };
@@ -196,29 +196,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const prospectName = extractedInfo.prospectName || 'Voice Recording';
         const { firstName, lastName } = parseProspectName(prospectName);
-        
+
         // Get current interaction data for quality assessment
         const currentInteraction = await storage.getInteraction(recording.interactionId);
-        
+
         // Evaluate interaction quality
         const { evaluateInteractionQuality } = await import("./lib/openai");
         const qualityAssessment = await evaluateInteractionQuality(
           transcript,
           extractedInfo,
           {
-            prospectName,
-            firstName,
-            lastName,
-            contactLevel: currentInteraction?.contactLevel,
-            method: currentInteraction?.method,
-            actualDate: currentInteraction?.actualDate?.toISOString(),
-            comments: enhancedComments,
-            summary: conciseSummary,
-            category: extractedInfo.category || 'General',
-            subcategory: extractedInfo.subcategory || 'Other'
+            prospectName: updates.prospectName || currentInteraction?.prospectName || '',
+            firstName: updates.firstName || currentInteraction?.firstName || '',
+            lastName: updates.lastName || currentInteraction?.lastName || '',
+            contactLevel: updates.contactLevel || currentInteraction?.contactLevel || '',
+            method: updates.method || currentInteraction?.method || '',
+            actualDate: updates.actualDate?.toString() || currentInteraction?.actualDate?.toISOString() || '',
+            comments: updates.comments || currentInteraction?.comments || '',
+            summary: updates.summary || currentInteraction?.summary || '',
+            category: updates.category || currentInteraction?.category || '',
+            subcategory: updates.subcategory || currentInteraction?.subcategory || ''
           }
         );
-        
+
         await storage.updateInteraction(recording.interactionId, {
           transcript,
           extractedInfo: JSON.stringify(extractedInfo),
@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isDraft: true,
         bbecSubmitted: false
       };
-      
+
       console.log("Creating draft with data:", draftData);
       const interaction = await storage.createInteraction(draftData);
       console.log("Draft created successfully:", interaction);
@@ -297,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       const interaction = await storage.getInteraction(interactionId);
-      
+
       if (!interaction) {
         return res.status(404).json({ message: "Interaction not found" });
       }
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         constituentGuid = interaction.bbecGuid;
         await storage.updateInteraction(interactionId, { constituentGuid });
       }
-      
+
       if (!constituentGuid) {
         return res.status(400).json({ 
           message: "Interaction missing constituent GUID - please select a constituent first" 
@@ -346,10 +346,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Submit to BBEC
       const bbecInteractionId = await bbecClient.submitInteraction(bbecInteraction);
-      
+
       // If submission successful (no error thrown), remove from local database
       const deleted = await storage.deleteInteraction(interactionId);
-      
+
       if (!deleted) {
         console.warn(`BBEC submission succeeded but failed to delete local interaction ${interactionId}`);
       }
@@ -389,12 +389,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       console.log("PATCH request body:", JSON.stringify(req.body, null, 2));
-      
+
       // Handle reprocessAffinity flag separately since it's not part of schema
       const reprocessAffinity = req.body.reprocessAffinity;
-      
+
       const updates = insertInteractionSchema.partial().parse(req.body);
-      
+
       // Preserve quality scores when saving as draft (don't clear them)
       const currentInteraction = await storage.getInteraction(interactionId);
       if (updates.isDraft === true && updates.status === 'Draft') {
@@ -404,51 +404,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates.qualityRecommendations = currentInteraction.qualityRecommendations;
         }
       }
-      
+
       // Force quality assessment if quality score is null (for testing recommendations)
       if (!currentInteraction?.qualityScore && updates.status === 'Complete') {
         try {
           const { evaluateInteractionQuality } = await import("./lib/openai");
-          
+
           // Create basic extracted info for quality assessment
           const extractedInfo = {
-            prospectName: updates.prospectName || currentInteraction?.prospectName || '',
-            summary: updates.summary || currentInteraction?.summary || '',
-            category: updates.category || currentInteraction?.category || '',
-            subcategory: updates.subcategory || currentInteraction?.subcategory || '',
+            summary: '',
+            category: '',
+            subcategory: '',
             professionalInterests: [],
             personalInterests: [],
             philanthropicPriorities: [],
             keyPoints: [],
             suggestedAffinityTags: []
           };
-          
+
           const qualityAssessment = await evaluateInteractionQuality(
-            currentInteraction?.transcript || updates.comments || '',
-            extractedInfo,
-            {
-              prospectName: updates.prospectName || currentInteraction?.prospectName,
-              firstName: updates.firstName || currentInteraction?.firstName,
-              lastName: updates.lastName || currentInteraction?.lastName,
-              contactLevel: updates.contactLevel || currentInteraction?.contactLevel,
-              method: updates.method || currentInteraction?.method,
-              actualDate: updates.actualDate?.toString() || currentInteraction?.actualDate?.toISOString(),
-              comments: updates.comments || currentInteraction?.comments,
-              summary: updates.summary || currentInteraction?.summary,
-              category: updates.category || currentInteraction?.category,
-              subcategory: updates.subcategory || currentInteraction?.subcategory
-            }
-          );
-          
-          updates.qualityScore = qualityAssessment.qualityScore;
-          updates.qualityExplanation = qualityAssessment.qualityExplanation;
-          updates.qualityRecommendations = qualityAssessment.recommendations;
+              currentInteraction?.transcript || updates.comments || '',
+              extractedInfo,
+              {
+                prospectName: updates.prospectName || currentInteraction?.prospectName || '',
+                firstName: updates.firstName || currentInteraction?.firstName || '',
+                lastName: updates.lastName || currentInteraction?.lastName || '',
+                contactLevel: updates.contactLevel || currentInteraction?.contactLevel || '',
+                method: updates.method || currentInteraction?.method || '',
+                actualDate: updates.actualDate?.toString() || currentInteraction?.actualDate?.toISOString() || '',
+                comments: updates.comments || currentInteraction?.comments || '',
+                summary: updates.summary || currentInteraction?.summary || '',
+                category: updates.category || currentInteraction?.category || '',
+                subcategory: updates.subcategory || currentInteraction?.subcategory || ''
+              }
+            );
+
+            updates.qualityScore = qualityAssessment.qualityScore;
+            updates.qualityExplanation = qualityAssessment.qualityExplanation;
+            updates.qualityRecommendations = qualityAssessment.recommendations;
         } catch (error) {
           console.error('Quality assessment error during update:', error);
           // Don't fail the update if quality assessment fails
         }
       }
-      
+
       // Special handling for affinity reprocessing
       if (reprocessAffinity && currentInteraction?.extractedInfo) {
         try {
@@ -456,82 +455,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const extractedInfo = typeof currentInteraction.extractedInfo === 'string' 
             ? JSON.parse(currentInteraction.extractedInfo) 
             : currentInteraction.extractedInfo;
-          
+
           // Match interests to affinity tags with improved logic
           const affinityTags = await storage.getAffinityTags();
           const { createAffinityMatcher } = await import("./lib/affinity-matcher");
           const threshold = await getMatchingThreshold();
           const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-          
+
           const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
           const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
           const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
-          
+
           const matchedTags = affinityMatcher.matchInterests(
             professionalInterests,
             personalInterests,
             philanthropicPriorities
           );
-          
+
           const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-          
+
           // Update the affinity tags
           updates.affinityTags = suggestedAffinityTags;
-          
+
         } catch (error) {
           console.error('Affinity reprocessing error:', error);
           // Don't fail the update if affinity reprocessing fails
         }
       }
-      
+
       // If this is a manual submission (not a draft) OR completing a draft, evaluate quality
       if ((!updates.isDraft && updates.status !== 'Draft') || (updates.isDraft === false && updates.status === 'Complete')) {
         try {
           // Check if we have enough data to evaluate quality
           if (currentInteraction && (currentInteraction.transcript || updates.comments || currentInteraction.comments)) {
             const { evaluateInteractionQuality } = await import("./lib/openai");
-            
+
             // Create mock extracted info if not available
             const extractedInfo = currentInteraction.extractedInfo || {
-              prospectName: updates.prospectName || currentInteraction.prospectName,
-              summary: updates.summary || currentInteraction.summary,
-              category: updates.category || currentInteraction.category,
-              subcategory: updates.subcategory || currentInteraction.subcategory,
+              summary: '',
+              category: '',
+              subcategory: '',
               professionalInterests: [],
               personalInterests: [],
               philanthropicPriorities: [],
               keyPoints: [],
-              suggestedAffinityTags: currentInteraction.affinityTags || []
+              suggestedAffinityTags: []
             };
-            
+
             const qualityAssessment = await evaluateInteractionQuality(
               currentInteraction.transcript || updates.comments || currentInteraction.comments || '',
               extractedInfo,
               {
-                prospectName: updates.prospectName || currentInteraction.prospectName,
-                firstName: updates.firstName || currentInteraction.firstName,
-                lastName: updates.lastName || currentInteraction.lastName,
-                contactLevel: updates.contactLevel || currentInteraction.contactLevel,
-                method: updates.method || currentInteraction.method,
-                actualDate: updates.actualDate?.toString() || currentInteraction.actualDate?.toISOString(),
-                comments: updates.comments || currentInteraction.comments,
-                summary: updates.summary || currentInteraction.summary,
-                category: updates.category || currentInteraction.category,
-                subcategory: updates.subcategory || currentInteraction.subcategory
+                prospectName: updates.prospectName || currentInteraction.prospectName || '',
+                firstName: updates.firstName || currentInteraction.firstName || '',
+                lastName: updates.lastName || currentInteraction.lastName || '',
+                contactLevel: updates.contactLevel || currentInteraction.contactLevel || '',
+                method: updates.method || currentInteraction.method || '',
+                actualDate: updates.actualDate?.toString() || currentInteraction.actualDate?.toISOString() || '',
+                comments: updates.comments || currentInteraction.comments || '',
+                summary: updates.summary || currentInteraction.summary || '',
+                category: updates.category || currentInteraction.category || '',
+                subcategory: updates.subcategory || currentInteraction.subcategory || ''
               }
             );
-            
+
             // Add quality assessment to updates
             updates.qualityScore = qualityAssessment.qualityScore;
             updates.qualityExplanation = qualityAssessment.qualityExplanation;
-            updates.qualityRecommendations = qualityAssessment.recommendations;
+            updates.qualityRecommendations = qualityAssessment.qualityRecommendations;
           }
         } catch (qualityError) {
           console.warn("Quality assessment failed:", qualityError);
           // Continue with update even if quality assessment fails
         }
       }
-      
+
+      updates.firstName = req.body.firstName || undefined;
+      updates.lastName = req.body.lastName || undefined;
+      updates.buid = req.body.buid || undefined;
+
       const interaction = await storage.updateInteraction(interactionId, updates);
       res.json(interaction);
     } catch (error) {
@@ -549,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       const interaction = await storage.getInteraction(interactionId);
-      
+
       if (!interaction) {
         return res.status(404).json({ message: "Interaction not found" });
       }
@@ -605,7 +607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       const success = await storage.deleteInteraction(interactionId);
-      
+
       if (success) {
         res.json({ success: true, message: "Interaction deleted successfully" });
       } else {
@@ -620,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/interactions", async (req, res) => {
     try {
       const { ids } = req.body;
-      
+
       if (!Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ message: "Invalid interaction IDs provided" });
       }
@@ -658,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/affinity-tags/match", async (req, res) => {
     try {
       const { professionalInterests, personalInterests, philanthropicPriorities } = req.body;
-      
+
       if (!Array.isArray(professionalInterests) || !Array.isArray(personalInterests) || !Array.isArray(philanthropicPriorities)) {
         return res.status(400).json({ message: "Invalid interests format" });
       }
@@ -666,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const affinityTags = await storage.getAffinityTags();
       const threshold = await getMatchingThreshold();
       const matcher = await createAffinityMatcher(affinityTags, threshold);
-      
+
       const matches = matcher.matchInterests(
         professionalInterests,
         personalInterests,
@@ -684,12 +686,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Refresh BBEC client credentials before attempting API call
       bbecClient.refreshCredentials();
-      
+
       // Clear existing affinity tags before refreshing
       await storage.clearAffinityTags();
-      
+
       const bbecTags = await bbecClient.getAffinityTags();
-      
+
       const tagsToInsert = bbecTags.map(tag => ({
         name: tag.name,
         category: tag.category,
@@ -697,7 +699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       await storage.updateAffinityTags(tagsToInsert);
-      
+
       res.json({ 
         success: true, 
         synced: tagsToInsert.length,
@@ -708,7 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Detailed refresh error:', error);
       const errorMessage = (error as Error).message;
-      
+
       if (errorMessage.includes('401') || errorMessage.includes('Authentication failed')) {
         res.status(401).json({ 
           message: "Authentication failed. Please update your BLACKBAUD_API_AUTHENTICATION credentials.", 
@@ -728,9 +730,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const authHeader = process.env.BLACKBAUD_API_AUTHENTICATION || "";
       const apiUrl = 'https://crm30656d.sky.blackbaud.com/7d6e1ca0-9d84-4282-a36c-7f5b5b3b90b5/webapi/AppFx.asmx';
-      
+
       console.log('Testing BBEC connection with auth header format:', authHeader ? `${authHeader.substring(0, 30)}...` : 'EMPTY');
-      
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -749,7 +751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             </soap:Body>
           </soap:Envelope>`
       });
-      
+
       res.json({
         success: response.ok,
         status: response.status,
@@ -771,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tags = await storage.getAffinityTags();
       const settings = await storage.getAffinityTagSettings();
-      
+
       res.json({
         total: tags.length,
         lastRefresh: settings?.lastRefresh,
@@ -788,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/affinity-tags/settings", async (req, res) => {
     try {
       const { autoRefresh, refreshInterval, lastRefresh, totalTags, matchingThreshold } = req.body;
-      
+
       const settings = {
         autoRefresh: Boolean(autoRefresh),
         refreshInterval: refreshInterval || 'daily',
@@ -799,13 +801,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       await storage.updateAffinityTagSettings(settings);
-      
+
       // Update scheduler based on new settings
       await affinityTagScheduler.updateSchedule(
         settings.autoRefresh, 
         settings.refreshInterval as 'hourly' | 'daily' | 'weekly'
       );
-      
+
       res.json({ 
         success: true, 
         settings,
@@ -821,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/constituents/search", async (req, res) => {
     try {
       const searchTerm = req.query.q as string;
-      
+
       if (!searchTerm || searchTerm.length < 2) {
         return res.status(400).json({ message: "Search term must be at least 2 characters" });
       }
@@ -850,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!q || typeof q !== 'string') {
         return res.status(400).json({ error: 'Search query required' });
       }
-      
+
       const constituents = await bbecClient.searchConstituent(q);
       res.json(constituents);
     } catch (error) {
@@ -863,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/interactions/enhance-comments", async (req, res) => {
     try {
       const { transcript, extractedInfo } = req.body;
-      
+
       if (!transcript || !extractedInfo) {
         return res.status(400).json({ message: "Transcript and extracted info are required" });
       }
@@ -880,7 +882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       const interaction = await storage.getInteraction(interactionId);
-      
+
       if (!interaction) {
         return res.status(404).json({ message: "Interaction not found" });
       }
@@ -891,39 +893,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Use stored extracted info or create basic structure
       const extractedInfo = interaction.extractedInfo || {
-        prospectName: interaction.prospectName,
-        summary: interaction.summary,
-        category: interaction.category,
-        subcategory: interaction.subcategory,
+        summary: '',
+        category: '',
+        subcategory: '',
         professionalInterests: [],
         personalInterests: [],
         philanthropicPriorities: [],
         keyPoints: [],
-        suggestedAffinityTags: interaction.affinityTags || []
+        suggestedAffinityTags: []
       } as ExtractedInteractionInfo;
 
       // Generate enhanced comments with synopsis
       const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
-      
+
       // Perform quality assessment
       const { evaluateInteractionQuality } = await import("./lib/openai");
       const qualityAssessment = await evaluateInteractionQuality(
         interaction.transcript,
         extractedInfo,
         {
-          prospectName: interaction.prospectName,
-          firstName: interaction.firstName,
-          lastName: interaction.lastName,
-          contactLevel: interaction.contactLevel,
-          method: interaction.method,
-          actualDate: interaction.actualDate?.toISOString(),
-          comments: enhancedComments,
-          summary: interaction.summary,
-          category: interaction.category,
-          subcategory: interaction.subcategory
+          prospectName: interaction.prospectName || '',
+          firstName: interaction.firstName || '',
+          lastName: interaction.lastName || '',
+          contactLevel: interaction.contactLevel || '',
+          method: interaction.method || '',
+          actualDate: interaction.actualDate?.toISOString() || '',
+          comments: interaction.comments || '',
+          summary: interaction.summary || '',
+          category: interaction.category || '',
+          subcategory: interaction.subcategory || ''
         }
       );
-      
+
       // Update interaction with enhanced comments and quality assessment
       const updatedInteraction = await storage.updateInteraction(interactionId, {
         comments: enhancedComments,
@@ -954,37 +955,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/interactions/identify-affinity-tags", async (req, res) => {
     try {
       const { text, prospectName } = req.body;
-      
+
       if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return res.status(400).json({ message: "Text content is required" });
       }
-      
+
       // Extract interests from the text
       const extractedInfo = await extractInteractionInfo(text);
-      
+
       // Match interests to affinity tags
       const affinityTags = await storage.getAffinityTags();
       const threshold = await getMatchingThreshold();
       const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-      
+
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
       const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
-      
+
       const matchedTags = affinityMatcher.matchInterests(
         professionalInterests,
         personalInterests,
         philanthropicPriorities
       );
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-      
+
       console.log("Affinity tag identification:", { 
         professionalInterests, 
         personalInterests, 
         philanthropicPriorities,
         matchedTags: suggestedAffinityTags 
       });
-      
+
       res.json({
         success: true,
         affinityTags: suggestedAffinityTags,
@@ -1004,7 +1005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/interactions/analyze-text", async (req, res) => {
     try {
       const { text, prospectName } = req.body;
-      
+
       if (!text || text.trim().length === 0) {
         return res.status(400).json({ message: "Text content is required for analysis" });
       }
@@ -1012,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract interaction information from the text
       const { extractInteractionInfo } = await import("./lib/openai");
       const extractedInfo = await extractInteractionInfo(text);
-      
+
       // If prospect name was provided, use it to override extracted name
       if (prospectName && prospectName.trim().length > 0) {
         extractedInfo.prospectName = prospectName.trim();
@@ -1026,11 +1027,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { createAffinityMatcher } = await import("./lib/affinity-matcher");
       const threshold = await getMatchingThreshold();
       const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-      
+
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
       const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
-      
+
       let suggestedAffinityTags: string[] = [];
       if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
         const matchedTags = affinityMatcher.matchInterests(
@@ -1084,7 +1085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/interactions/bulk-process", async (req, res) => {
     try {
       const { interactionIds } = req.body;
-      
+
       if (!Array.isArray(interactionIds) || interactionIds.length === 0) {
         return res.status(400).json({ message: "Valid interaction IDs array is required" });
       }
@@ -1139,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               suggestedAffinityTags = matchedTags.map(match => match.tag.name);
             }
           }
-          
+
           // If still no tags, try to match existing summary/comments for interests
           if (suggestedAffinityTags.length === 0 && (interaction.summary || interaction.comments)) {
             const textToMatch = `${interaction.summary || ''} ${interaction.comments || ''}`.toLowerCase();
@@ -1187,7 +1188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalAffinityTagsMatched: totalTagsMatched,
         results
       };
-      
+
       res.json(response);
 
     } catch (error) {
@@ -1203,16 +1204,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/search/:buid", async (req, res) => {
     try {
       const { buid } = req.params;
-      
+
       if (!buid) {
         return res.status(400).json({ message: "BUID is required" });
       }
 
       const { bbecClient } = await import("./lib/soap-client");
       await bbecClient.initialize();
-      
+
       const user = await bbecClient.searchUserByBUID(buid);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -1232,16 +1233,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { lastName } = req.params;
       const { firstName } = req.query;
-      
+
       if (!lastName) {
         return res.status(400).json({ message: "Last name is required" });
       }
 
       const { bbecClient } = await import("./lib/soap-client");
       await bbecClient.initialize();
-      
+
       let constituents = await bbecClient.searchConstituentsByLastName(lastName);
-      
+
       // Sort by last name then first name (ascending)
       constituents.sort((a, b) => {
         const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
@@ -1250,11 +1251,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return (a.first_name || '').localeCompare(b.first_name || '');
       });
-      
+
       // If firstName is provided, prioritize matches with both first and last name
       if (firstName && typeof firstName === 'string' && firstName.trim()) {
         const firstNameTrim = firstName.trim().toLowerCase();
-        
+
         // Separate matches into two groups
         const exactMatches = constituents.filter(c => 
           c.first_name && c.first_name.toLowerCase().includes(firstNameTrim)
@@ -1262,7 +1263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const otherMatches = constituents.filter(c => 
           !c.first_name || !c.first_name.toLowerCase().includes(firstNameTrim)
         );
-        
+
         // Sort each group independently
         exactMatches.sort((a, b) => {
           const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
@@ -1271,7 +1272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           return (a.first_name || '').localeCompare(b.first_name || '');
         });
-        
+
         otherMatches.sort((a, b) => {
           const lastNameComparison = (a.last_name || '').localeCompare(b.last_name || '');
           if (lastNameComparison !== 0) {
@@ -1279,11 +1280,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           return (a.first_name || '').localeCompare(b.first_name || '');
         });
-        
+
         // Combine with exact matches first
         constituents = [...exactMatches, ...otherMatches];
       }
-      
+
       res.json(constituents);
     } catch (error) {
       console.error("Error searching constituents by last name:", error);
@@ -1298,16 +1299,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/constituents/search-by-buid/:buid", async (req, res) => {
     try {
       const { buid } = req.params;
-      
+
       if (!buid) {
         return res.status(400).json({ message: "BUID is required" });
       }
 
       const { bbecClient } = await import("./lib/soap-client");
       await bbecClient.initialize();
-      
+
       const constituent = await bbecClient.searchUserByBUID(buid);
-      
+
       // Convert the single user result to an array to match the expected format
       const result = constituent ? [constituent] : [];
       res.json(result);
@@ -1325,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { firstName, lastName, email, buid } = req.body;
       const userId = 1; // For now, using default user
-      
+
       const updatedUser = await storage.updateUser(userId, {
         firstName,
         lastName,
@@ -1348,14 +1349,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/test-quality-assessment', async (req, res) => {
     try {
       const { transcript, extractedInfo, interactionData } = req.body;
-      
+
       const { evaluateInteractionQuality } = await import("./lib/openai");
       const qualityAssessment = await evaluateInteractionQuality(
         transcript,
         extractedInfo,
         interactionData
       );
-      
+
       res.json({ qualityAssessment });
     } catch (error) {
       console.error('Quality assessment test error:', error);
