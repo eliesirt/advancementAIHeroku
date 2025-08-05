@@ -161,8 +161,14 @@ app.get('/health', (req, res) => {
     }
 
     // Use Heroku's dynamic port or fallback to 5000
-    const port = process.env.PORT || 5000;
-    console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
+    //const port = process.env.PORT || 5000;
+    //console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+    console.log("Listening on", PORT);
+    });
+    
     
     server.listen(port, "0.0.0.0", () => {
       log(`serving on port ${port}`);
