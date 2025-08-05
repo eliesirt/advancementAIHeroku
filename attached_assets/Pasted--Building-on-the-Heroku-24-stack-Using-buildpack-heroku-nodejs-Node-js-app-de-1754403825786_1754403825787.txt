@@ -1,0 +1,138 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 537 packages, and audited 538 packages in 5s
+       
+       72 packages are looking for funding
+         run `npm fund` for details
+       
+       11 vulnerabilities (3 low, 7 moderate, 1 critical)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       client/src/pages/home.tsx(536,10): error TS18048: 'stats.pendingInteractions' is possibly 'undefined'.
+       client/src/pages/home.tsx(542,27): error TS18049: 'stats' is possibly 'null' or 'undefined'.
+       client/src/pages/home.tsx(542,66): error TS18049: 'stats' is possibly 'null' or 'undefined'.
+       client/src/pages/settings.tsx(124,42): error TS2339: Property 'matchingThreshold' does not exist on type '{}'.
+       client/src/pages/settings.tsx(127,39): error TS2339: Property 'autoRefresh' does not exist on type '{}'.
+       client/src/pages/settings.tsx(128,43): error TS2339: Property 'refreshInterval' does not exist on type '{}'.
+       client/src/pages/settings.tsx(129,39): error TS2339: Property 'lastRefresh' does not exist on type '{}'.
+       client/src/pages/settings.tsx(130,37): error TS2339: Property 'total' does not exist on type '{}'.
+       client/src/pages/settings.tsx(286,22): error TS2339: Property 'firstName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(287,21): error TS2339: Property 'lastName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(288,18): error TS2339: Property 'email' does not exist on type '{}'.
+       client/src/pages/settings.tsx(289,21): error TS2339: Property 'bbecGuid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(290,17): error TS2339: Property 'buid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(296,24): error TS2339: Property 'firstName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(297,23): error TS2339: Property 'lastName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(298,20): error TS2339: Property 'email' does not exist on type '{}'.
+       client/src/pages/settings.tsx(299,23): error TS2339: Property 'bbecGuid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(300,19): error TS2339: Property 'buid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(613,56): error TS18046: 'affinityTags' is of type 'unknown'.
+       client/src/pages/settings.tsx(618,28): error TS18046: 'affinityTags' is of type 'unknown'.
+       client/src/pages/settings.tsx(625,33): error TS2461: Type 'unknown' is not an array type.
+       client/src/pages/settings.tsx(668,65): error TS2339: Property 'total' does not exist on type '{}'.
+       client/src/pages/settings.tsx(673,58): error TS2339: Property 'lastRefresh' does not exist on type '{}'.
+       server/lib/soap-client.ts(607,55): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+       server/routes.ts(209,27): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(210,24): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(211,23): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(212,27): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(213,21): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(214,25): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(215,23): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(216,22): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(217,23): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(218,26): error TS2304: Cannot find name 'updates'.
+       server/routes.ts(285,59): error TS2345: Argument of type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to parameter of type 'Omit<{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; userId: number; id?: number | undefined; status?: string | undefined; ... 17 more ...; updatedAt?: Date | undefined; }, "id" | ... 1 more ... | "updatedAt"> & { ...; }'.
+         Property 'userId' is missing in type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' but required in type 'Omit<{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; userId: number; id?: number | undefined; status?: string | undefined; ... 17 more ...; updatedAt?: Date | undefined; }, "id" | ... 1 more ... | "updatedAt">'.
+       server/routes.ts(507,15): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(525,64): error TS2551: Property 'qualityRecommendations' does not exist on type 'InteractionQualityAssessment'. Did you mean 'recommendations'?
+       server/routes.ts(907,89): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(913,9): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(1125,89): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+       server/routes.ts(1139,51): error TS2554: Expected 3 arguments, but got 2.
+       server/routes.ts(1149,51): error TS2554: Expected 3 arguments, but got 2.
+       server/routes.ts(1157,13): error TS2322: Type 'unknown' is not assignable to type 'Json | undefined'.
+       server/storage.ts(178,11): error TS2322: Type '{ id: number; userId: any; createdAt: Date; updatedAt: Date; status: string; transcript: string | null; method: string; summary: string; prospectName: string; contactLevel: string; ... 17 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }'.
+         Types of property 'owner' are incompatible.
+           Type 'string | null | undefined' is not assignable to type 'string | null'.
+             Type 'undefined' is not assignable to type 'string | null'.
+       server/storage.ts(181,33): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/storage.ts(308,5): error TS2322: Type '{ updatedAt: Date; autoRefresh?: boolean | null | undefined; refreshInterval?: string | null | undefined; lastRefresh?: Date | null | undefined; totalTags?: number | null | undefined; nextRefresh?: Date | ... 1 more ... | undefined; matchingThreshold?: number | ... 1 more ... | undefined; id: number; }' is not assignable to type '{ id: number; updatedAt: Date; autoRefresh: boolean | null; refreshInterval: string | null; lastRefresh: Date | null; totalTags: number | null; nextRefresh: Date | null; matchingThreshold: number | null; }'.
+         Types of property 'autoRefresh' are incompatible.
+           Type 'boolean | null | undefined' is not assignable to type 'boolean | null'.
+             Type 'undefined' is not assignable to type 'boolean | null'.
+       server/storage.ts(361,9): error TS2416: Property 'createInteraction' in type 'DatabaseStorage' is not assignable to the same property in base type 'IStorage'.
+         Type '(interaction: Omit<{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; userId: number; id?: number | undefined; ... 18 more ...; updatedAt?: Date | undefined; }, "id" | ... 1 more ... | "updatedAt"> & { ...; }) => Promise<...>' is not assignable to type '(interaction: { method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }) => Promise<...>'.
+           Types of parameters 'interaction' and 'interaction' are incompatible.
+             Type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to type 'Omit<{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; userId: number; id?: number | undefined; status?: string | undefined; ... 17 more ...; updatedAt?: Date | undefined; }, "id" | ... 1 more ... | "updatedAt"> & { ...; }'.
+               Property 'userId' is missing in type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' but required in type 'Omit<{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; userId: number; id?: number | undefined; status?: string | undefined; ... 17 more ...; updatedAt?: Date | undefined; }, "id" | ... 1 more ... | "updatedAt">'.
+       server/storage.ts(362,37): error TS2339: Property 'db' does not exist on type 'DatabaseStorage'.
+       server/storage.ts(366,5): error TS2739: Type '{ transcript: string | null; id: any; userId: any; method: string; summary: string; status?: string | undefined; prospectName: string; contactLevel: string; actualDate: Date; owner?: string | null | undefined; ... 15 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is missing the following properties from type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }': createdAt, updatedAt
+       server/storage.ts(482,5): error TS2322: Type '{ id: number; updatedAt: Date; autoRefresh: true | null; refreshInterval: string | null; lastRefresh: Date | null; totalTags: number | null; nextRefresh: Date | null; matchingThreshold: number | null; }' is not assignable to type 'void'.
+       server/vite.ts(40,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; host: string; allowedHosts: (string | RegExp)[]; ... 13 more ...; headers?: OutgoingHttpHeaders; }' is not assignable to type 'ServerOptions'.
+         Types of property 'allowedHosts' are incompatible.
+           Type '(string | RegExp)[]' is not assignable to type 'true | string[] | undefined'.
+             Type '(string | RegExp)[]' is not assignable to type 'string[]'.
+               Type 'string | RegExp' is not assignable to type 'string'.
+                 Type 'RegExp' is not assignable to type 'string'.
+       vite.config.ts(22,48): error TS2769: No overload matches this call.
+         The last overload gave the following error.
+           Type 'RegExp' is not assignable to type 'string'.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
