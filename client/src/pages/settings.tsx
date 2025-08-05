@@ -9,12 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Mic, 
-  Car, 
-  Database, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Mic,
+  Car,
+  Database,
   RefreshCw,
   CheckCircle,
   AlertCircle,
@@ -51,6 +51,40 @@ interface BBECSettings {
   validateSOP: boolean;
   requireAffinityTags: boolean;
   deadline48Hours: boolean;
+}
+
+// Define a more specific type for stats if possible, otherwise use any for now
+type StatsType = {
+  todayInteractions: number;
+  thisWeekInteractions: number;
+  pendingInteractions: number;
+  lastWeekInteractions?: number; // Added for potential comparison
+} | null | undefined;
+
+// Define proper types for user and affinity tags info
+type UserType = {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  name: string;
+  email?: string | null;
+  bbecGuid?: string | null;
+  buid?: string | null;
+} | null | undefined;
+
+type AffinityTagsInfoType = {
+  total?: number;
+  lastRefresh?: string;
+  autoRefresh?: boolean;
+  refreshInterval?: string;
+  matchingThreshold?: number;
+} | null | undefined;
+
+type AffinityTagType = {
+  id: number;
+  name: string;
+  category: string;
+  bbecId?: string | null;
 }
 
 interface AffinityTagSettings {
@@ -102,7 +136,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
 
   // Fetch user data
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<UserType>({
     queryKey: ["/api/user"],
   });
 
@@ -113,7 +147,7 @@ export default function SettingsPage() {
   });
 
   // Fetch affinity tags info
-  const { data: affinityTagsInfo, refetch: refetchAffinityTags } = useQuery({
+  const { data: affinityTagsInfo, refetch: refetchAffinityTags } = useQuery<AffinityTagsInfoType>({
     queryKey: ["/api/affinity-tags/info"],
     retry: false,
   });
@@ -125,7 +159,7 @@ export default function SettingsPage() {
       setAffinityTagSettings(prev => ({
         ...prev,
         autoRefresh: affinityTagsInfo.autoRefresh || false,
-        refreshInterval: affinityTagsInfo.refreshInterval || 'daily',
+        refreshInterval: affinityTagsInfo.refreshInterval === undefined ? 'daily' : affinityTagsInfo.refreshInterval as 'hourly' | 'daily' | 'weekly',
         lastRefresh: affinityTagsInfo.lastRefresh,
         totalTags: affinityTagsInfo.total || 0,
         matchingThreshold: threshold
@@ -145,7 +179,7 @@ export default function SettingsPage() {
   }, [affinityTagSettings.matchingThreshold, hasUnsavedThreshold]);
 
   // Fetch affinity tags list
-  const { data: affinityTags = [] } = useQuery({
+  const { data: affinityTags = [] } = useQuery<AffinityTagType[]>({
     queryKey: ["/api/affinity-tags"],
     retry: false,
   });
@@ -336,7 +370,7 @@ export default function SettingsPage() {
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
-                  value={(user as any)?.firstName || ''}
+                  value={user?.firstName || ''}
                   onChange={(e) => setUserProfile(prev => ({ ...prev, firstName: e.target.value }))}
                 />
               </div>
@@ -344,7 +378,7 @@ export default function SettingsPage() {
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
-                  value={(user as any)?.lastName || ''}
+                  value={user?.lastName || ''}
                   onChange={(e) => setUserProfile(prev => ({ ...prev, lastName: e.target.value }))}
                 />
               </div>
@@ -353,7 +387,7 @@ export default function SettingsPage() {
                 <Input
                   id="email"
                   type="email"
-                  value={(user as any)?.email || ''}
+                  value={user?.email || ''}
                   onChange={(e) => setUserProfile(prev => ({ ...prev, email: e.target.value }))}
                 />
               </div>
@@ -361,7 +395,7 @@ export default function SettingsPage() {
                 <Label htmlFor="bbecGuid">BBEC GUID</Label>
                 <Input
                   id="bbecGuid"
-                  value={(user as any)?.bbecGuid || ''}
+                  value={user?.bbecGuid || ''}
                   onChange={(e) => setUserProfile(prev => ({ ...prev, bbecGuid: e.target.value }))}
                 />
               </div>
@@ -369,10 +403,9 @@ export default function SettingsPage() {
                 <Label htmlFor="buid">BUID</Label>
                 <Input
                   id="buid"
-                  value={(user as any)?.buid || ''}
+                  value={user?.buid || ''}
                   onChange={(e) => setUserProfile(prev => ({ ...prev, buid: e.target.value }))}
-                />
-              </div>
+                /></div>
             </div>
             <div className="flex justify-between items-center">
               <Alert className="flex-1 mr-4">
@@ -710,16 +743,16 @@ export default function SettingsPage() {
                     <AlertCircle className="h-4 w-4 text-orange-600" />
                     <span className="text-sm text-orange-700">You have unsaved changes</span>
                     <div className="flex gap-2 ml-auto">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={resetThreshold}
                         className="text-xs"
                       >
                         Reset
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={saveThreshold}
                         disabled={updateAffinitySettingsMutation.isPending}
                         className="text-xs"
@@ -756,7 +789,7 @@ export default function SettingsPage() {
                     </Label>
                     <Select
                       value={affinityTagSettings.refreshInterval}
-                      onValueChange={(value: 'hourly' | 'daily' | 'weekly') => 
+                      onValueChange={(value: 'hourly' | 'daily' | 'weekly') =>
                         updateAffinityTagSetting('refreshInterval', value)
                       }
                     >

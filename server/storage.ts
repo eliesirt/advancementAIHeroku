@@ -359,7 +359,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInteraction(interaction: any): Promise<any> {
-    const result = await this.db.insert(interactions).values({
+    const result = await db.insert(interactions).values({
       ...interaction,
       userId: interaction.userId || 1
     }).returning();

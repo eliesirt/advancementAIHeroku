@@ -147,10 +147,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           summary: '',
           category: '',
           subcategory: '',
-          professionalInterests: '',
-          personalInterests: '',
-          keyPhrases: '',
-          contactLevel: ''
+          professionalInterests: [],
+          personalInterests: [],
+          philanthropicPriorities: [],
+          keyPoints: [],
+          suggestedAffinityTags: []
         };
 
       // Match interests to affinity tags
@@ -419,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { evaluateInteractionQuality } = await import("./lib/openai");
 
           // Create basic extracted info for quality assessment
-          const extractedInfo = {
+          const extractedInfo: ExtractedInteractionInfo = {
             summary: '',
             category: '',
             subcategory: '',
@@ -499,16 +500,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const { evaluateInteractionQuality } = await import("./lib/openai");
 
             // Create mock extracted info if not available
-            const extractedInfo = currentInteraction.extractedInfo || {
-              summary: '',
-              category: '',
-              subcategory: '',
-              professionalInterests: [],
-              personalInterests: [],
-              philanthropicPriorities: [],
-              keyPoints: [],
-              suggestedAffinityTags: []
-            };
+            const extractedInfo: ExtractedInteractionInfo = typeof currentInteraction.extractedInfo === 'string' 
+              ? JSON.parse(currentInteraction.extractedInfo)
+              : currentInteraction.extractedInfo || {
+                  summary: '',
+                  category: '',
+                  subcategory: '',
+                  professionalInterests: [],
+                  personalInterests: [],
+                  philanthropicPriorities: [],
+                  keyPoints: [],
+                  suggestedAffinityTags: []
+                };
 
             const qualityAssessment = await evaluateInteractionQuality(
               currentInteraction.transcript || updates.comments || currentInteraction.comments || '',
@@ -1144,7 +1147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Re-match affinity tags - try current affinity tags or extract from stored info
           if (extractedInfo) {
-            const parsedInfo = typeof extractedInfo === 'string' ? JSON.parse(extractedInfo) : extractedInfo;
+            const parsedInfo: ExtractedInteractionInfo = typeof extractedInfo === 'string' ? JSON.parse(extractedInfo) : extractedInfo;
             const allInterests = [
               ...(Array.isArray(parsedInfo.professionalInterests) ? parsedInfo.professionalInterests : []),
               ...(Array.isArray(parsedInfo.personalInterests) ? parsedInfo.personalInterests : []),
@@ -1152,7 +1155,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ];
 
             if (allInterests.length > 0) {
-              const matchedTags = affinityMatcher.matchInterests(allInterests, 0.3);
+              const matchedTags = affinityMatcher.matchInterests(
+                parsedInfo.professionalInterests || [],
+                parsedInfo.personalInterests || [],
+                parsedInfo.philanthropicPriorities || []
+              );
               suggestedAffinityTags = matchedTags.map(match => match.tag.name);
             }
           }
@@ -1162,7 +1169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const textToMatch = `${interaction.summary || ''} ${interaction.comments || ''}`.toLowerCase();
             const keywords = textToMatch.split(/\s+/).filter(word => word.length > 3);
             if (keywords.length > 0) {
-              const matchedTags = affinityMatcher.matchInterests(keywords, 0.2);
+              const matchedTags = affinityMatcher.matchInterests(keywords, [], []);
               suggestedAffinityTags = matchedTags.map(match => match.tag.name);
 
             }

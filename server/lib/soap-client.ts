@@ -521,14 +521,14 @@ class BBECSOAPClient {
       const constituents: any[] = [];
 
       // Extract rows from the SOAP response
-      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/gi;
+      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
       let rowMatch;
 
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
         const valuesContent = rowMatch[1];
 
         // Extract all <v> values from the row
-        const valueRegex = /<v>([\s\S]*?)<\/v>/gi;
+        const valueRegex = /<v>([\s\S]*?)<\/v>/g;
         const values: string[] = [];
         let valueMatch;
 
