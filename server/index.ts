@@ -64,5 +64,8 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+  }).on('error', (error) => {
+    console.error('Server failed to start:', error);
+    process.exit(1);
   });
 })();
