@@ -7,13 +7,19 @@ let serveStatic: any;
 let log: any;
 
 try {
+  console.log("Importing routes module...");
   ({ registerRoutes } = await import("./routes"));
+  console.log("Routes module imported successfully");
+  
+  console.log("Importing vite module...");
   ({ setupVite, serveStatic, log } = await import("./vite"));
+  console.log("Vite module imported successfully");
 } catch (error) {
   console.error("Failed to import modules:", error);
-  console.error("Error details:", error);
-  // Don't exit immediately, log more details
-  throw error;
+  console.error("Error stack:", error.stack);
+  console.error("Working directory:", process.cwd());
+  console.error("Available files:", require('fs').readdirSync('./server'));
+  process.exit(1);
 }
 
 const app = express();
@@ -51,43 +57,49 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  console.log("Starting application initialization...");
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  console.log("Current working directory:", process.cwd());
-  console.log("__dirname equivalent:", import.meta.dirname);
-  
-  const server = await registerRoutes(app);
-  console.log("Routes registered successfully");
+  try {
+    console.log("Starting application initialization...");
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("Current working directory:", process.cwd());
+    console.log("__dirname equivalent:", import.meta.dirname);
+    
+    const server = await registerRoutes(app);
+    console.log("Routes registered successfully");
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
-  });
+      res.status(status).json({ message });
+      console.error("Express error:", err);
+    });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    console.log("Setting up Vite for development");
-    await setupVite(app, server);
-  } else {
-    console.log("Setting up static file serving for production");
-    serveStatic(app);
-  }
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      console.log("Setting up Vite for development");
+      await setupVite(app, server);
+    } else {
+      console.log("Setting up static file serving for production");
+      serveStatic(app);
+    }
 
-// Use Heroku's dynamic port or fallback to 5000
-  const port = process.env.PORT || 5000;
-  console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
-  
-  server.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-  }).on('error', (error) => {
-    console.error('Server failed to start:', error);
-    console.error('Port:', port);
-    console.error('Environment:', process.env.NODE_ENV);
+    // Use Heroku's dynamic port or fallback to 5000
+    const port = process.env.PORT || 5000;
+    console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
+    
+    server.listen(port, "0.0.0.0", () => {
+      log(`serving on port ${port}`);
+    }).on('error', (error) => {
+      console.error('Server failed to start:', error);
+      console.error('Port:', port);
+      console.error('Environment:', process.env.NODE_ENV);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error("Fatal error during application startup:", error);
+    console.error("Error stack:", error.stack);
     process.exit(1);
-  });
+  }
 })();

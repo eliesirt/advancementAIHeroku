@@ -68,26 +68,42 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
+  console.log("Setting up static file serving...");
+  console.log("Current working directory:", process.cwd());
+  console.log("__dirname equivalent:", import.meta.dirname);
+  
   // Try multiple possible dist paths for Heroku compatibility
   const possiblePaths = [
     path.resolve(import.meta.dirname, "public"),
     path.resolve(import.meta.dirname, "..", "dist", "public"),
-    path.resolve(process.cwd(), "dist", "public")
+    path.resolve(process.cwd(), "dist", "public"),
+    path.resolve(process.cwd(), "dist"),
+    path.resolve(process.cwd(), "client", "dist")
   ];
+  
+  console.log("Checking possible static file paths:", possiblePaths);
   
   let distPath: string | null = null;
   for (const testPath of possiblePaths) {
+    console.log(`Checking path: ${testPath}, exists: ${fs.existsSync(testPath)}`);
     if (fs.existsSync(testPath)) {
-      distPath = testPath;
-      break;
+      // Check if it has index.html
+      const indexPath = path.join(testPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        distPath = testPath;
+        console.log(`Found valid static files directory: ${distPath}`);
+        break;
+      }
     }
   }
 
   if (!distPath) {
     console.error("Tried these paths for static files:", possiblePaths);
-    throw new Error(
-      `Could not find the build directory in any of the expected locations, make sure to build the client first`,
-    );
+    console.error("Available files in current directory:", fs.readdirSync(process.cwd()));
+    
+    // Try to create a minimal fallback
+    distPath = process.cwd();
+    console.log("Using fallback path:", distPath);
   }
   
   console.log(`Serving static files from: ${distPath}`);
@@ -96,6 +112,11 @@ export function serveStatic(app: Express) {
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send("Application not found - build may have failed");
+    }
   });
 }
