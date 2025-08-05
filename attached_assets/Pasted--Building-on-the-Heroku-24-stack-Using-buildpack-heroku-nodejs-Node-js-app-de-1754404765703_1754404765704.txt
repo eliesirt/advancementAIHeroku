@@ -1,0 +1,82 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 537 packages, and audited 538 packages in 5s
+       
+       72 packages are looking for funding
+         run `npm fund` for details
+       
+       11 vulnerabilities (3 low, 7 moderate, 1 critical)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       server/lib/soap-client.ts(607,55): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+       server/routes.ts(223,41): error TS2339: Property 'contactLevel' does not exist on type 'ExtractedInteractionInfo'.
+       server/routes.ts(435,15): error TS2353: Object literal may only specify known properties, and 'contactLevel' does not exist in type 'ExtractedInteractionInfo'.
+       server/routes.ts(1136,15): error TS2322: Type 'unknown' is not assignable to type 'ExtractedInteractionInfo | null'.
+       server/storage.ts(181,33): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/storage.ts(189,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }'.
+       server/storage.ts(189,32): error TS2339: Property 'email' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/storage.ts(385,27): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/vite.ts(40,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; host: string; allowedHosts: (string | RegExp)[]; ... 13 more ...; headers?: OutgoingHttpHeaders; }' is not assignable to type 'ServerOptions'.
+         Types of property 'allowedHosts' are incompatible.
+           Type '(string | RegExp)[]' is not assignable to type 'true | string[] | undefined'.
+             Type '(string | RegExp)[]' is not assignable to type 'string[]'.
+               Type 'string | RegExp' is not assignable to type 'string'.
+                 Type 'RegExp' is not assignable to type 'string'.
+       vite.config.ts(22,48): error TS2769: No overload matches this call.
+         The last overload gave the following error.
+           Type 'RegExp' is not assignable to type 'string'.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
