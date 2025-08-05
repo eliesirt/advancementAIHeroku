@@ -124,6 +124,8 @@ export interface ExtractedInteractionInfo {
   contactLevel: string;
   professionalInterests: string[];
   personalInterests: string[];
-  keyTopics: string[];
-  followUpItems: string[];
+  philanthropicPriorities: string[];
+  keyPoints: string[];
+  suggestedAffinityTags: string[];
+  prospectName: string;
 }

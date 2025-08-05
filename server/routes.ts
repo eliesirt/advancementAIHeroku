@@ -147,13 +147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           summary: '',
           category: '',
           subcategory: '',
+          contactLevel: 'Initial Contact',
           professionalInterests: [],
           personalInterests: [],
           philanthropicPriorities: [],
           keyPoints: [],
           suggestedAffinityTags: [],
-          prospectName: '',
-          contactLevel: 'Initial Contact'
+          prospectName: ''
         };
 
       // Match interests to affinity tags
@@ -426,13 +426,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               summary: '',
               category: '',
               subcategory: '',
+              contactLevel: 'Initial Contact',
               professionalInterests: [],
               personalInterests: [],
               philanthropicPriorities: [],
               keyPoints: [],
               suggestedAffinityTags: [],
-              prospectName: '',
-              contactLevel: 'Initial Contact'
+              prospectName: ''
             };
 
           const qualityAssessment = await evaluateInteractionQuality(
@@ -508,13 +508,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   summary: '',
                   category: '',
                   subcategory: '',
+                  contactLevel: 'Initial Contact',
                   professionalInterests: [],
                   personalInterests: [],
                   philanthropicPriorities: [],
                   keyPoints: [],
                   suggestedAffinityTags: [],
-                  prospectName: '',
-                  contactLevel: 'Initial Contact'
+                  prospectName: ''
                 };
 
             const qualityAssessment = await evaluateInteractionQuality(
@@ -913,13 +913,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             summary: '',
             category: '',
             subcategory: '',
+            contactLevel: 'Initial Contact',
             professionalInterests: [],
             personalInterests: [],
             philanthropicPriorities: [],
             keyPoints: [],
             suggestedAffinityTags: [],
-            prospectName: '',
-            contactLevel: 'Initial Contact'
+            prospectName: ''
           };
 
       // Generate enhanced comments with synopsis
@@ -1142,13 +1142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               summary: '',
               category: '',
               subcategory: '',
+              contactLevel: 'Initial Contact',
               professionalInterests: [],
               personalInterests: [],
               philanthropicPriorities: [],
               keyPoints: [],
               suggestedAffinityTags: [],
-              prospectName: '',
-              contactLevel: 'Initial Contact'
+              prospectName: ''
             };
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
           }
