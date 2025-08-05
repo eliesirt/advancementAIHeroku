@@ -1,0 +1,69 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 537 packages, and audited 538 packages in 7s
+       
+       72 packages are looking for funding
+         run `npm fund` for details
+       
+       11 vulnerabilities (3 low, 7 moderate, 1 critical)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       server/routes.ts(223,41): error TS2339: Property 'contactLevel' does not exist on type 'ExtractedInteractionInfo'.
+       server/routes.ts(429,15): error TS2353: Object literal may only specify known properties, and 'contactLevel' does not exist in type 'ExtractedInteractionInfo'.
+       server/routes.ts(468,44): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+       server/routes.ts(1134,103): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
