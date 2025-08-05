@@ -1,0 +1,128 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 537 packages, and audited 538 packages in 5s
+       
+       72 packages are looking for funding
+         run `npm fund` for details
+       
+       11 vulnerabilities (3 low, 7 moderate, 1 critical)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       client/src/pages/home.tsx(464,24): error TS2339: Property 'firstName' does not exist on type '{}'.
+       client/src/pages/home.tsx(464,43): error TS2339: Property 'lastName' does not exist on type '{}'.
+       client/src/pages/home.tsx(465,29): error TS2339: Property 'firstName' does not exist on type '{}'.
+       client/src/pages/home.tsx(465,47): error TS2339: Property 'lastName' does not exist on type '{}'.
+       client/src/pages/home.tsx(466,27): error TS2339: Property 'name' does not exist on type '{}'.
+       client/src/pages/home.tsx(469,58): error TS2339: Property 'email' does not exist on type '{}'.
+       client/src/pages/home.tsx(492,25): error TS2339: Property 'todayInteractions' does not exist on type '{}'.
+       client/src/pages/home.tsx(500,25): error TS2339: Property 'thisWeekInteractions' does not exist on type '{}'.
+       client/src/pages/home.tsx(508,25): error TS2339: Property 'pendingInteractions' does not exist on type '{}'.
+       client/src/pages/home.tsx(516,17): error TS2339: Property 'pendingInteractions' does not exist on type '{}'.
+       client/src/pages/home.tsx(522,27): error TS18046: 'stats' is of type 'unknown'.
+       client/src/pages/home.tsx(522,66): error TS18046: 'stats' is of type 'unknown'.
+       client/src/pages/settings.tsx(124,42): error TS2339: Property 'matchingThreshold' does not exist on type '{}'.
+       client/src/pages/settings.tsx(127,39): error TS2339: Property 'autoRefresh' does not exist on type '{}'.
+       client/src/pages/settings.tsx(128,43): error TS2339: Property 'refreshInterval' does not exist on type '{}'.
+       client/src/pages/settings.tsx(129,39): error TS2339: Property 'lastRefresh' does not exist on type '{}'.
+       client/src/pages/settings.tsx(130,37): error TS2339: Property 'total' does not exist on type '{}'.
+       client/src/pages/settings.tsx(307,52): error TS2339: Property 'firstName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(311,51): error TS2339: Property 'lastName' does not exist on type '{}'.
+       client/src/pages/settings.tsx(315,48): error TS2339: Property 'email' does not exist on type '{}'.
+       client/src/pages/settings.tsx(319,51): error TS2339: Property 'bbecGuid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(323,47): error TS2339: Property 'buid' does not exist on type '{}'.
+       client/src/pages/settings.tsx(572,56): error TS18046: 'affinityTags' is of type 'unknown'.
+       client/src/pages/settings.tsx(577,28): error TS18046: 'affinityTags' is of type 'unknown'.
+       client/src/pages/settings.tsx(584,33): error TS2461: Type 'unknown' is not an array type.
+       client/src/pages/settings.tsx(627,65): error TS2339: Property 'total' does not exist on type '{}'.
+       client/src/pages/settings.tsx(632,58): error TS2339: Property 'lastRefresh' does not exist on type '{}'.
+       server/lib/soap-client.ts(607,55): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+       server/routes.ts(431,15): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+         Type 'null' is not assignable to type 'string | undefined'.
+       server/routes.ts(432,15): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+         Type 'null' is not assignable to type 'string | undefined'.
+       server/routes.ts(436,15): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+         Type 'null' is not assignable to type 'string | undefined'.
+       server/routes.ts(509,15): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(906,89): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(912,9): error TS2345: Argument of type '{}' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+         Type '{}' is missing the following properties from type 'ExtractedInteractionInfo': summary, category, subcategory, professionalInterests, and 4 more.
+       server/routes.ts(1124,89): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ExtractedInteractionInfo'.
+       server/routes.ts(1138,51): error TS2554: Expected 3 arguments, but got 2.
+       server/routes.ts(1148,51): error TS2554: Expected 3 arguments, but got 2.
+       server/routes.ts(1156,13): error TS2322: Type 'unknown' is not assignable to type 'Json | undefined'.
+       server/storage.ts(178,11): error TS2322: Type '{ id: number; userId: any; createdAt: Date; updatedAt: Date; status: string; method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; ... 16 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to type '{ method: string; summary: string; id: number; status: string; transcript: string | null; prospectName: string; contactLevel: string; actualDate: Date; owner: string | null; category: string; ... 17 more ...; updatedAt: Date; }'.
+         Types of property 'transcript' are incompatible.
+           Type 'string | null | undefined' is not assignable to type 'string | null'.
+             Type 'undefined' is not assignable to type 'string | null'.
+       server/storage.ts(181,33): error TS2339: Property 'userId' does not exist on type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }'.
+       server/storage.ts(307,5): error TS2322: Type '{ updatedAt: Date; autoRefresh?: boolean | null | undefined; refreshInterval?: string | null | undefined; lastRefresh?: Date | null | undefined; totalTags?: number | null | undefined; nextRefresh?: Date | ... 1 more ... | undefined; matchingThreshold?: number | ... 1 more ... | undefined; id: number; }' is not assignable to type '{ id: number; updatedAt: Date; autoRefresh: boolean | null; refreshInterval: string | null; lastRefresh: Date | null; totalTags: number | null; nextRefresh: Date | null; matchingThreshold: number | null; }'.
+         Types of property 'autoRefresh' are incompatible.
+           Type 'boolean | null | undefined' is not assignable to type 'boolean | null'.
+             Type 'undefined' is not assignable to type 'boolean | null'.
+       server/storage.ts(364,17): error TS2769: No overload matches this call.
+         Overload 1 of 2, '(value: { method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }): PgInsertBase<...>', gave the following error.
+           Argument of type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to parameter of type '{ method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }'.
+             Property 'userId' is missing in type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' but required in type '{ method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }'.
+         Overload 2 of 2, '(values: { method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }[]): PgInsertBase<...>', gave the following error.
+           Argument of type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is not assignable to parameter of type '{ method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }[]'.
+             Type '{ method: string; summary: string; prospectName: string; contactLevel: string; actualDate: Date; category: string; subcategory: string; status?: string | undefined; transcript?: string | null | undefined; ... 14 more ...; isDraft?: boolean | ... 1 more ... | undefined; }' is missing the following properties from type '{ method: string | SQL<unknown> | Placeholder<string, any>; summary: string | SQL<unknown> | Placeholder<string, any>; prospectName: string | SQL<unknown> | Placeholder<...>; ... 24 more ...; updatedAt?: Date | ... 2 more ... | undefined; }[]': length, pop, push, concat, and 35 more.
+       server/vite.ts(39,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; allowedHosts: boolean; }' is not assignable to type 'ServerOptions'.
+         Types of property 'allowedHosts' are incompatible.
+           Type 'boolean' is not assignable to type 'true | string[] | undefined'.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
