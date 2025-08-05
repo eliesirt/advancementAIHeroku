@@ -1,0 +1,66 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   >=18.0.0
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version >=18.0.0...
+       Downloading and installing node 24.5.0...
+       Bootstrapping npm >=9.0.0 (replacing 11.5.1)...
+npm warn Unknown cli config "--unsafe-perm". This will stop working in the next major version of npm.
+       npm 11.5.2 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 474 packages, and audited 475 packages in 4s
+       
+       62 packages are looking for funding
+         run `npm fund` for details
+       
+       6 vulnerabilities (3 low, 2 moderate, 1 critical)
+       
+       To address all issues, run:
+         npm audit fix
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > vite build && esbuild server/index.ts --platform=node --bundle --format=esm --outdir=dist --external:pg-native --external:bufferutil --external:utf-8-validate
+       
+sh: 1: vite: not found
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       Some possible problems:
+       
+       - Dangerous semver range (>) in engines.node
+         https://devcenter.heroku.com/articles/nodejs-support#specifying-a-node-js-version
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed
