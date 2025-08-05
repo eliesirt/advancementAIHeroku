@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --bundle --format=esm --outdir=dist --external:pg-native --external:bufferutil --external:utf-8-validate",
+    "build": "vite build && esbuild server/index.ts --platform=node --bundle --format=esm --outdir=dist --external:pg-native --external:bufferutil --external:utf-8-validate --external:@babel/* --external:lightningcss --external:esbuild --external:vite",
     "start": "NODE_ENV=production node dist/index.js",
     "heroku-postbuild": "npm run build",
     "check": "tsc",
