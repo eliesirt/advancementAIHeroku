@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           comments: enhancedComments,
           qualityScore: qualityAssessment.qualityScore,
           qualityExplanation: qualityAssessment.qualityExplanation,
-          qualityRecommendations: qualityAssessment.qualityRecommendations || []
+          qualityRecommendations: qualityAssessment.recommendations
         });
       }
 
@@ -907,7 +907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Use stored extracted info or create basic structure
-      const extractedInfo: ExtractedInteractionInfo = typeof interaction.extractedInfo === 'string' 
+      const extractedInfo: ExtractedInteractionInfo | null = typeof interaction.extractedInfo === 'string' 
         ? JSON.parse(interaction.extractedInfo)
         : (interaction.extractedInfo as ExtractedInteractionInfo) || {
             summary: '',
@@ -923,13 +923,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
       // Generate enhanced comments with synopsis
-      const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
+      const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo as ExtractedInteractionInfo);
 
       // Perform quality assessment
       const { evaluateInteractionQuality } = await import("./lib/openai");
       const qualityAssessment = await evaluateInteractionQuality(
         interaction.transcript,
-        extractedInfo,
+        extractedInfo as ExtractedInteractionInfo,
         {
           prospectName: interaction.prospectName || '',
           firstName: interaction.firstName || '',
@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations
+        qualityRecommendations: qualityAssessment.recommendations
       });
 
       res.json({ 
@@ -957,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: enhancedComments,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations,
+        qualityRecommendations: qualityAssessment.recommendations,
         interaction: updatedInteraction,
         message: "Synopsis and quality assessment completed successfully" 
       });
@@ -1031,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract interaction information from the text
       const { extractInteractionInfo } = await import("./lib/openai");
-      const extractedInfo = await extractInteractionInfo(text);
+      let extractedInfo = await extractInteractionInfo(text);
 
       // If prospect name was provided, use it to override extracted name
       if (prospectName && prospectName.trim().length > 0) {
@@ -1088,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedInfo,
         qualityScore: qualityAssessment.qualityScore,
         qualityExplanation: qualityAssessment.qualityExplanation,
-        qualityRecommendations: qualityAssessment.qualityRecommendations,
+        qualityRecommendations: qualityAssessment.recommendations,
         message: "Text analysis and quality assessment completed successfully" 
       });
     } catch (error) {
@@ -1131,28 +1131,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process each interaction
       for (const interaction of validInteractions) {
         try {
-          let extractedInfo: ExtractedInteractionInfo | null = interaction.extractedInfo;
+          let extractedInfo: ExtractedInteractionInfo | null = interaction.extractedInfo ? JSON.parse(interaction.extractedInfo) : null;
           let enhancedComments = interaction.comments;
           let suggestedAffinityTags = interaction.affinityTags || [];
-
-
 
           // If there's a transcript but no extracted info, process it
           if (interaction.transcript && !extractedInfo) {
             const { extractInteractionInfo, enhanceInteractionComments } = await import("./lib/openai");
             extractedInfo = await extractInteractionInfo(interaction.transcript) || {
-            summary: '',
-            category: '',
-            subcategory: '',
-            professionalInterests: [],
-            personalInterests: [],
-            keyPhrases: '',
-            contactLevel: '',
-            prospectName: '',
-            suggestedAffinityTags: []
-          };
+              summary: '',
+              category: '',
+              subcategory: '',
+              professionalInterests: [],
+              personalInterests: [],
+              philanthropicPriorities: [],
+              keyPoints: [],
+              suggestedAffinityTags: [],
+              prospectName: '',
+              contactLevel: 'Initial Contact'
+            };
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
-
           }
 
           // Re-match affinity tags - try current affinity tags or extract from stored info

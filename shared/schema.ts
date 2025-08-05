@@ -121,11 +121,9 @@ export interface ExtractedInteractionInfo {
   summary: string;
   category: string;
   subcategory: string;
+  contactLevel: string;
   professionalInterests: string[];
   personalInterests: string[];
-  philanthropicPriorities: string[];
-  keyPoints: string[];
-  suggestedAffinityTags: string[];
-  prospectName?: string;
-  contactLevel: string;
+  keyTopics: string[];
+  followUpItems: string[];
 }
