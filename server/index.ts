@@ -11,7 +11,9 @@ try {
   ({ setupVite, serveStatic, log } = await import("./vite"));
 } catch (error) {
   console.error("Failed to import modules:", error);
-  process.exit(1);
+  console.error("Error details:", error);
+  // Don't exit immediately, log more details
+  throw error;
 }
 
 const app = express();
@@ -49,7 +51,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  console.log("Starting application initialization...");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("Current working directory:", process.cwd());
+  console.log("__dirname equivalent:", import.meta.dirname);
+  
   const server = await registerRoutes(app);
+  console.log("Routes registered successfully");
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -63,21 +71,23 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    console.log("Setting up Vite for development");
     await setupVite(app, server);
   } else {
+    console.log("Setting up static file serving for production");
     serveStatic(app);
   }
 
 // Use Heroku's dynamic port or fallback to 5000
   const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
+  
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   }).on('error', (error) => {
     console.error('Server failed to start:', error);
+    console.error('Port:', port);
+    console.error('Environment:', process.env.NODE_ENV);
     process.exit(1);
   });
 })();
