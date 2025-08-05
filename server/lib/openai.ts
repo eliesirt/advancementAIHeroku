@@ -15,6 +15,7 @@ export interface ExtractedInteractionInfo {
   summary: string;
   category: string;
   subcategory: string;
+  contactLevel: string;
   professionalInterests: string[];
   personalInterests: string[];
   philanthropicPriorities: string[];
