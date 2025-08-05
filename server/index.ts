@@ -1,4 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import { readFileSync, existsSync, readdirSync } from "fs";
+import { join } from "path";
 
 // Handle module resolution gracefully
 let registerRoutes: any;
@@ -6,80 +9,81 @@ let setupVite: any;
 let serveStatic: any;
 let log: any;
 
-try {
-  console.log("Node.js version:", process.version);
-  console.log("Working directory:", process.cwd());
-  console.log("Available files in current directory:", require('fs').readdirSync('.'));
-  console.log("Available files in server directory:", require('fs').readdirSync('./server'));
-  
-  console.log("Importing routes module...");
-  ({ registerRoutes } = await import("./routes"));
-  console.log("Routes module imported successfully");
-  
-  console.log("Importing vite module...");
-  ({ setupVite, serveStatic, log } = await import("./vite"));
-  console.log("Vite module imported successfully");
-} catch (error) {
-  console.error("=== MODULE IMPORT FAILURE ===");
-  console.error("Error message:", error.message);
-  console.error("Error name:", error.name);
-  console.error("Error stack:", error.stack);
-  console.error("Error code:", error.code);
-  console.error("Working directory:", process.cwd());
-  
-  // Check if TypeScript files exist
-  const fs = require('fs');
-  const path = require('path');
-  
+async function initializeModules() {
   try {
-    const serverDir = path.join(process.cwd(), 'server');
-    console.error("Server directory exists:", fs.existsSync(serverDir));
-    console.error("Routes file exists:", fs.existsSync(path.join(serverDir, 'routes.ts')));
-    console.error("Vite file exists:", fs.existsSync(serverDir, 'vite.ts'));
-    console.error("Routes JS file exists:", fs.existsSync(path.join(serverDir, 'routes.js')));
-    console.error("Vite JS file exists:", fs.existsSync(path.join(serverDir, 'vite.js')));
-  } catch (fsError) {
-    console.error("File system check failed:", fsError.message);
+    console.log("Node.js version:", process.version);
+    console.log("Working directory:", process.cwd());
+    
+    console.log("Available files in current directory:", readdirSync('.'));
+    console.log("Available files in server directory:", readdirSync('./server'));
+    
+    console.log("Importing routes module...");
+    ({ registerRoutes } = await import("./routes"));
+    console.log("Routes module imported successfully");
+    
+    console.log("Importing vite module...");
+    ({ setupVite, serveStatic, log } = await import("./vite"));
+    console.log("Vite module imported successfully");
+  } catch (error: any) {
+    console.error("=== MODULE IMPORT FAILURE ===");
+    console.error("Error message:", error?.message);
+    console.error("Error name:", error?.name);
+    console.error("Error stack:", error?.stack);
+    console.error("Error code:", error?.code);
+    console.error("Working directory:", process.cwd());
+    
+    // Check if TypeScript files exist
+    try {
+      const serverDir = join(process.cwd(), 'server');
+      console.error("Server directory exists:", existsSync(serverDir));
+      console.error("Routes file exists:", existsSync(join(serverDir, 'routes.ts')));
+      console.error("Vite file exists:", existsSync(join(serverDir, 'vite.ts')));
+      console.error("Routes JS file exists:", existsSync(join(serverDir, 'routes.js')));
+      console.error("Vite JS file exists:", existsSync(join(serverDir, 'vite.js')));
+    } catch (fsError: any) {
+      console.error("File system check failed:", fsError?.message);
+    }
+    
+    // Don't exit immediately, let's try to continue with a fallback
+    console.error("Attempting to continue with fallback...");
   }
-  
-  // Don't exit immediately, let's try to continue with a fallback
-  console.error("Attempting to continue with fallback...");
+}
+
+async function setupFallbacks() {
+  // Fallback functions if modules fail to load
+  if (!registerRoutes) {
+    console.error("Routes module failed to load, using fallback");
+    registerRoutes = (app: express.Application) => {
+      const server = createServer(app);
+      
+      app.get('/api/health', (req: Request, res: Response) => {
+        res.json({ status: 'ok', message: 'Server running with fallback routes' });
+      });
+      
+      return server;
+    };
+  }
+
+  if (!setupVite || !serveStatic || !log) {
+    console.error("Vite module failed to load, using fallback");
+    setupVite = async () => {
+      console.log("Vite setup skipped (fallback mode)");
+    };
+    serveStatic = (app: express.Application) => {
+      app.use(express.static('dist'));
+      app.get('*', (req: Request, res: Response) => {
+        res.send('<h1>Application Error</h1><p>Static files not available</p>');
+      });
+    };
+    log = (message: string) => {
+      console.log(`[fallback] ${message}`);
+    };
+  }
 }
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
-
-// Fallback functions if modules fail to load
-if (!registerRoutes) {
-  console.error("Routes module failed to load, using fallback");
-  registerRoutes = (app) => {
-    const http = require('http');
-    const server = http.createServer(app);
-    
-    app.get('/api/health', (req, res) => {
-      res.json({ status: 'ok', message: 'Server running with fallback routes' });
-    });
-    
-    return server;
-  };
-}
-
-if (!setupVite || !serveStatic || !log) {
-  console.error("Vite module failed to load, using fallback");
-  setupVite = async () => {
-    console.log("Vite setup skipped (fallback mode)");
-  };
-  serveStatic = (app) => {
-    app.use(express.static('dist'));
-    app.get('*', (req, res) => {
-      res.send('<h1>Application Error</h1><p>Static files not available</p>');
-    });
-  };
-  log = (message) => {
-    console.log(`[fallback] ${message}`);
-  };
-}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -128,6 +132,12 @@ app.get('/health', (req, res) => {
     console.log("Current working directory:", process.cwd());
     console.log("__dirname equivalent:", import.meta.dirname);
     
+    // Initialize modules
+    await initializeModules();
+    
+    // Setup fallbacks if needed
+    await setupFallbacks();
+    
     const server = await registerRoutes(app);
     console.log("Routes registered successfully");
 
@@ -156,15 +166,15 @@ app.get('/health', (req, res) => {
     
     server.listen(port, "0.0.0.0", () => {
       log(`serving on port ${port}`);
-    }).on('error', (error) => {
+    }).on('error', (error: any) => {
       console.error('Server failed to start:', error);
       console.error('Port:', port);
       console.error('Environment:', process.env.NODE_ENV);
       process.exit(1);
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fatal error during application startup:", error);
-    console.error("Error stack:", error.stack);
+    console.error("Error stack:", error?.stack);
     process.exit(1);
   }
 })();
