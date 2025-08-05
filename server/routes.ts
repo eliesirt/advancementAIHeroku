@@ -143,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conciseSummary = await generateConciseSummary(transcript);
 
       // Extract interaction information
-      const extractedInfo = await extractInteractionInfo(transcript) || {
+      const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(transcript) || {
           summary: '',
           category: '',
           subcategory: '',
@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           keyPoints: [],
           suggestedAffinityTags: [],
           prospectName: '',
-          contactLevel: ''
+          contactLevel: 'Initial Contact'
         };
 
       // Match interests to affinity tags
@@ -423,17 +423,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Create basic extracted info for quality assessment
           const extractedInfo: ExtractedInteractionInfo = {
-            summary: '',
-            category: '',
-            subcategory: '',
-            professionalInterests: [],
-            personalInterests: [],
-            philanthropicPriorities: [],
-            keyPoints: [],
-            suggestedAffinityTags: [],
-            prospectName: '',
-            contactLevel: ''
-          };
+              summary: '',
+              category: '',
+              subcategory: '',
+              professionalInterests: [],
+              personalInterests: [],
+              philanthropicPriorities: [],
+              keyPoints: [],
+              suggestedAffinityTags: [],
+              prospectName: '',
+              contactLevel: 'Initial Contact'
+            };
 
           const qualityAssessment = await evaluateInteractionQuality(
               currentInteraction?.transcript || updates.comments || '',
@@ -506,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Create mock extracted info if not available
             const extractedInfo: ExtractedInteractionInfo = typeof currentInteraction.extractedInfo === 'string' 
               ? JSON.parse(currentInteraction.extractedInfo)
-              : currentInteraction.extractedInfo || {
+              : (currentInteraction.extractedInfo as ExtractedInteractionInfo) || {
                   summary: '',
                   category: '',
                   subcategory: '',
@@ -516,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   keyPoints: [],
                   suggestedAffinityTags: [],
                   prospectName: '',
-                  contactLevel: ''
+                  contactLevel: 'Initial Contact'
                 };
 
             const qualityAssessment = await evaluateInteractionQuality(
@@ -911,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use stored extracted info or create basic structure
       const extractedInfo: ExtractedInteractionInfo = typeof interaction.extractedInfo === 'string' 
         ? JSON.parse(interaction.extractedInfo)
-        : interaction.extractedInfo || {
+        : (interaction.extractedInfo as ExtractedInteractionInfo) || {
             summary: '',
             category: '',
             subcategory: '',
@@ -921,7 +921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             keyPoints: [],
             suggestedAffinityTags: [],
             prospectName: '',
-            contactLevel: ''
+            contactLevel: 'Initial Contact'
           };
 
       // Generate enhanced comments with synopsis

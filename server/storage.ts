@@ -178,11 +178,27 @@ export class MemStorage implements IStorage {
     const interaction: Interaction = {
       ...insertInteraction,
       id,
-      userId: insertInteraction.userId,
+      userId: insertInteraction.userId || 1,
       createdAt: now,
       updatedAt: now,
       status: insertInteraction.status || "draft",
       transcript: insertInteraction.transcript || null,
+      owner: insertInteraction.owner || null,
+      firstName: insertInteraction.firstName || null,
+      lastName: insertInteraction.lastName || null,
+      email: insertInteraction.email || null,
+      buid: insertInteraction.buid || null,
+      bbecGuid: insertInteraction.bbecGuid || null,
+      constituentGuid: insertInteraction.constituentGuid || null,
+      comments: insertInteraction.comments || null,
+      affinityTags: insertInteraction.affinityTags || null,
+      extractedInfo: insertInteraction.extractedInfo || null,
+      qualityScore: insertInteraction.qualityScore || null,
+      qualityExplanation: insertInteraction.qualityExplanation || null,
+      qualityRecommendations: insertInteraction.qualityRecommendations || null,
+      bbecSubmitted: insertInteraction.bbecSubmitted || false,
+      bbecInteractionId: insertInteraction.bbecInteractionId || null,
+      isDraft: insertInteraction.isDraft || false
     };
     this.interactions.set(id, interaction);
     return interaction;
@@ -307,7 +323,12 @@ export class MemStorage implements IStorage {
   async updateAffinityTagSettings(settings: InsertAffinityTagSettings): Promise<void> {
     this.affinityTagSettings = {
       id: 1,
-      ...settings,
+      autoRefresh: settings.autoRefresh || null,
+      refreshInterval: settings.refreshInterval || null,
+      lastRefresh: settings.lastRefresh || null,
+      totalTags: settings.totalTags || null,
+      nextRefresh: settings.nextRefresh || null,
+      matchingThreshold: settings.matchingThreshold || null,
       updatedAt: new Date()
     };
   }

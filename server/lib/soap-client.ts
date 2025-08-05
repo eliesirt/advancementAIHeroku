@@ -657,7 +657,20 @@ class BBECSOAPClient {
   private parseSubmissionResponse(soapResponse: string): string {
     try {
       // Extract the interaction ID from the submission response
-      const idMatch = soapResponse.match(/<a:Id>([^<]+)<\/a:Id>/);
+      const idMatch = soapResponse.match(/<GUID>([^<]+)<\/GUID>/);
+      if (!idMatch && soapResponse.includes('<GUID>')) {
+        // Fallback for multiline GUID extraction
+        const lines = soapResponse.split('\n');
+        for (const line of lines) {
+          if (line.includes('<GUID>') && line.includes('</GUID>')) {
+            const singleLineMatch = line.match(/<GUID>([^<]+)<\/GUID>/);
+            if (singleLineMatch) {
+              return singleLineMatch[1].trim();
+            }
+          }
+        }
+      }
+
       const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
 
       if (idMatch) {

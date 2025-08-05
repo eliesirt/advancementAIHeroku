@@ -127,5 +127,5 @@ export interface ExtractedInteractionInfo {
   keyPoints: string[];
   suggestedAffinityTags: string[];
   prospectName?: string;
-  contactLevel?: string;
+  contactLevel: string;
 }
