@@ -178,7 +178,7 @@ export class MemStorage implements IStorage {
     const interaction: Interaction = {
       ...insertInteraction,
       id,
-      userId: insertInteraction.userId || 1,
+      userId: 1, // Default user ID
       createdAt: now,
       updatedAt: now,
       status: insertInteraction.status || "draft",
@@ -186,7 +186,6 @@ export class MemStorage implements IStorage {
       owner: insertInteraction.owner || null,
       firstName: insertInteraction.firstName || null,
       lastName: insertInteraction.lastName || null,
-      email: insertInteraction.email || null,
       buid: insertInteraction.buid || null,
       bbecGuid: insertInteraction.bbecGuid || null,
       constituentGuid: insertInteraction.constituentGuid || null,
@@ -382,7 +381,7 @@ export class DatabaseStorage implements IStorage {
   async createInteraction(interaction: InsertInteraction): Promise<Interaction> {
     const [result] = await db.insert(interactions).values({
       ...interaction,
-      userId: interaction.userId || 1
+      userId: 1 // Default user ID
     }).returning();
     return result;
   }

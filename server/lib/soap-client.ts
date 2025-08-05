@@ -481,11 +481,11 @@ class BBECSOAPClient {
       const tags: any[] = [];
 
       // Parse the Blackbaud SOAP response structure: <r><Values><v>value1</v><v>value2</v>...</Values></r>
-      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
+      const rowRegex = /<r><Values>[\s\S]*?<\/Values><\/r>/g;
       let rowMatch;
 
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
-        const valuesContent = rowMatch[1];
+        const valuesContent = rowMatch[0]; // Use match[0] to get the full <r>...</r> string
 
         // Extract all <v> values from the row
         const valueRegex = /<v>([\s\S]*?)<\/v>/g;
@@ -521,11 +521,11 @@ class BBECSOAPClient {
       const constituents: any[] = [];
 
       // Extract rows from the SOAP response
-      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
+      const rowRegex = /<r><Values>[\s\S]*?<\/Values><\/r>/g;
       let rowMatch;
 
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
-        const valuesContent = rowMatch[1];
+        const valuesContent = rowMatch[0]; // Use match[0] to get the full <r>...</r> string
 
         // Extract all <v> values from the row
         const valueRegex = /<v>([\s\S]*?)<\/v>/g;
@@ -692,11 +692,11 @@ class BBECSOAPClient {
       const users: any[] = [];
 
       // Extract rows from the SOAP response
-      const rowRegex = /<r><Values>([\s\S]*?)<\/Values><\/r>/g;
+      const rowRegex = /<r><Values>[\s\S]*?<\/Values><\/r>/g;
       let rowMatch;
 
       while ((rowMatch = rowRegex.exec(soapResponse)) !== null) {
-        const valuesContent = rowMatch[1];
+        const valuesContent = rowMatch[0]; // Use match[0] to get the full <r>...</r> string
 
         // Extract all <v> values from the row, handling both empty self-closing tags and content tags
         const values: string[] = [];

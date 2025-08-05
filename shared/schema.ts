@@ -84,11 +84,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
   id: true,
-  userId: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
   actualDate: z.union([z.date(), z.string().transform((str) => new Date(str))]),
+  userId: z.number().optional(),
 });
 
 export const insertAffinityTagSchema = createInsertSchema(affinityTags).omit({

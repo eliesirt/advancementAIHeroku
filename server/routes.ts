@@ -465,9 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (reprocessAffinity && currentInteraction?.extractedInfo) {
         try {
           // Parse the existing extracted info
-          const extractedInfo = typeof currentInteraction.extractedInfo === 'string' 
-            ? JSON.parse(currentInteraction.extractedInfo) 
-            : currentInteraction.extractedInfo;
+          const extractedInfo = JSON.parse(currentInteraction.extractedInfo) as ExtractedInteractionInfo;
 
           // Match interests to affinity tags with improved logic
           const affinityTags = await storage.getAffinityTags();
