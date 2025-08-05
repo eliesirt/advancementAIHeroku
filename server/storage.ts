@@ -358,16 +358,39 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async createInteraction(interaction: Omit<typeof interactions.$inferInsert, 'id' | 'createdAt' | 'updatedAt'> & { userId?: number }): Promise<typeof interactions.$inferSelect> {
-    const insertResult = await this.db.insert(interactions).values({
+  async createInteraction(interaction: any): Promise<any> {
+    const result = await this.db.insert(interactions).values({
       ...interaction,
       userId: interaction.userId || 1
     }).returning();
     return {
-      ...interaction,
-      transcript: interaction.transcript || null,
-      id: insertResult[0].id,
-      userId: insertResult[0].userId,
+      transcript: result.transcript,
+      id: result.id,
+      userId: result.userId,
+      method: result.method,
+      summary: result.summary,
+      status: result.status,
+      prospectName: result.prospectName,
+      contactLevel: result.contactLevel,
+      actualDate: result.actualDate,
+      owner: result.owner,
+      category: result.category,
+      subcategory: result.subcategory,
+      professionalInterests: result.professionalInterests,
+      personalInterests: result.personalInterests,
+      keyPhrases: result.keyPhrases,
+      aiGeneratedSummary: result.aiGeneratedSummary,
+      aiGeneratedKeywords: result.aiGeneratedKeywords,
+      aiGeneratedCategory: result.aiGeneratedCategory,
+      aiGeneratedSubcategory: result.aiGeneratedSubcategory,
+      qualityScore: result.qualityScore,
+      qualityRecommendations: result.qualityRecommendations,
+      extractedInfo: result.extractedInfo,
+      affinityTags: result.affinityTags,
+      isDraft: result.isDraft,
+      bbecSubmissionId: result.bbecSubmissionId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
   }
 
@@ -481,7 +504,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       id: result.id,
-      updatedAt: new Date(),
+      updatedAt: result.updatedAt,
       autoRefresh: result.autoRefresh || null,
       refreshInterval: result.refreshInterval || null,
       lastRefresh: result.lastRefresh || null,

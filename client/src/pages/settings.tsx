@@ -301,6 +301,16 @@ export default function SettingsPage() {
     });
   }, [user]);
 
+  // Handler for config changes
+  const handleConfigChange = (key: string, value: any) => {
+    // Assuming 'config' is intended to be affinityTagSettings for the purpose of this change
+    // If 'config' is a separate state, it needs to be defined and managed.
+    // For now, we'll update affinityTagSettings directly and trigger the mutation.
+    const newSettings = { ...affinityTagSettings, [key]: value };
+    setAffinityTagSettings(newSettings);
+    updateAffinitySettingsMutation.mutate(newSettings);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

@@ -657,7 +657,7 @@ class BBECSOAPClient {
   private parseSubmissionResponse(soapResponse: string): string {
     try {
       // Extract the interaction ID from the submission response
-      const idMatch = soapResponse.match(/<ID[^>]*>(.*?)<\/ID>/);
+      const idMatch = soapResponse.match(/<a:Id>([^<]+)<\/a:Id>/);
       const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
 
       if (idMatch) {

@@ -143,7 +143,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conciseSummary = await generateConciseSummary(transcript);
 
       // Extract interaction information
-      const extractedInfo = await extractInteractionInfo(transcript);
+      const extractedInfo = await extractInteractionInfo(transcript) || {
+          summary: '',
+          category: '',
+          subcategory: '',
+          professionalInterests: '',
+          personalInterests: '',
+          keyPhrases: '',
+          contactLevel: ''
+        };
 
       // Match interests to affinity tags
       const affinityTags = await storage.getAffinityTags();
@@ -206,16 +214,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transcript,
           extractedInfo,
           {
-            prospectName: updates.prospectName || currentInteraction?.prospectName || '',
-            firstName: updates.firstName || currentInteraction?.firstName || '',
-            lastName: updates.lastName || currentInteraction?.lastName || '',
-            contactLevel: updates.contactLevel || currentInteraction?.contactLevel || '',
-            method: updates.method || currentInteraction?.method || '',
-            actualDate: updates.actualDate?.toString() || currentInteraction?.actualDate?.toISOString() || '',
-            comments: updates.comments || currentInteraction?.comments || '',
-            summary: updates.summary || currentInteraction?.summary || '',
-            category: updates.category || currentInteraction?.category || '',
-            subcategory: updates.subcategory || currentInteraction?.subcategory || ''
+            prospectName: prospectName || currentInteraction?.prospectName || '',
+            firstName: firstName || currentInteraction?.firstName || '',
+            lastName: lastName || currentInteraction?.lastName || '',
+            contactLevel: extractedInfo.contactLevel || currentInteraction?.contactLevel || '',
+            method: currentInteraction?.method || '',
+            actualDate: currentInteraction?.actualDate?.toISOString() || '',
+            comments: enhancedComments || currentInteraction?.comments || '',
+            summary: conciseSummary || currentInteraction?.summary || '',
+            category: extractedInfo.category || currentInteraction?.category || '',
+            subcategory: extractedInfo.subcategory || currentInteraction?.subcategory || ''
           }
         );
 
@@ -232,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           comments: enhancedComments,
           qualityScore: qualityAssessment.qualityScore,
           qualityExplanation: qualityAssessment.qualityExplanation,
-          qualityRecommendations: qualityAssessment.recommendations
+          qualityRecommendations: qualityAssessment.recommendations || []
         });
       }
 
@@ -336,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subcategory: interaction.subcategory,
         status: interaction.status,
         actualDate: interaction.actualDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        owner: interaction.owner || 'system',
+        owner: "sarah.thompson",
         comments: interaction.comments || undefined,
         affinityTags: interaction.affinityTags || undefined,
         fundraiserGuid: user.bbecGuid // Add the user's BBEC GUID as fundraiser ID
@@ -522,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add quality assessment to updates
             updates.qualityScore = qualityAssessment.qualityScore;
             updates.qualityExplanation = qualityAssessment.qualityExplanation;
-            updates.qualityRecommendations = qualityAssessment.qualityRecommendations;
+            updates.qualityRecommendations = qualityAssessment.recommendations;
           }
         } catch (qualityError) {
           console.warn("Quality assessment failed:", qualityError);
@@ -1121,7 +1129,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // If there's a transcript but no extracted info, process it
           if (interaction.transcript && !extractedInfo) {
             const { extractInteractionInfo, enhanceInteractionComments } = await import("./lib/openai");
-            extractedInfo = await extractInteractionInfo(interaction.transcript);
+            extractedInfo = await extractInteractionInfo(interaction.transcript) || {
+            summary: '',
+            category: '',
+            subcategory: '',
+            professionalInterests: '',
+            personalInterests: '',
+            keyPhrases: '',
+            contactLevel: ''
+          };
             enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
 
           }
