@@ -1,0 +1,31 @@
+2025-08-05T14:09:47.637473+00:00 heroku[web.1]: State changed from crashed to starting
+2025-08-05T14:09:53.909076+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-05T14:09:54.720593+00:00 app[web.1]:
+2025-08-05T14:09:54.720614+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-05T14:09:54.720615+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-05T14:09:54.720615+00:00 app[web.1]:
+2025-08-05T14:09:54.855763+00:00 app[web.1]: node:internal/errors:496
+2025-08-05T14:09:54.855764+00:00 app[web.1]: ErrorCaptureStackTrace(err);
+2025-08-05T14:09:54.855764+00:00 app[web.1]: ^
+2025-08-05T14:09:54.855764+00:00 app[web.1]:
+2025-08-05T14:09:54.855765+00:00 app[web.1]: Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /app/dist/index.js
+2025-08-05T14:09:54.855766+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-05T14:09:54.855766+00:00 app[web.1]: at packageResolve (node:internal/modules/esm/resolve:916:9)
+2025-08-05T14:09:54.855767+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:973:20)
+2025-08-05T14:09:54.855767+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-05T14:09:54.855767+00:00 app[web.1]: at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+2025-08-05T14:09:54.855768+00:00 app[web.1]: at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+2025-08-05T14:09:54.855768+00:00 app[web.1]: at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+2025-08-05T14:09:54.855768+00:00 app[web.1]: at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+2025-08-05T14:09:54.855768+00:00 app[web.1]: at link (node:internal/modules/esm/module_job:75:36) {
+2025-08-05T14:09:54.855768+00:00 app[web.1]: code: 'ERR_MODULE_NOT_FOUND'
+2025-08-05T14:09:54.855768+00:00 app[web.1]: }
+2025-08-05T14:09:54.855769+00:00 app[web.1]:
+2025-08-05T14:09:54.855769+00:00 app[web.1]: Node.js v18.20.8
+2025-08-05T14:09:54.864198+00:00 app[web.1]: npm notice
+2025-08-05T14:09:54.864199+00:00 app[web.1]: npm notice New major version of npm available! 10.9.3 -> 11.5.2
+2025-08-05T14:09:54.864199+00:00 app[web.1]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-05T14:09:54.864199+00:00 app[web.1]: npm notice To update run: npm install -g npm@11.5.2
+2025-08-05T14:09:54.864200+00:00 app[web.1]: npm notice
+2025-08-05T14:09:54.910768+00:00 heroku[web.1]: Process exited with status 1
+2025-08-05T14:09:54.933723+00:00 heroku[web.1]: State changed from starting to crashed
