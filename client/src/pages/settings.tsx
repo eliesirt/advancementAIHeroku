@@ -399,13 +399,13 @@ Format your response as:
    • Strategic cultivation opportunities
 
 Available variables:
-- {{transcript}} - Full interaction transcript
-- {{summary}} - AI-generated summary
-- {{category}} - Interaction category
-- {{professionalInterests}} - Professional interests found
-- {{personalInterests}} - Personal interests found
-- {{philanthropicPriorities}} - Philanthropic priorities found
-- {{keyPoints}} - Key points extracted
+- ${'{{transcript}}'} - Full interaction transcript
+- ${'{{summary}}'} - AI-generated summary
+- ${'{{category}}'} - Interaction category
+- ${'{{professionalInterests}}'} - Professional interests found
+- ${'{{personalInterests}}'} - Personal interests found
+- ${'{{philanthropicPriorities}}'} - Philanthropic priorities found
+- ${'{{keyPoints}}'} - Key points extracted
 
 Keep the narrative portion brief and focused - maximum 3 sentences before the bullet points.`;
   };
@@ -954,7 +954,7 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
               />
               <div className="flex items-center justify-between mt-3">
                 <p className="text-xs text-gray-500">
-                  Use variables like {{transcript}}, {{summary}}, {{category}} in your template
+                  Use variables like {`{{transcript}}`}, {`{{summary}}`}, {`{{category}}`} in your template
                 </p>
                 <Button 
                   onClick={() => saveAiPromptSetting('synopsis', aiPromptSettings.synopsis)}
@@ -970,25 +970,25 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
                 <div className="font-medium mb-2">Available Template Variables</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <strong>{{transcript}}</strong> - Full interaction transcript
+                    <strong>{`{{transcript}}`}</strong> - Full interaction transcript
                   </div>
                   <div>
-                    <strong>{{summary}}</strong> - AI-generated summary
+                    <strong>{`{{summary}}`}</strong> - AI-generated summary
                   </div>
                   <div>
-                    <strong>{{category}}</strong> - Interaction category
+                    <strong>{`{{category}}`}</strong> - Interaction category
                   </div>
                   <div>
-                    <strong>{{professionalInterests}}</strong> - Professional interests
+                    <strong>{`{{professionalInterests}}`}</strong> - Professional interests
                   </div>
                   <div>
-                    <strong>{{personalInterests}}</strong> - Personal interests
+                    <strong>{`{{personalInterests}}`}</strong> - Personal interests
                   </div>
                   <div>
-                    <strong>{{philanthropicPriorities}}</strong> - Philanthropic priorities
+                    <strong>{`{{philanthropicPriorities}}`}</strong> - Philanthropic priorities
                   </div>
                   <div>
-                    <strong>{{keyPoints}}</strong> - Key points extracted
+                    <strong>{`{{keyPoints}}`}</strong> - Key points extracted
                   </div>
                 </div>
               </AlertDescription>
