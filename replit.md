@@ -128,6 +128,15 @@ The system follows a mobile-first, voice-enabled design philosophy with strong i
 - **Updated voice commands**: Removed "show history" voice commands from driving mode
 - **Simplified navigation**: Streamlined user interface to focus on core interaction functionality
 
+### August 6, 2025 - AI Prompt Customization System
+- **Added customizable AI prompts**: Users can now customize the "Advancement Office Synopsis" generation prompts in Settings
+- **Database schema enhancement**: New aiPromptSettings table with user-specific prompt templates and versioning
+- **Full-stack implementation**: Complete CRUD operations with GET/POST API endpoints for prompt management
+- **Updated OpenAI integration**: Modified generateInteractionSynopsis to use custom prompts with template variable substitution
+- **Comprehensive UI interface**: Added "AI Prompt Customization" section in Settings with template editor, variable reference, and reset functionality
+- **Template variable system**: Supports {{transcript}}, {{summary}}, {{category}}, and other dynamic content substitution
+- **User-personalized AI analysis**: Each user can now tailor AI analysis criteria to their specific needs and preferences
+
 ### July 16, 2025 - Enhanced Affinity Tag Matching
 - **Fixed critical affinity matching issue**: "Friends of BU Men's Ice Hockey" now correctly matches "Men's Hockey" affinity tag
 - **Improved fuzzy matching algorithm**: Lowered threshold from 0.4 to 0.25 for better coverage
