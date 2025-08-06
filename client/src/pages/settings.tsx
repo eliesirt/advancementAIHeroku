@@ -23,12 +23,14 @@ import {
   Smartphone,
   Clock,
   Tags,
-  Eye
+  Eye,
+  Bot
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileUpdate } from "@/components/user-profile-update";
+import { Textarea } from "@/components/ui/textarea";
 
 interface VoiceSettings {
   enabled: boolean;
@@ -95,6 +97,16 @@ interface AffinityTagSettings {
   matchingThreshold?: number;
 }
 
+interface AiPromptSettings {
+  id: number;
+  userId: number;
+  promptType: string;
+  promptTemplate: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 
 export default function SettingsPage() {
@@ -132,6 +144,13 @@ export default function SettingsPage() {
   // Local state for slider value before saving
   const [tempThreshold, setTempThreshold] = useState<number>(25);
   const [hasUnsavedThreshold, setHasUnsavedThreshold] = useState<boolean>(false);
+
+  // AI prompt settings state
+  const [aiPromptSettings, setAiPromptSettings] = useState<{
+    synopsis: string;
+  }>({
+    synopsis: ''
+  });
 
   const { toast } = useToast();
 
@@ -184,6 +203,23 @@ export default function SettingsPage() {
     retry: false,
   });
 
+  // Fetch AI prompt settings
+  const { data: aiPromptSettingsData } = useQuery<AiPromptSettings[]>({
+    queryKey: ["/api/ai-prompt-settings", user?.id],
+    enabled: !!user?.id,
+    retry: false,
+  });
+
+  // Load AI prompt settings when data is available
+  useEffect(() => {
+    if (aiPromptSettingsData) {
+      const synopsisSetting = aiPromptSettingsData.find(s => s.promptType === 'synopsis');
+      setAiPromptSettings({
+        synopsis: synopsisSetting?.promptTemplate || ''
+      });
+    }
+  }, [aiPromptSettingsData]);
+
   // Manual refresh affinity tags mutation
   const refreshAffinityTagsMutation = useMutation({
     mutationFn: async () => {
@@ -228,6 +264,31 @@ export default function SettingsPage() {
       toast({
         title: "Update Failed",
         description: "Unable to update affinity tag settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update AI prompt settings mutation
+  const updateAiPromptMutation = useMutation({
+    mutationFn: async (data: { promptType: string; promptTemplate: string }) => {
+      const response = await apiRequest("POST", "/api/ai-prompt-settings", {
+        userId: user?.id,
+        ...data
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "AI Prompt Updated",
+        description: "AI prompt template has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-prompt-settings", user?.id] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Unable to save AI prompt template. Please try again.",
         variant: "destructive",
       });
     },
@@ -313,6 +374,40 @@ export default function SettingsPage() {
         variant: "destructive",
       });
     }
+  };
+
+  // Save AI prompt setting
+  const saveAiPromptSetting = (promptType: string, promptTemplate: string) => {
+    updateAiPromptMutation.mutate({ promptType, promptTemplate });
+  };
+
+  // Update AI prompt settings local state
+  const updateAiPromptSetting = (promptType: string, value: string) => {
+    setAiPromptSettings(prev => ({ ...prev, [promptType]: value }));
+  };
+
+  // Get default prompt template for reference
+  const getDefaultPromptTemplate = () => {
+    return `Analyze this fundraising interaction and create a concise synopsis for Boston University's Advancement office. 
+
+Format your response as:
+1. First, write 2-3 sentences that summarize the overall interaction and strategic significance
+2. Then provide bullet points covering:
+   • Key interests and motivations discovered
+   • Perceived donor capacity signals
+   • Next steps or follow-up actions
+   • Strategic cultivation opportunities
+
+Available variables:
+- {{transcript}} - Full interaction transcript
+- {{summary}} - AI-generated summary
+- {{category}} - Interaction category
+- {{professionalInterests}} - Professional interests found
+- {{personalInterests}} - Personal interests found
+- {{philanthropicPriorities}} - Philanthropic priorities found
+- {{keyPoints}} - Key points extracted
+
+Keep the narrative portion brief and focused - maximum 3 sentences before the bullet points.`;
   };
 
   // Dummy state for UserProfileUpdate component if not directly handled
@@ -824,6 +919,80 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Prompt Customization */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Bot className="h-5 w-5" />
+              <span>AI Prompt Customization</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <Label htmlFor="synopsis-prompt" className="text-sm font-medium">
+                  Advancement Office Synopsis Prompt
+                </Label>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => updateAiPromptSetting('synopsis', getDefaultPromptTemplate())}
+                >
+                  Reset to Default
+                </Button>
+              </div>
+              <Textarea
+                id="synopsis-prompt"
+                placeholder="Enter your custom prompt template..."
+                value={aiPromptSettings.synopsis || getDefaultPromptTemplate()}
+                onChange={(e) => updateAiPromptSetting('synopsis', e.target.value)}
+                rows={12}
+                className="text-sm font-mono"
+              />
+              <div className="flex items-center justify-between mt-3">
+                <p className="text-xs text-gray-500">
+                  Use variables like {{transcript}}, {{summary}}, {{category}} in your template
+                </p>
+                <Button 
+                  onClick={() => saveAiPromptSetting('synopsis', aiPromptSettings.synopsis)}
+                  disabled={updateAiPromptMutation.isPending}
+                >
+                  {updateAiPromptMutation.isPending ? 'Saving...' : 'Save Prompt'}
+                </Button>
+              </div>
+            </div>
+
+            <Alert>
+              <AlertDescription>
+                <div className="font-medium mb-2">Available Template Variables</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <strong>{{transcript}}</strong> - Full interaction transcript
+                  </div>
+                  <div>
+                    <strong>{{summary}}</strong> - AI-generated summary
+                  </div>
+                  <div>
+                    <strong>{{category}}</strong> - Interaction category
+                  </div>
+                  <div>
+                    <strong>{{professionalInterests}}</strong> - Professional interests
+                  </div>
+                  <div>
+                    <strong>{{personalInterests}}</strong> - Personal interests
+                  </div>
+                  <div>
+                    <strong>{{philanthropicPriorities}}</strong> - Philanthropic priorities
+                  </div>
+                  <div>
+                    <strong>{{keyPoints}}</strong> - Key points extracted
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
 

@@ -77,6 +77,16 @@ export const affinityTagSettings = pgTable("affinity_tag_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const aiPromptSettings = pgTable("ai_prompt_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // Allow per-user customization
+  promptType: text("prompt_type").notNull(), // 'synopsis', 'extraction', 'quality', etc.
+  promptTemplate: text("prompt_template").notNull(),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -106,6 +116,12 @@ export const insertAffinityTagSettingsSchema = createInsertSchema(affinityTagSet
   updatedAt: true,
 });
 
+export const insertAiPromptSettingsSchema = createInsertSchema(aiPromptSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Interaction = typeof interactions.$inferSelect;
@@ -116,6 +132,8 @@ export type VoiceRecording = typeof voiceRecordings.$inferSelect;
 export type InsertVoiceRecording = z.infer<typeof insertVoiceRecordingSchema>;
 export type AffinityTagSettings = typeof affinityTagSettings.$inferSelect;
 export type InsertAffinityTagSettings = z.infer<typeof insertAffinityTagSettingsSchema>;
+export type AiPromptSettings = typeof aiPromptSettings.$inferSelect;
+export type InsertAiPromptSettings = z.infer<typeof insertAiPromptSettingsSchema>;
 
 export interface ExtractedInteractionInfo {
   summary: string;

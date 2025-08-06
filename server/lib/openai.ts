@@ -176,10 +176,15 @@ export async function generateConciseSummary(transcript: string): Promise<string
 
 export async function generateInteractionSynopsis(
   transcript: string,
-  extractedInfo: ExtractedInteractionInfo
+  extractedInfo: ExtractedInteractionInfo,
+  userId: number = 1
 ): Promise<string> {
   try {
-    const synopsisPrompt = `
+    // Get custom prompt from database if available
+    const { storage } = await import('../storage');
+    const customPrompt = await storage.getAiPromptSettings(userId, 'synopsis');
+    
+    const defaultPrompt = `
 Analyze this fundraising interaction and create a concise synopsis for Boston University's Advancement office. 
 
 Format your response as:
@@ -201,6 +206,18 @@ Key Information:
 - Key Points: ${extractedInfo.keyPoints.join(', ')}
 
 Keep the narrative portion brief and focused - maximum 3 sentences before the bullet points.`;
+
+    // Use custom prompt if available, otherwise use default
+    const synopsisPrompt = customPrompt?.promptTemplate
+      ? customPrompt.promptTemplate
+          .replace('{{transcript}}', transcript)
+          .replace('{{summary}}', extractedInfo.summary)
+          .replace('{{category}}', extractedInfo.category)
+          .replace('{{professionalInterests}}', extractedInfo.professionalInterests.join(', '))
+          .replace('{{personalInterests}}', extractedInfo.personalInterests.join(', '))
+          .replace('{{philanthropicPriorities}}', extractedInfo.philanthropicPriorities.join(', '))
+          .replace('{{keyPoints}}', extractedInfo.keyPoints.join(', '))
+      : defaultPrompt;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -227,11 +244,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
 
 export async function enhanceInteractionComments(
   transcript: string, 
-  extractedInfo: ExtractedInteractionInfo
+  extractedInfo: ExtractedInteractionInfo,
+  userId: number = 1
 ): Promise<string> {
   try {
     // Generate comprehensive synopsis
-    const synopsis = await generateInteractionSynopsis(transcript, extractedInfo);
+    const synopsis = await generateInteractionSynopsis(transcript, extractedInfo, userId);
     
     // Format the final comments with synopsis and transcript only
     const formattedComments = `ADVANCEMENT OFFICE SYNOPSIS:

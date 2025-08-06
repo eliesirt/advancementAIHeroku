@@ -4,6 +4,7 @@ import {
   affinityTags,
   voiceRecordings,
   affinityTagSettings,
+  aiPromptSettings,
   type User,
   type InsertUser,
   type Interaction,
@@ -13,10 +14,12 @@ import {
   type VoiceRecording,
   type InsertVoiceRecording,
   type AffinityTagSettings,
-  type InsertAffinityTagSettings
+  type InsertAffinityTagSettings,
+  type AiPromptSettings,
+  type InsertAiPromptSettings
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -44,6 +47,12 @@ export interface IStorage {
   // Affinity tag settings methods
   getAffinityTagSettings(): Promise<AffinityTagSettings | undefined>;
   updateAffinityTagSettings(settings: InsertAffinityTagSettings): Promise<void>;
+
+  // AI prompt settings methods
+  getAiPromptSettings(userId: number, promptType: string): Promise<AiPromptSettings | undefined>;
+  createAiPromptSettings(settings: InsertAiPromptSettings): Promise<AiPromptSettings>;
+  updateAiPromptSettings(id: number, updates: Partial<InsertAiPromptSettings>): Promise<AiPromptSettings>;
+  getUserAiPromptSettings(userId: number): Promise<AiPromptSettings[]>;
 
   // Voice recording methods
   getVoiceRecording(id: number): Promise<VoiceRecording | undefined>;
@@ -492,6 +501,46 @@ export class DatabaseStorage implements IStorage {
 
   async clearAffinityTags(): Promise<void> {
     await db.delete(affinityTags);
+  }
+
+  async getAiPromptSettings(userId: number, promptType: string): Promise<AiPromptSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(aiPromptSettings)
+      .where(and(
+        eq(aiPromptSettings.userId, userId),
+        eq(aiPromptSettings.promptType, promptType)
+      ))
+      .limit(1);
+    return settings || undefined;
+  }
+
+  async createAiPromptSettings(settingsData: InsertAiPromptSettings): Promise<AiPromptSettings> {
+    const [settings] = await db
+      .insert(aiPromptSettings)
+      .values(settingsData)
+      .returning();
+    return settings;
+  }
+
+  async updateAiPromptSettings(id: number, updates: Partial<InsertAiPromptSettings>): Promise<AiPromptSettings> {
+    const [settings] = await db
+      .update(aiPromptSettings)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(aiPromptSettings.id, id))
+      .returning();
+    return settings;
+  }
+
+  async getUserAiPromptSettings(userId: number): Promise<AiPromptSettings[]> {
+    return await db
+      .select()
+      .from(aiPromptSettings)
+      .where(eq(aiPromptSettings.userId, userId))
+      .orderBy(aiPromptSettings.promptType);
   }
 }
 

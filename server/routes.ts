@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If this recording is linked to an interaction, update it with the AI-processed data
       if (recording.interactionId) {
         // Generate enhanced comments with full synopsis and transcript
-        const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo);
+        const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, 1);
 
         // Parse first and last name from prospect name
         const parseProspectName = (fullName: string) => {
@@ -834,6 +834,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get AI prompt settings for user
+  app.get("/api/ai-prompt-settings/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const settings = await storage.getUserAiPromptSettings(userId);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get AI prompt settings", error: (error as Error).message });
+    }
+  });
+
+  // Get specific AI prompt setting
+  app.get("/api/ai-prompt-settings/:userId/:promptType", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { promptType } = req.params;
+      const setting = await storage.getAiPromptSettings(userId, promptType);
+      res.json(setting || null);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get AI prompt setting", error: (error as Error).message });
+    }
+  });
+
+  // Create or update AI prompt setting
+  app.post("/api/ai-prompt-settings", async (req, res) => {
+    try {
+      const { userId, promptType, promptTemplate } = req.body;
+
+      if (!userId || !promptType || !promptTemplate) {
+        return res.status(400).json({ message: "userId, promptType, and promptTemplate are required" });
+      }
+
+      // Check if setting already exists
+      const existingSetting = await storage.getAiPromptSettings(userId, promptType);
+
+      if (existingSetting) {
+        // Update existing
+        const updatedSetting = await storage.updateAiPromptSettings(existingSetting.id, {
+          promptTemplate,
+          updatedAt: new Date()
+        });
+        res.json({ success: true, setting: updatedSetting, message: "AI prompt setting updated successfully" });
+      } else {
+        // Create new
+        const newSetting = await storage.createAiPromptSettings({
+          userId,
+          promptType,
+          promptTemplate,
+          isDefault: false
+        });
+        res.json({ success: true, setting: newSetting, message: "AI prompt setting created successfully" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save AI prompt setting", error: (error as Error).message });
+    }
+  });
+
   // Search constituents in BBEC
   app.get("/api/constituents/search", async (req, res) => {
     try {
@@ -885,7 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Transcript and extracted info are required" });
       }
 
-      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo);
+      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, 1);
       res.json({ enhancedComments });
     } catch (error) {
       res.status(500).json({ message: "Failed to enhance comments", error: (error as Error).message });
@@ -923,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
       // Generate enhanced comments with synopsis
-      const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo as ExtractedInteractionInfo);
+      const enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo as ExtractedInteractionInfo, 1);
 
       // Perform quality assessment
       const { evaluateInteractionQuality } = await import("./lib/openai");
@@ -1150,7 +1207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               suggestedAffinityTags: [],
               prospectName: ''
             };
-            enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo);
+            enhancedComments = await enhanceInteractionComments(interaction.transcript, extractedInfo, 1);
           }
 
           // Re-match affinity tags - try current affinity tags or extract from stored info
