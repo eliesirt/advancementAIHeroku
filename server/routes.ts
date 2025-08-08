@@ -135,12 +135,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create voice recording
-  app.post("/api/voice-recordings", async (req, res) => {
+  app.post("/api/voice-recordings", isAuthenticated, async (req: any, res) => {
     try {
       console.log("Voice recording data received:", req.body);
 
+      const userId = req.user.claims.sub;
       const recordingData = {
-        userId: Number(req.body.userId) || 1,
+        userId: userId,
         audioData: req.body.audioData,
         transcript: req.body.transcript || null,
         duration: Number(req.body.duration) || null,
@@ -298,10 +299,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create draft interaction (minimal validation)
-  app.post("/api/interactions/draft", async (req, res) => {
+  app.post("/api/interactions/draft", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const draftData = {
-        userId: Number(req.body.userId) || 1,
+        userId: userId,
         prospectName: req.body.prospectName || 'Draft Interaction',
         summary: req.body.summary || 'Draft summary',
         category: req.body.category || 'General',
@@ -329,9 +331,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create interaction from processed voice/text
-  app.post("/api/interactions", async (req, res) => {
+  app.post("/api/interactions", isAuthenticated, async (req: any, res) => {
     try {
-      const interactionData = insertInteractionSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const interactionData = insertInteractionSchema.parse({
+        ...req.body,
+        userId: userId
+      });
       const interaction = await storage.createInteraction(interactionData);
       res.json(interaction);
     } catch (error) {
