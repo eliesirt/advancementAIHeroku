@@ -1491,6 +1491,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual admin assignment endpoint (for bootstrapping)
+  app.post('/api/admin/bootstrap', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Find user by email or create if doesn't exist
+      let user = await storage.getUserByUsername(email);
+      if (!user) {
+        // Try to find by ID (for Replit Auth users)
+        const userId = req.user?.claims?.sub;
+        if (userId) {
+          user = await storage.getUser(userId);
+        }
+      }
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get admin role
+      const roles = await storage.getRoles();
+      const adminRole = roles.find(r => r.name === "Administrator");
+      
+      if (!adminRole) {
+        return res.status(500).json({ message: "Administrator role not found" });
+      }
+
+      // Check if user already has admin role
+      const userRoles = await storage.getUserRoles(user.id);
+      const hasAdminRole = userRoles.some(role => role.id === adminRole.id);
+      
+      if (hasAdminRole) {
+        return res.json({ success: true, message: "User already has Administrator role" });
+      }
+
+      // Assign admin role
+      await storage.assignUserRole(user.id, adminRole.id, "bootstrap");
+      
+      res.json({ 
+        success: true, 
+        message: `Administrator role assigned to ${user.email || user.id}` 
+      });
+    } catch (error) {
+      console.error("Bootstrap admin assignment error:", error);
+      res.status(500).json({ 
+        message: "Failed to assign admin role", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Admin API endpoints
   // Check admin permission middleware
   const requireAdmin = async (req: any, res: any, next: any) => {

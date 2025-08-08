@@ -85,6 +85,28 @@ export async function seedInitialData() {
       }
     }
 
+    // Ensure elsirt@gmail.com has admin role
+    try {
+      const adminUser = await storage.getUserByUsername("elsirt@gmail.com") || await storage.getUser("42195145");
+      const adminRoles = await storage.getRoles();
+      const adminRole = adminRoles.find(r => r.name === "Administrator");
+      
+      if (adminUser && adminRole) {
+        // Check if user already has admin role
+        const userRoles = await storage.getUserRoles(adminUser.id);
+        const hasAdminRole = userRoles.some(role => role.id === adminRole.id);
+        
+        if (!hasAdminRole) {
+          await storage.assignUserRole(adminUser.id, adminRole.id, "system");
+          console.log(`Assigned Administrator role to user: ${adminUser.email || adminUser.id}`);
+        } else {
+          console.log(`User ${adminUser.email || adminUser.id} already has Administrator role`);
+        }
+      }
+    } catch (error) {
+      console.log("Note: Could not assign admin role to elsirt@gmail.com - user may not exist yet:", error);
+    }
+
     console.log("Initial data seeding completed successfully");
   } catch (error) {
     console.error("Error seeding initial data:", error);
