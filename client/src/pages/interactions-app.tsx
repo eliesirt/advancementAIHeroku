@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { AppNavigation } from "@/components/app-navigation";
 import HomePage from "./home";
 
 export default function InteractionsApp() {
@@ -37,5 +38,10 @@ export default function InteractionsApp() {
     return null; // Will redirect
   }
 
-  return <HomePage onDrivingModeToggle={() => {}} isDrivingMode={false} />;
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AppNavigation appName="Interaction Manager" />
+      <HomePage onDrivingModeToggle={() => {}} isDrivingMode={false} />
+    </div>
+  );
 }
