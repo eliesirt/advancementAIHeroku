@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -184,19 +183,33 @@ export default function UserManagementPage() {
 
   // Role permissions mutations
   const updateRolePermissionsMutation = useMutation({
-    mutationFn: async ({ roleId, applicationId, permissions }: { roleId: number; applicationId: number; permissions: string[] }) => {
-      const response = await apiRequest("POST", `/api/admin/roles/${roleId}/applications`, {
-        applicationId,
-        permissions
+    mutationFn: async ({ roleId, applicationId, permissions }: { roleId: number, applicationId: number, permissions: string[] }) => {
+      console.log('Updating permissions:', { roleId, applicationId, permissions });
+      const response = await fetch(`/api/admin/roles/${roleId}/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationId: parseInt(applicationId.toString()), permissions }),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update permissions');
+      }
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Permissions Updated", description: "Role permissions updated successfully." });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/role-applications"] });
+      queryClient.invalidateQueries({ queryKey: ['role-applications'] });
+      toast({
+        title: "Success",
+        description: "Role permissions updated successfully",
+      });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update permissions.", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Permission update error:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update permissions: ${error.message}`,
+        variant: "destructive",
+      });
     },
   });
 
@@ -244,7 +257,7 @@ export default function UserManagementPage() {
   const handlePermissionChange = (roleId: number, applicationId: number, permission: string, checked: boolean) => {
     const currentPermissions = getRolePermissions(roleId, applicationId);
     let newPermissions: string[];
-    
+
     if (checked) {
       newPermissions = [...new Set([...currentPermissions, permission])];
     } else {

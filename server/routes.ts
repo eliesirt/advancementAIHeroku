@@ -1712,9 +1712,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { roleId } = req.params;
       const { applicationId, permissions } = req.body;
       
-      const roleApp = await storage.assignRoleApplication(parseInt(roleId), applicationId, permissions);
+      console.log('Assigning role permissions:', { roleId, applicationId, permissions });
+      
+      if (!applicationId || !Array.isArray(permissions)) {
+        return res.status(400).json({ message: "applicationId and permissions array are required" });
+      }
+      
+      const roleApp = await storage.assignRoleApplication(parseInt(roleId), parseInt(applicationId), permissions);
       res.json(roleApp);
     } catch (error) {
+      console.error("Role permission assignment error:", error);
       res.status(500).json({ message: "Failed to assign application permissions", error: (error as Error).message });
     }
   });

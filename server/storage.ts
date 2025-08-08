@@ -1116,15 +1116,37 @@ export class DatabaseStorage implements IStorage {
 
   // Role application methods
   async assignRoleApplication(roleId: number, applicationId: number, permissions: string[]): Promise<RoleApplication> {
-    const [roleApp] = await db
-      .insert(roleApplications)
-      .values({ roleId, applicationId, permissions })
-      .onConflictDoUpdate({
-        target: [roleApplications.roleId, roleApplications.applicationId],
-        set: { permissions },
-      })
-      .returning();
-    return roleApp;
+    console.log('Storage: Assigning role application:', { roleId, applicationId, permissions });
+    
+    // First try to find existing record
+    const existing = await db
+      .select()
+      .from(roleApplications)
+      .where(and(
+        eq(roleApplications.roleId, roleId),
+        eq(roleApplications.applicationId, applicationId)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing record
+      const [roleApp] = await db
+        .update(roleApplications)
+        .set({ permissions, createdAt: new Date() })
+        .where(and(
+          eq(roleApplications.roleId, roleId),
+          eq(roleApplications.applicationId, applicationId)
+        ))
+        .returning();
+      return roleApp;
+    } else {
+      // Insert new record
+      const [roleApp] = await db
+        .insert(roleApplications)
+        .values({ roleId, applicationId, permissions })
+        .returning();
+      return roleApp;
+    }
   }
 
   async removeRoleApplication(roleId: number, applicationId: number): Promise<boolean> {
