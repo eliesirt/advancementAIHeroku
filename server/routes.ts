@@ -1572,9 +1572,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users (admin only)
   app.get('/api/admin/users', isAuthenticated, requireAdmin, async (req: any, res) => {
     try {
+      console.log("Getting all users with roles...");
       const users = await storage.getAllUsersWithRoles();
+      console.log("Successfully retrieved users:", users.length);
       res.json(users);
     } catch (error) {
+      console.error("Error getting users:", error);
       res.status(500).json({ message: "Failed to get users", error: (error as Error).message });
     }
   });
@@ -1582,10 +1585,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new user (admin only)
   app.post('/api/admin/users', isAuthenticated, requireAdmin, async (req: any, res) => {
     try {
+      console.log("Creating user with data:", req.body);
       const userData = req.body;
       const user = await storage.createUser(userData);
+      console.log("Successfully created user:", user);
       res.json(user);
     } catch (error) {
+      console.error("Error creating user:", error);
       res.status(500).json({ message: "Failed to create user", error: (error as Error).message });
     }
   });
@@ -1674,9 +1680,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all applications (admin only)
   app.get('/api/admin/applications', isAuthenticated, requireAdmin, async (req: any, res) => {
     try {
+      console.log("Getting all applications...");
       const applications = await storage.getAllApplications();
+      console.log("Successfully retrieved applications:", applications.length);
       res.json(applications);
     } catch (error) {
+      console.error("Error getting applications:", error);
       res.status(500).json({ message: "Failed to get applications", error: (error as Error).message });
     }
   });
