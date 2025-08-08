@@ -24,7 +24,8 @@ import {
   Clock,
   Tags,
   Eye,
-  Bot
+  Bot,
+  Users // Added Users icon import
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -958,8 +959,8 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
                 <Label htmlFor="synopsis-prompt" className="text-sm font-medium">
                   Advancement Office Synopsis Prompt
                 </Label>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => updateAiPromptSetting('synopsis', getDefaultPromptTemplate())}
                 >
@@ -978,7 +979,7 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
                 <p className="text-xs text-gray-500">
                   Use variables like {`{{transcript}}`}, {`{{summary}}`}, {`{{category}}`} in your template
                 </p>
-                <Button 
+                <Button
                   onClick={() => saveAiPromptSetting('synopsis', aiPromptSettings.synopsis)}
                   disabled={updateAiPromptMutation.isPending}
                 >
