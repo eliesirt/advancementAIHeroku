@@ -709,17 +709,16 @@ export class MemStorage implements IStorage {
 
   // Admin methods
   async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
-    const users = Array.from(this.users.values());
-    return Promise.all(users.map(async (user) => {
-      const roleIds = this.userRoles.get(user.id) || [];
-      const roles = roleIds.map(roleId => this.roles.get(roleId)).filter(Boolean) as Role[];
-      const applications = await this.getUserApplications(user.id);
-      return { ...user, roles, applications };
+    const usersData = await db.select().from(users);
+    return Promise.all(usersData.map(async (user) => {
+      const userRolesList = await this.getUserRoles(user.id);
+      const userApplications = await this.getUserApplications(user.id);
+      return { ...user, roles: userRolesList, applications: userApplications };
     }));
   }
 
   async getAllApplications(): Promise<Application[]> {
-    return Array.from(this.applications.values()).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    return await db.select().from(applications).orderBy(applications.sortOrder);
   }
 }
 
