@@ -707,18 +707,13 @@ export class MemStorage implements IStorage {
     };
   }
 
-  // Admin methods
+  // Admin methods (Not implemented in MemStorage, but interface is defined)
   async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
-    const usersData = await db.select().from(users);
-    return Promise.all(usersData.map(async (user) => {
-      const userRolesList = await this.getUserRoles(user.id);
-      const userApplications = await this.getUserApplications(user.id);
-      return { ...user, roles: userRolesList, applications: userApplications };
-    }));
+    throw new Error("Method not implemented.");
   }
 
   async getAllApplications(): Promise<Application[]> {
-    return await db.select().from(applications).orderBy(applications.sortOrder);
+    throw new Error("Method not implemented.");
   }
 }
 
@@ -1135,6 +1130,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(roleApplications)
       .where(eq(roleApplications.roleId, roleId));
+  }
+
+  // Admin methods
+  async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
+    const usersData = await db.select().from(users);
+    return Promise.all(usersData.map(async (user) => {
+      const userRolesList = await this.getUserRoles(user.id);
+      const userApplications = await this.getUserApplications(user.id);
+      return { ...user, roles: userRolesList, applications: userApplications };
+    }));
+  }
+
+  async getAllApplications(): Promise<Application[]> {
+    return await db.select().from(applications).orderBy(applications.sortOrder);
   }
 }
 
