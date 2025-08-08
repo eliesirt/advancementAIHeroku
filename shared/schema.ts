@@ -290,6 +290,10 @@ export interface ApplicationWithPermissions extends Application {
   permissions?: string[];
 }
 
+export interface RoleWithApplications extends Role {
+  applications?: RoleApplication[];
+}
+
 export interface ExtractedInteractionInfo {
   summary: string;
   category: string;

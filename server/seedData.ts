@@ -49,9 +49,21 @@ export async function seedInitialData() {
         sortOrder: 2,
       });
 
+      const userManagementApp = await storage.createApplication({
+        name: "user-management",
+        displayName: "User Management",
+        description: "Manage users, roles, and permissions",
+        route: "/apps/user-management",
+        icon: "users",
+        color: "red",
+        isActive: true,
+        sortOrder: 3,
+      });
+
       console.log("Created default applications:", { 
         interactionApp: interactionApp.id, 
-        settingsApp: settingsApp.id 
+        settingsApp: settingsApp.id,
+        userManagementApp: userManagementApp.id
       });
 
       // Grant admin role access to all applications
@@ -61,6 +73,7 @@ export async function seedInitialData() {
       if (adminRole) {
         await storage.assignRoleApplication(adminRole.id, interactionApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, settingsApp.id, ["read", "write", "admin"]);
+        await storage.assignRoleApplication(adminRole.id, userManagementApp.id, ["read", "write", "admin"]);
         console.log("Granted admin role access to all applications");
       }
 

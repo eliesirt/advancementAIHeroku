@@ -6,10 +6,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Pages
-import Landing from "@/pages/landing";
-import Launcher from "@/pages/launcher";
-import InteractionsApp from "@/pages/interactions-app";
+import HomePage from "@/pages/home";
 import SettingsPage from "@/pages/settings";
+import InteractionsApp from "@/pages/interactions-app";
+import UserManagementPage from "@/pages/user-management";
+import Launcher from "@/pages/launcher";
+import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 
 // Hooks
@@ -39,12 +41,13 @@ function AppContent() {
             <Route path="/" component={Launcher} />
             <Route path="/apps/interactions" component={InteractionsApp} />
             <Route path="/apps/settings" component={SettingsPage} />
-            <Route path="/settings" component={SettingsPage} />
+            <Route path="/apps/user-management" component={UserManagementPage} />
+            <Route path="/apps" component={Launcher} />
           </>
         )}
         <Route component={NotFound} />
       </Switch>
-      
+
       {/* Global Toast Notifications */}
       <Toaster />
     </div>

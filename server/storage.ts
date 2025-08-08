@@ -228,7 +228,7 @@ export class MemStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const existingUser = userData.id ? this.users.get(userData.id) : undefined;
-    
+
     if (existingUser) {
       const updatedUser: User = {
         ...existingUser,
@@ -697,17 +697,32 @@ export class MemStorage implements IStorage {
     return this.affinityTagSettings;
   }
 
-  async updateAffinityTagSettings(settings: InsertAffinityTagSettings): Promise<void> {
+  async updateAffinityTagSettings(settingsData: InsertAffinityTagSettings): Promise<void> {
     this.affinityTagSettings = {
       id: 1,
-      autoRefresh: settings.autoRefresh || null,
-      refreshInterval: settings.refreshInterval || null,
-      lastRefresh: settings.lastRefresh || null,
-      totalTags: settings.totalTags || null,
-      nextRefresh: settings.nextRefresh || null,
-      matchingThreshold: settings.matchingThreshold || null,
+      autoRefresh: settingsData.autoRefresh || null,
+      refreshInterval: settingsData.refreshInterval || null,
+      lastRefresh: settingsData.lastRefresh || null,
+      totalTags: settingsData.totalTags || null,
+      nextRefresh: settingsData.nextRefresh || null,
+      matchingThreshold: settingsData.matchingThreshold || null,
       updatedAt: new Date()
     };
+  }
+
+  // Admin methods
+  async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
+    const users = Array.from(this.users.values());
+    return Promise.all(users.map(async (user) => {
+      const roleIds = this.userRoles.get(user.id) || [];
+      const roles = roleIds.map(roleId => this.roles.get(roleId)).filter(Boolean) as Role[];
+      const applications = await this.getUserApplications(user.id);
+      return { ...user, roles, applications };
+    }));
+  }
+
+  async getAllApplications(): Promise<Application[]> {
+    return Array.from(this.applications.values()).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
 }
 
@@ -1016,7 +1031,7 @@ export class DatabaseStorage implements IStorage {
     if (userRolesList.length === 0) return [];
 
     const roleIds = userRolesList.map(ur => ur.roleId);
-    
+
     const roleApplicationsList = await db
       .select({
         id: roleApplications.id,
@@ -1033,7 +1048,7 @@ export class DatabaseStorage implements IStorage {
       ));
 
     const permissionMap = new Map<number, Set<string>>();
-    
+
     roleApplicationsList.forEach(ra => {
       if (roleIds.includes(ra.roleId)) {
         const existing = permissionMap.get(ra.applicationId) || new Set();
@@ -1079,7 +1094,7 @@ export class DatabaseStorage implements IStorage {
       .from(userRoles)
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
       .where(eq(userRoles.userId, userId));
-    
+
     return userRolesList.map(ur => ur.role);
   }
 

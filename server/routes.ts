@@ -1491,6 +1491,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin API endpoints
+  // Check admin permission middleware
+  const requireAdmin = async (req: any, res: any, next: any) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserWithRoles(userId);
+      
+      if (!user || !user.roles?.some(role => role.name === "Administrator")) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      next();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify admin access" });
+    }
+  };
+
+  // Get all users (admin only)
+  app.get('/api/admin/users', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsersWithRoles();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get users", error: (error as Error).message });
+    }
+  });
+
+  // Create new user (admin only)
+  app.post('/api/admin/users', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const userData = req.body;
+      const user = await storage.createUser(userData);
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create user", error: (error as Error).message });
+    }
+  });
+
+  // Update user (admin only)
+  app.patch('/api/admin/users/:id', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const user = await storage.updateUser(id, updates);
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user", error: (error as Error).message });
+    }
+  });
+
+  // Assign role to user (admin only)
+  app.post('/api/admin/users/:id/roles', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { roleId } = req.body;
+      const adminId = req.user.claims.sub;
+      
+      const userRole = await storage.assignUserRole(id, roleId, adminId);
+      res.json(userRole);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign role", error: (error as Error).message });
+    }
+  });
+
+  // Remove role from user (admin only)
+  app.delete('/api/admin/users/:id/roles/:roleId', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id, roleId } = req.params;
+      const success = await storage.removeUserRole(id, parseInt(roleId));
+      res.json({ success });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove role", error: (error as Error).message });
+    }
+  });
+
+  // Get all roles (admin only)
+  app.get('/api/admin/roles', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const roles = await storage.getRoles();
+      res.json(roles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get roles", error: (error as Error).message });
+    }
+  });
+
+  // Create new role (admin only)
+  app.post('/api/admin/roles', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const roleData = req.body;
+      const role = await storage.createRole(roleData);
+      res.json(role);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create role", error: (error as Error).message });
+    }
+  });
+
+  // Update role (admin only)
+  app.patch('/api/admin/roles/:id', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const role = await storage.updateRole(parseInt(id), updates);
+      res.json(role);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update role", error: (error as Error).message });
+    }
+  });
+
+  // Delete role (admin only)
+  app.delete('/api/admin/roles/:id', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteRole(parseInt(id));
+      res.json({ success });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete role", error: (error as Error).message });
+    }
+  });
+
+  // Get all applications (admin only)
+  app.get('/api/admin/applications', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const applications = await storage.getAllApplications();
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get applications", error: (error as Error).message });
+    }
+  });
+
+  // Get role applications with permissions (admin only)
+  app.get('/api/admin/role-applications', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const roles = await storage.getRoles();
+      const rolesWithApps = await Promise.all(
+        roles.map(async (role) => {
+          const applications = await storage.getRoleApplications(role.id);
+          return { ...role, applications };
+        })
+      );
+      res.json(rolesWithApps);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get role applications", error: (error as Error).message });
+    }
+  });
+
+  // Assign application permissions to role (admin only)
+  app.post('/api/admin/roles/:roleId/applications', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { roleId } = req.params;
+      const { applicationId, permissions } = req.body;
+      
+      const roleApp = await storage.assignRoleApplication(parseInt(roleId), applicationId, permissions);
+      res.json(roleApp);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign application permissions", error: (error as Error).message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
