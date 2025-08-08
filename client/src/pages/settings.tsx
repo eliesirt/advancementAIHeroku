@@ -161,6 +161,11 @@ export default function SettingsPage() {
     queryKey: ["/api/user"],
   });
 
+  // Fetch user with roles to check admin access
+  const { data: userWithRoles } = useQuery({
+    queryKey: ["/api/auth/user"],
+  });
+
   // Fetch BBEC connection status
   const { data: bbecStatus, isLoading: bbecLoading } = useQuery({
     queryKey: ["/api/bbec/form-metadata"],
@@ -1018,6 +1023,49 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
             </Alert>
           </CardContent>
         </Card>
+
+        {/* User & Role Management - Only for Administrators */}
+        {userWithRoles?.roles?.some((role: any) => role.name === "Administrator") && (
+          <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+                <div className="p-2 rounded-lg bg-red-50">
+                  <Users className="h-6 w-6" style={{ color: '#CC0000' }} />
+                </div>
+                <span>User & Role Management</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Administrator Access</Label>
+                <p className="text-sm text-gray-600 mb-4">
+                  Manage user accounts, roles, and permissions for the AdvancementAI application suite.
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/apps/user-management'}
+                  className="w-full"
+                  style={{ backgroundColor: '#CC0000' }}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Open User Management Console
+                </Button>
+              </div>
+              
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="font-medium mb-2">Administrative Functions</div>
+                  <ul className="text-sm space-y-1 list-disc list-inside">
+                    <li>Create and manage user accounts</li>
+                    <li>Assign and remove user roles</li>
+                    <li>Configure application permissions</li>
+                    <li>Manage role-based access control</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Privacy & Compliance */}
 <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
