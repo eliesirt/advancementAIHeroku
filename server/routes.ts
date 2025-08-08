@@ -7,6 +7,8 @@ import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { seedInitialData } from "./seedData";
 
 // Helper function to get current matching threshold
 async function getMatchingThreshold(): Promise<number> {
@@ -22,11 +24,48 @@ async function getMatchingThreshold(): Promise<number> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
 
-  // Get current user (simplified for demo)
-  app.get("/api/user", async (req, res) => {
+  // Seed initial data
+  try {
+    await seedInitialData();
+  } catch (error) {
+    console.warn("Failed to seed initial data:", error);
+  }
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(1); // Default user
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserWithRoles(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Applications endpoint
+  app.get('/api/applications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const applications = await storage.getUserApplications(userId);
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  // Get current user (legacy endpoint - deprecated)
+  app.get("/api/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -37,9 +76,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get dashboard stats
-  app.get("/api/stats", async (req, res) => {
+  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = 1; // Default user
+      const userId = req.user.claims.sub;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -62,9 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get recent interactions
-  app.get("/api/interactions/recent", async (req, res) => {
+  app.get("/api/interactions/recent", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = 1; // Default user
+      const userId = req.user.claims.sub;
       const limit = parseInt(req.query.limit as string) || 10;
       const interactions = await storage.getRecentInteractions(userId, limit);
       res.json(interactions);
@@ -74,9 +113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all interactions for a user
-  app.get("/api/interactions", async (req, res) => {
+  app.get("/api/interactions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = 1; // Default user
+      const userId = req.user.claims.sub;
       const interactions = await storage.getInteractionsByUser(userId);
       res.json(interactions);
     } catch (error) {
@@ -85,9 +124,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get draft interactions
-  app.get("/api/interactions/drafts", async (req, res) => {
+  app.get("/api/interactions/drafts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = 1; // Default user
+      const userId = req.user.claims.sub;
       const drafts = await storage.getDraftInteractions(userId);
       res.json(drafts);
     } catch (error) {
@@ -1413,7 +1452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/user/profile", async (req, res) => {
     try {
       const { firstName, lastName, email, buid } = req.body;
-      const userId = 1; // For now, using default user
+      const userId = req.user.claims.sub;
 
       const updatedUser = await storage.updateUser(userId, {
         firstName,

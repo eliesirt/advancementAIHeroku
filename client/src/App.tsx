@@ -6,104 +6,45 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Pages
-import HomePage from "@/pages/home";
+import Landing from "@/pages/landing";
+import Launcher from "@/pages/launcher";
+import InteractionsApp from "@/pages/interactions-app";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
-// Components
-import { BottomNavigation } from "@/components/bottom-navigation";
-import { DrivingMode } from "@/components/driving-mode";
-
 // Hooks
-import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 function AppContent() {
-  const [location, navigate] = useLocation();
-  const [isDrivingMode, setIsDrivingMode] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Get current page from location
-  const currentPage = location === "/" ? "home" : location.replace("/", "");
-
-
-
-  const handleNavigate = (page: string) => {
-    if (page === "home") {
-      navigate("/");
-    } else {
-      navigate(`/${page}`);
-    }
-  };
-
-  const handleDrivingModeToggle = () => {
-    setIsDrivingMode(!isDrivingMode);
-  };
-
-  const handleStartRecording = () => {
-    setIsRecording(true);
-  };
-
-  const handleStopRecording = () => {
-    setIsRecording(false);
-  };
-
-  const handleSubmitInteraction = () => {
-    // This would be handled by the individual page components
-    console.log("Submit interaction from driving mode");
-  };
-
-  const handleShowSettings = () => {
-    setIsDrivingMode(false);
-    navigate("/settings");
-  };
-
-  // Prevent scrolling when driving mode is active
-  useEffect(() => {
-    if (isDrivingMode) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isDrivingMode]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="pb-16"> {/* Account for bottom navigation */}
-        <Switch>
-          <Route path="/" component={() => 
-            <HomePage 
-              onDrivingModeToggle={handleDrivingModeToggle}
-              isDrivingMode={isDrivingMode}
-            />
-          } />
-          <Route path="/settings" component={SettingsPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </div>
-
-      {/* Bottom Navigation */}
-      {!isDrivingMode && (
-        <BottomNavigation
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-        />
-      )}
-
-      {/* Driving Mode Overlay */}
-      <DrivingMode
-        isActive={isDrivingMode}
-        onExit={() => setIsDrivingMode(false)}
-        onStartRecording={handleStartRecording}
-        onStopRecording={handleStopRecording}
-        onSubmitInteraction={handleSubmitInteraction}
-        onShowSettings={handleShowSettings}
-      />
-
+      <Switch>
+        {isLoading || !isAuthenticated ? (
+          <Route path="/" component={Landing} />
+        ) : (
+          <>
+            <Route path="/" component={Launcher} />
+            <Route path="/apps/interactions" component={InteractionsApp} />
+            <Route path="/apps/settings" component={SettingsPage} />
+            <Route path="/settings" component={SettingsPage} />
+          </>
+        )}
+        <Route component={NotFound} />
+      </Switch>
+      
       {/* Global Toast Notifications */}
       <Toaster />
     </div>
