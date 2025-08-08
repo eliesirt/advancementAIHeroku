@@ -442,15 +442,34 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <AppNavigation appName="Settings" />
 
-      <main className="p-4 space-y-6">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-gray-50 to-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center w-16 h-16 rounded-xl" style={{ backgroundColor: '#CC0000' }}>
+                <SettingsIcon className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">Application Settings</h1>
+            <p className="text-lg text-gray-600">
+              Configure your AdvancementAI preferences and system settings to optimize your advancement workflow
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* User Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <User className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>User Profile</span>
             </CardTitle>
           </CardHeader>
@@ -510,10 +529,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* Voice Recording Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Mic className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Mic className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>Voice Recording</span>
             </CardTitle>
           </CardHeader>
@@ -605,10 +626,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* Driving Mode Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Car className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Car className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>Driving Mode</span>
             </CardTitle>
           </CardHeader>
@@ -661,10 +684,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* BBEC Integration Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Database className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Database className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>Blackbaud CRM Integration</span>
             </CardTitle>
           </CardHeader>
@@ -918,10 +943,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* AI Prompt Customization */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Bot className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Bot className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>AI Prompt Customization</span>
             </CardTitle>
           </CardHeader>
@@ -992,10 +1019,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* Privacy & Compliance */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5" />
+<Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Shield className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>Privacy & Compliance</span>
             </CardTitle>
           </CardHeader>
@@ -1037,10 +1066,12 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* App Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Smartphone className="h-5 w-5" />
+        <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-red-50">
+                <Smartphone className="h-6 w-6" style={{ color: '#CC0000' }} />
+              </div>
               <span>App Information</span>
             </CardTitle>
           </CardHeader>
