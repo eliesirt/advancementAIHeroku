@@ -101,6 +101,10 @@ export interface IStorage {
   createVoiceRecording(recording: InsertVoiceRecording): Promise<VoiceRecording>;
   updateVoiceRecording(id: number, updates: Partial<InsertVoiceRecording>): Promise<VoiceRecording>;
   getUnprocessedRecordings(userId: string): Promise<VoiceRecording[]>;
+
+  // Admin methods
+  getAllUsersWithRoles(): Promise<UserWithRoles[]>;
+  getAllApplications(): Promise<Application[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -707,13 +711,18 @@ export class MemStorage implements IStorage {
     };
   }
 
-  // Admin methods (Not implemented in MemStorage, but interface is defined)
+  // Admin methods
   async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
-    throw new Error("Method not implemented.");
+    const allUsers = Array.from(this.users.values());
+    return Promise.all(allUsers.map(async (user) => {
+      const userRolesList = await this.getUserRoles(user.id);
+      const userApplications = await this.getUserApplications(user.id);
+      return { ...user, roles: userRolesList, applications: userApplications };
+    }));
   }
 
   async getAllApplications(): Promise<Application[]> {
-    throw new Error("Method not implemented.");
+    return Array.from(this.applications.values()).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
 }
 
