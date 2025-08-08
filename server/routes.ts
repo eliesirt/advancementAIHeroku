@@ -1700,6 +1700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return { ...role, applications };
         })
       );
+      console.log('Role applications response:', JSON.stringify(rolesWithApps, null, 2));
       res.json(rolesWithApps);
     } catch (error) {
       res.status(500).json({ message: "Failed to get role applications", error: (error as Error).message });

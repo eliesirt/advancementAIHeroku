@@ -83,7 +83,7 @@ export default function UserManagementPage() {
   });
 
   const { data: roleApplications = [] } = useQuery<RoleWithApplications[]>({
-    queryKey: ["/api/admin/role-applications"],
+    queryKey: ["role-applications"],
   });
 
   // User mutations
@@ -197,7 +197,7 @@ export default function UserManagementPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['role-applications'] });
+      queryClient.invalidateQueries({ queryKey: ["role-applications"] });
       toast({
         title: "Success",
         description: "Role permissions updated successfully",
@@ -248,10 +248,11 @@ export default function UserManagementPage() {
   };
 
   const getRolePermissions = (roleId: number, applicationId: number): string[] => {
-    const roleApp = roleApplications.find(ra => 
-      ra.applications?.some(app => app.applicationId === applicationId && app.roleId === roleId)
-    );
-    return roleApp?.applications?.find(app => app.applicationId === applicationId)?.permissions || [];
+    const role = roleApplications.find(r => r.id === roleId);
+    if (!role || !role.applications) return [];
+    
+    const app = role.applications.find(a => a.applicationId === applicationId);
+    return app?.permissions || [];
   };
 
   const handlePermissionChange = (roleId: number, applicationId: number, permission: string, checked: boolean) => {
