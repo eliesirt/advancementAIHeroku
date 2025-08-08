@@ -40,17 +40,28 @@ export interface IStorage {
   // User methods (updated for string IDs and authentication)
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(userData: Partial<User>): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>; // For Replit Auth
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, updates: Partial<InsertUser>): Promise<User>;
-  getUserWithRoles(id: string): Promise<UserWithRoles | undefined>;
+  updateUser(id: string, updates: Partial<User>): Promise<User>;
+  getUserWithRoles(id: string): Promise<(User & { roles?: Role[] }) | undefined>;
+  getAllUsersWithRoles(): Promise<(User & { roles?: Role[] })[]>;
+  getUserApplications(userId: string): Promise<Application[]>;
 
   // Role methods
   getRoles(): Promise<Role[]>;
-  getRole(id: number): Promise<Role | undefined>;
-  createRole(role: InsertRole): Promise<Role>;
-  updateRole(id: number, updates: Partial<InsertRole>): Promise<Role>;
+  createRole(roleData: Partial<Role>): Promise<Role>;
+  updateRole(id: number, updates: Partial<Role>): Promise<Role>;
   deleteRole(id: number): Promise<boolean>;
+  getUserRoles(userId: string): Promise<Role[]>;
+
+  // User role assignment methods
+  assignUserRole(userId: string, roleId: number, assignedBy?: string): Promise<UserRole>;
+  removeUserRole(userId: string, roleId: number): Promise<boolean>;
+
+  // Role application methods
+  assignRoleApplication(roleId: number, applicationId: number, permissions: string[]): Promise<RoleApplication>;
+  removeRoleApplication(roleId: number, applicationId: number): Promise<boolean>;
+  getRoleApplications(roleId: number): Promise<RoleApplication[]>;
 
   // Application methods
   getApplications(): Promise<Application[]>;
@@ -58,17 +69,6 @@ export interface IStorage {
   createApplication(app: InsertApplication): Promise<Application>;
   updateApplication(id: number, updates: Partial<InsertApplication>): Promise<Application>;
   deleteApplication(id: number): Promise<boolean>;
-  getUserApplications(userId: string): Promise<ApplicationWithPermissions[]>;
-
-  // User role assignment methods
-  assignUserRole(userId: string, roleId: number, assignedBy?: string): Promise<UserRole>;
-  removeUserRole(userId: string, roleId: number): Promise<boolean>;
-  getUserRoles(userId: string): Promise<Role[]>;
-
-  // Role application methods
-  assignRoleApplication(roleId: number, applicationId: number, permissions: string[]): Promise<RoleApplication>;
-  removeRoleApplication(roleId: number, applicationId: number): Promise<boolean>;
-  getRoleApplications(roleId: number): Promise<RoleApplication[]>;
 
   // Interaction methods (updated for string user IDs)
   getInteraction(id: number): Promise<Interaction | undefined>;
@@ -226,6 +226,26 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.username === username);
   }
 
+  async createUser(userData: Partial<User>): Promise<User> {
+    const id = userData.id || `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newUserData: User = {
+      id,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      username: userData.username || userData.email || null,
+      password: userData.password || null,
+      buid: userData.buid || null,
+      bbecGuid: userData.bbecGuid || null,
+      isActive: userData.isActive !== undefined ? userData.isActive : true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(id, newUserData);
+    return newUserData;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const existingUser = userData.id ? this.users.get(userData.id) : undefined;
 
@@ -259,28 +279,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = insertUser.id || `user-${Date.now()}`;
-    const user: User = {
-      ...insertUser,
-      id,
-      email: insertUser.email ?? null,
-      firstName: insertUser.firstName ?? null,
-      lastName: insertUser.lastName ?? null,
-      profileImageUrl: insertUser.profileImageUrl ?? null,
-      username: insertUser.username ?? null,
-      password: insertUser.password ?? null,
-      buid: insertUser.buid ?? null,
-      bbecGuid: insertUser.bbecGuid ?? null,
-      isActive: insertUser.isActive ?? true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
     const existingUser = this.users.get(id);
     if (!existingUser) {
       throw new Error(`User with id ${id} not found`);
@@ -439,7 +438,7 @@ export class MemStorage implements IStorage {
       audioData: insertRecording.audioData || null,
       duration: insertRecording.duration || null,
       processed: insertRecording.processed || null,
-      interactionId: insertRecording.interactionId || null
+      interactionId: insertInteraction.interactionId || null
     };
     this.voiceRecordings.set(id, recording);
     return recording;
@@ -470,31 +469,29 @@ export class MemStorage implements IStorage {
     return Array.from(this.roles.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async getRole(id: number): Promise<Role | undefined> {
-    return this.roles.get(id);
-  }
-
-  async createRole(insertRole: InsertRole): Promise<Role> {
+  async createRole(roleData: Partial<Role>): Promise<Role> {
     const id = this.currentRoleId++;
-    const role: Role = {
-      ...insertRole,
+    const newRole: Role = {
       id,
-      description: insertRole.description ?? null,
-      isSystemRole: insertRole.isSystemRole ?? false,
+      name: roleData.name || '',
+      description: roleData.description || null,
+      isSystemRole: roleData.isSystemRole ?? false,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
-    this.roles.set(id, role);
-    return role;
+    this.roles.set(id, newRole);
+    return newRole;
   }
 
-  async updateRole(id: number, updates: Partial<InsertRole>): Promise<Role> {
-    const existingRole = this.roles.get(id);
-    if (!existingRole) {
+  async updateRole(id: number, updates: Partial<Role>): Promise<Role> {
+    const role = this.roles.get(id);
+    if (!role) {
       throw new Error(`Role with id ${id} not found`);
     }
     const updatedRole: Role = {
-      ...existingRole,
+      ...role,
       ...updates,
+      updatedAt: new Date(),
     };
     this.roles.set(id, updatedRole);
     return updatedRole;
@@ -739,6 +736,25 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async createUser(userData: Partial<User>): Promise<User> {
+    const id = userData.id || `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newUserData = {
+      id,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      username: userData.username || userData.email || null,
+      password: userData.password || null,
+      buid: userData.buid || null,
+      bbecGuid: userData.bbecGuid || null,
+      isActive: userData.isActive !== undefined ? userData.isActive : true,
+    };
+
+    const result = await this.db.insert(users).values(newUserData).returning();
+    return result[0];
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -754,15 +770,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: string, updates: Partial<User>): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
@@ -965,23 +973,28 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(roles).orderBy(roles.name);
   }
 
-  async getRole(id: number): Promise<Role | undefined> {
-    const [role] = await db.select().from(roles).where(eq(roles.id, id));
-    return role || undefined;
+  async createRole(roleData: Partial<Role>): Promise<Role> {
+    const newRoleData = {
+      name: roleData.name || '',
+      description: roleData.description || null,
+    };
+
+    const result = await this.db.insert(roles).values(newRoleData).returning();
+    return result[0];
   }
 
-  async createRole(insertRole: InsertRole): Promise<Role> {
-    const [role] = await db.insert(roles).values(insertRole).returning();
-    return role;
-  }
-
-  async updateRole(id: number, updates: Partial<InsertRole>): Promise<Role> {
-    const [role] = await db
+  async updateRole(id: number, updates: Partial<Role>): Promise<Role> {
+    const result = await this.db
       .update(roles)
-      .set(updates)
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(roles.id, id))
       .returning();
-    return role;
+
+    if (result.length === 0) {
+      throw new Error(`Role with id ${id} not found`);
+    }
+
+    return result[0];
   }
 
   async deleteRole(id: number): Promise<boolean> {
