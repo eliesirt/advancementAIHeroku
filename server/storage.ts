@@ -438,7 +438,7 @@ export class MemStorage implements IStorage {
       audioData: insertRecording.audioData || null,
       duration: insertRecording.duration || null,
       processed: insertRecording.processed || null,
-      interactionId: insertInteraction.interactionId || null
+      interactionId: insertRecording.interactionId || null
     };
     this.voiceRecordings.set(id, recording);
     return recording;
@@ -751,7 +751,7 @@ export class DatabaseStorage implements IStorage {
       isActive: userData.isActive !== undefined ? userData.isActive : true,
     };
 
-    const result = await this.db.insert(users).values(newUserData).returning();
+    const result = await db.insert(users).values(newUserData).returning();
     return result[0];
   }
 
@@ -979,12 +979,12 @@ export class DatabaseStorage implements IStorage {
       description: roleData.description || null,
     };
 
-    const result = await this.db.insert(roles).values(newRoleData).returning();
+    const result = await db.insert(roles).values(newRoleData).returning();
     return result[0];
   }
 
   async updateRole(id: number, updates: Partial<Role>): Promise<Role> {
-    const result = await this.db
+    const result = await db
       .update(roles)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(roles.id, id))
