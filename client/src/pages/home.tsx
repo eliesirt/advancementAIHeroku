@@ -564,7 +564,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
               >
                 <div className="bg-white rounded-sm p-2 w-24 h-12">
                   <img 
-                    src="https://www.bu.edu/brand/files/2019/06/master_logo.gif"
+                    src="/bu-logo.png"
                     alt="Boston University Logo"
                     className="w-full h-full object-contain"
                   />

@@ -39,9 +39,11 @@ export default function Launcher() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg" style={{ backgroundColor: '#CC0000' }}>
-                <Brain className="h-7 w-7 text-white" />
-              </div>
+              <img 
+                src="/bu-logo.png" 
+                alt="Boston University Logo" 
+                className="h-12 w-auto"
+              />
               <div>
                 <h1 className="text-3xl font-bold" style={{ color: '#CC0000' }}>AdvancementAI</h1>
                 <p className="text-sm text-gray-600 font-medium">Boston University Advancement Technology Suite</p>
