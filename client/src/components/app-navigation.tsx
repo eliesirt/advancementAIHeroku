@@ -32,6 +32,10 @@ export function AppNavigation({ appName }: AppNavigationProps) {
               src="/bu-logo.png" 
               alt="Boston University Logo" 
               className="h-6 w-auto"
+              onError={(e) => {
+                console.error('Failed to load BU logo');
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <h1 className="text-lg font-semibold text-gray-900">{appName}</h1>
           </div>

@@ -567,6 +567,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
                     src="/bu-logo.png"
                     alt="Boston University Logo"
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error('Failed to load BU logo');
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               </Button>
