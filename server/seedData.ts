@@ -107,6 +107,21 @@ export async function seedInitialData() {
       console.log("Note: Could not assign admin role to elsirt@gmail.com - user may not exist yet:", error);
     }
 
+    // Update existing Interaction Manager application name if it exists
+    try {
+      const existingApps = await storage.getApplications();
+      const interactionApp = existingApps.find(app => app.name === "interaction-manager");
+      
+      if (interactionApp && interactionApp.displayName === "Interaction Manager") {
+        await storage.updateApplication(interactionApp.id, {
+          displayName: "interactionAI"
+        });
+        console.log("Updated Interaction Manager display name to interactionAI");
+      }
+    } catch (error) {
+      console.log("Note: Could not update application display name:", error);
+    }
+
     console.log("Initial data seeding completed successfully");
   } catch (error) {
     console.error("Error seeding initial data:", error);
