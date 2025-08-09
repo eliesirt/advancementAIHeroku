@@ -39,9 +39,9 @@ export default function Launcher() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <img 
-                src="/bu-logo.png" 
-                alt="Boston University Logo" 
+              <img
+                src="/bu-logo.svg"
+                alt="Boston University Logo"
                 className="h-12 w-auto"
               />
               <div>
@@ -52,16 +52,16 @@ export default function Launcher() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <div className="text-sm font-medium text-gray-900">
-                  {user?.firstName && user?.lastName 
-                    ? `${user.firstName} ${user.lastName}` 
+                  {user?.firstName && user?.lastName
+                    ? `${user.firstName} ${user.lastName}`
                     : user?.email
                   }
                 </div>
                 <div className="text-xs text-gray-500">{user?.email}</div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleLogout}
                 className="flex items-center space-x-2 border-gray-300 hover:bg-gray-50"
               >
@@ -81,9 +81,9 @@ export default function Launcher() {
               AI-Powered Advancement Tools
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Empowering fundraising excellence through intelligent technology that supports 
-              <span className="font-semibold"> outstanding engagement</span>, 
-              <span className="font-semibold"> strategic insights</span>, and 
+              Empowering fundraising excellence through intelligent technology that supports
+              <span className="font-semibold"> outstanding engagement</span>,
+              <span className="font-semibold"> strategic insights</span>, and
               <span className="font-semibold"> meaningful connections</span>.
             </p>
             <div className="flex justify-center items-center space-x-8 text-sm text-gray-500">
@@ -140,7 +140,7 @@ export default function Launcher() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <Button 
+                <Button
                   onClick={() => handleLaunchApp(app.route)}
                   className="w-full font-semibold text-white transition-all duration-200 hover:shadow-lg"
                   style={{ backgroundColor: '#CC0000' }}

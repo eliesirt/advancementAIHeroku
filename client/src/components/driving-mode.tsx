@@ -94,8 +94,8 @@ export function DrivingMode({
       <div className="p-6 text-center">
         <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <div className="bg-white rounded-sm p-2 w-16 h-8">
-            <img 
-              src="/bu-logo.png"
+            <img
+              src="/bu-logo.svg"
               alt="Boston University Logo"
               className="w-full h-full object-contain"
             />

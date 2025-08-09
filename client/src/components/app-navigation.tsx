@@ -29,9 +29,9 @@ export function AppNavigation({ appName }: AppNavigationProps) {
           <div className="h-6 w-px bg-gray-300" />
           <div className="flex items-center space-x-3">
             <img 
-              src="/bu-logo.png" 
+              src="/bu-logo.svg" 
               alt="Boston University Logo" 
-              className="h-6 w-auto"
+              className="h-8 w-8"
             />
             <h1 className="text-lg font-semibold text-gray-900">{appName}</h1>
           </div>
