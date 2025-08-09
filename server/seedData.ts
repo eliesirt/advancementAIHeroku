@@ -29,7 +29,7 @@ export async function seedInitialData() {
     if (applications.length === 0) {
       const interactionApp = await storage.createApplication({
         name: "interaction-manager",
-        displayName: "Interaction Manager",
+        displayName: "interactionAI",
         description: "Manage prospect interactions and CRM data",
         route: "/apps/interactions",
         icon: "users",
