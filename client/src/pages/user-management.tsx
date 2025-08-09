@@ -83,7 +83,7 @@ export default function UserManagementPage() {
   });
 
   const { data: roleApplications = [] } = useQuery<RoleWithApplications[]>({
-    queryKey: ["role-applications"],
+    queryKey: ["/api/admin/role-applications"],
   });
 
   // User mutations
@@ -197,7 +197,7 @@ export default function UserManagementPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["role-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/role-applications"] });
       toast({
         title: "Success",
         description: "Role permissions updated successfully",
