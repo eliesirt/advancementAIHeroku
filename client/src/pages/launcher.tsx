@@ -43,10 +43,6 @@ export default function Launcher() {
                 src="/bu-logo.png" 
                 alt="Boston University Logo" 
                 className="h-12 w-auto"
-                onError={(e) => {
-                  console.error('Failed to load BU logo');
-                  e.currentTarget.outerHTML = '<div class="h-12 w-20 bg-red-600 text-white text-sm flex items-center justify-center rounded font-bold">BU</div>';
-                }}
               />
               <div>
                 <h1 className="text-3xl font-bold" style={{ color: '#CC0000' }}>AdvancementAI</h1>

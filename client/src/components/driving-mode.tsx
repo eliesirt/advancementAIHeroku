@@ -98,10 +98,6 @@ export function DrivingMode({
               src="/bu-logo.png"
               alt="Boston University Logo"
               className="w-full h-full object-contain"
-              onError={(e) => {
-                console.error('Failed to load BU logo');
-                e.currentTarget.outerHTML = '<div class="w-full h-full bg-red-600 text-white flex items-center justify-center rounded font-bold">BU</div>';
-              }}
             />
           </div>
         </div>
