@@ -25,7 +25,7 @@ export function DrivingMode({
   const [voiceCommands, setVoiceCommands] = useState<VoiceCommandManager | null>(null);
   const [recognizedCommand, setRecognizedCommand] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
-  
+
   const { speak, stop: stopSpeech } = useSpeechSynthesis({
     rate: 0.9,
     volume: 0.8
@@ -100,7 +100,7 @@ export function DrivingMode({
               className="w-full h-full object-contain"
               onError={(e) => {
                 console.error('Failed to load BU logo');
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.outerHTML = '<div class="w-full h-full bg-red-600 text-white flex items-center justify-center rounded font-bold">BU</div>';
               }}
             />
           </div>
@@ -119,7 +119,7 @@ export function DrivingMode({
                 {isListening ? 'Listening for commands...' : 'Voice commands disabled'}
               </span>
             </div>
-            
+
             {recognizedCommand && (
               <div className="bg-white/20 rounded-lg p-3 mb-4">
                 <p className="text-sm opacity-75">Last command:</p>
