@@ -40,7 +40,7 @@ export default function InteractionsApp() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppNavigation appName="Interaction Manager" />
+      <AppNavigation appName="interactionAI" />
       <HomePage onDrivingModeToggle={() => {}} isDrivingMode={false} />
     </div>
   );
