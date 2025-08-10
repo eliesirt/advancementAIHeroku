@@ -1726,6 +1726,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Prospect Management API Routes
+  
+  // Get prospects for the logged-in manager
+  app.get('/api/prospects', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const prospects = await storage.getProspectsByManager(userId);
+      res.json(prospects);
+    } catch (error) {
+      console.error("Error fetching prospects:", error);
+      res.status(500).json({ message: "Failed to fetch prospects", error: (error as Error).message });
+    }
+  });
+
+  // Get specific prospect with full details
+  app.get('/api/prospects/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const prospect = await storage.getProspect(parseInt(id));
+      
+      if (!prospect) {
+        return res.status(404).json({ message: "Prospect not found" });
+      }
+
+      // Check if user has access to this prospect
+      if (prospect.prospectManagerId !== userId && prospect.primaryProspectManagerId !== userId) {
+        return res.status(403).json({ message: "Access denied to this prospect" });
+      }
+
+      res.json(prospect);
+    } catch (error) {
+      console.error("Error fetching prospect:", error);
+      res.status(500).json({ message: "Failed to fetch prospect", error: (error as Error).message });
+    }
+  });
+
+  // Refresh all prospect data for the logged-in manager
+  app.post('/api/prospects/refresh-all', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.refreshAllProspectData(userId);
+      
+      // Return updated prospects
+      const prospects = await storage.getProspectsByManager(userId);
+      res.json({ message: "All prospect data refreshed successfully", prospects });
+    } catch (error) {
+      console.error("Error refreshing prospect data:", error);
+      res.status(500).json({ message: "Failed to refresh prospect data", error: (error as Error).message });
+    }
+  });
+
+  // Refresh specific prospect data
+  app.post('/api/prospects/:id/refresh', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const prospect = await storage.getProspect(parseInt(id));
+      
+      if (!prospect) {
+        return res.status(404).json({ message: "Prospect not found" });
+      }
+
+      // Check if user has access to this prospect
+      if (prospect.prospectManagerId !== userId && prospect.primaryProspectManagerId !== userId) {
+        return res.status(403).json({ message: "Access denied to this prospect" });
+      }
+
+      const updatedProspect = await storage.refreshProspectData(parseInt(id));
+      res.json({ message: "Prospect data refreshed successfully", prospect: updatedProspect });
+    } catch (error) {
+      console.error("Error refreshing prospect:", error);
+      res.status(500).json({ message: "Failed to refresh prospect", error: (error as Error).message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

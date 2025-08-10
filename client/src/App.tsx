@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import HomePage from "@/pages/home";
 import SettingsPage from "@/pages/settings";
 import InteractionsApp from "@/pages/interactions-app";
+import PortfolioPage from "@/pages/portfolio";
 import UserManagementPage from "@/pages/user-management";
 import Launcher from "@/pages/launcher";
 import Landing from "@/pages/landing";
@@ -40,6 +41,7 @@ function AppContent() {
           <>
             <Route path="/" component={Launcher} />
             <Route path="/apps/interactions" component={InteractionsApp} />
+            <Route path="/apps/portfolio" component={PortfolioPage} />
             <Route path="/apps/settings" component={SettingsPage} />
             <Route path="/apps/user-management" component={UserManagementPage} />
             <Route path="/apps" component={Launcher} />

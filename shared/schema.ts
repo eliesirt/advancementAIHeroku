@@ -146,6 +146,98 @@ export const aiPromptSettings = pgTable("ai_prompt_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Prospects table for portfolio management
+export const prospects = pgTable("prospects", {
+  id: serial("id").primaryKey(),
+  buid: text("buid").unique().notNull(), // Blackbaud Unique ID
+  bbecGuid: text("bbec_guid").unique(), // Blackbaud GUID
+  constituentGuid: text("constituent_guid").unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  address: jsonb("address"), // Full address structure
+  preferredName: text("preferred_name"),
+  
+  // Prospect management fields
+  prospectManagerId: varchar("prospect_manager_id").references(() => users.id), // Assigned prospect manager
+  primaryProspectManagerId: varchar("primary_prospect_manager_id").references(() => users.id), // Primary manager
+  prospectRating: text("prospect_rating"), // Major, Principal, Leadership, etc.
+  capacity: integer("capacity"), // Estimated giving capacity
+  inclination: text("inclination"), // High, Medium, Low
+  stage: text("stage").notNull().default('Identification'), // Cultivation stage
+  
+  // Personal information
+  birthDate: timestamp("birth_date"),
+  spouse: text("spouse"),
+  occupation: text("occupation"),
+  employer: text("employer"),
+  linkedInUrl: text("linkedin_url"),
+  bio: text("bio"),
+  
+  // Giving history
+  lifetimeGiving: integer("lifetime_giving").default(0),
+  currentYearGiving: integer("current_year_giving").default(0),
+  priorYearGiving: integer("prior_year_giving").default(0),
+  largestGift: integer("largest_gift").default(0),
+  firstGiftDate: timestamp("first_gift_date"),
+  lastGiftDate: timestamp("last_gift_date"),
+  
+  // AI-generated fields
+  aiSummary: text("ai_summary"), // AI-generated prospect summary
+  aiNextActions: text("ai_next_actions"), // AI-suggested next steps
+  affinityTags: text("affinity_tags").array().default([]),
+  interests: text("interests").array().default([]),
+  
+  // Engagement tracking
+  lastContactDate: timestamp("last_contact_date"),
+  nextContactDate: timestamp("next_contact_date"),
+  totalInteractions: integer("total_interactions").default(0),
+  
+  // System fields
+  isActive: boolean("is_active").default(true),
+  lastSyncedAt: timestamp("last_synced_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Prospect relationships (spouse, family, etc.)
+export const prospectRelationships = pgTable("prospect_relationships", {
+  id: serial("id").primaryKey(),
+  prospectId: integer("prospect_id").notNull().references(() => prospects.id, { onDelete: "cascade" }),
+  relatedProspectId: integer("related_prospect_id").references(() => prospects.id),
+  relationshipType: text("relationship_type").notNull(), // Spouse, Child, Parent, Sibling, etc.
+  relationshipName: text("relationship_name"), // For non-prospect relationships
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Prospect event attendance
+export const prospectEvents = pgTable("prospect_events", {
+  id: serial("id").primaryKey(),
+  prospectId: integer("prospect_id").notNull().references(() => prospects.id, { onDelete: "cascade" }),
+  eventName: text("event_name").notNull(),
+  eventDate: timestamp("event_date").notNull(),
+  eventType: text("event_type"), // Reception, Gala, Lecture, etc.
+  attendanceStatus: text("attendance_status").notNull().default('Attended'), // Attended, Registered, No-Show
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Prospect badges/achievements
+export const prospectBadges = pgTable("prospect_badges", {
+  id: serial("id").primaryKey(),
+  prospectId: integer("prospect_id").notNull().references(() => prospects.id, { onDelete: "cascade" }),
+  badgeType: text("badge_type").notNull(), // donor_milestone, event_attendance, engagement, etc.
+  badgeName: text("badge_name").notNull(),
+  badgeDescription: text("badge_description"),
+  badgeIcon: text("badge_icon"), // Icon class or emoji
+  badgeColor: text("badge_color").default('blue'),
+  achievedAt: timestamp("achieved_at").defaultNow().notNull(),
+  isVisible: boolean("is_visible").default(true),
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -189,6 +281,45 @@ export const interactionsRelations = relations(interactions, ({ one }) => ({
   user: one(users, {
     fields: [interactions.userId],
     references: [users.id],
+  }),
+}));
+
+export const prospectsRelations = relations(prospects, ({ one, many }) => ({
+  prospectManager: one(users, {
+    fields: [prospects.prospectManagerId],
+    references: [users.id],
+  }),
+  primaryProspectManager: one(users, {
+    fields: [prospects.primaryProspectManagerId],
+    references: [users.id],
+  }),
+  relationships: many(prospectRelationships),
+  events: many(prospectEvents),
+  badges: many(prospectBadges),
+}));
+
+export const prospectRelationshipsRelations = relations(prospectRelationships, ({ one }) => ({
+  prospect: one(prospects, {
+    fields: [prospectRelationships.prospectId],
+    references: [prospects.id],
+  }),
+  relatedProspect: one(prospects, {
+    fields: [prospectRelationships.relatedProspectId],
+    references: [prospects.id],
+  }),
+}));
+
+export const prospectEventsRelations = relations(prospectEvents, ({ one }) => ({
+  prospect: one(prospects, {
+    fields: [prospectEvents.prospectId],
+    references: [prospects.id],
+  }),
+}));
+
+export const prospectBadgesRelations = relations(prospectBadges, ({ one }) => ({
+  prospect: one(prospects, {
+    fields: [prospectBadges.prospectId],
+    references: [prospects.id],
   }),
 }));
 
@@ -253,6 +384,27 @@ export const insertAiPromptSettingsSchema = createInsertSchema(aiPromptSettings)
   updatedAt: true,
 });
 
+export const insertProspectSchema = createInsertSchema(prospects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProspectRelationshipSchema = createInsertSchema(prospectRelationships).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProspectEventSchema = createInsertSchema(prospectEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProspectBadgeSchema = createInsertSchema(prospectBadges).omit({
+  id: true,
+  achievedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -275,6 +427,14 @@ export type AffinityTagSettings = typeof affinityTagSettings.$inferSelect;
 export type InsertAffinityTagSettings = z.infer<typeof insertAffinityTagSettingsSchema>;
 export type AiPromptSettings = typeof aiPromptSettings.$inferSelect;
 export type InsertAiPromptSettings = z.infer<typeof insertAiPromptSettingsSchema>;
+export type Prospect = typeof prospects.$inferSelect;
+export type InsertProspect = z.infer<typeof insertProspectSchema>;
+export type ProspectRelationship = typeof prospectRelationships.$inferSelect;
+export type InsertProspectRelationship = z.infer<typeof insertProspectRelationshipSchema>;
+export type ProspectEvent = typeof prospectEvents.$inferSelect;
+export type InsertProspectEvent = z.infer<typeof insertProspectEventSchema>;
+export type ProspectBadge = typeof prospectBadges.$inferSelect;
+export type InsertProspectBadge = z.infer<typeof insertProspectBadgeSchema>;
 
 // Extended types for UI
 export interface UserWithRoles extends User {
@@ -305,4 +465,59 @@ export interface ExtractedInteractionInfo {
   keyPoints: string[];
   suggestedAffinityTags: string[];
   prospectName: string;
+}
+
+// Extended prospect types for UI
+export interface ProspectWithDetails extends Prospect {
+  prospectManager?: User;
+  primaryProspectManager?: User;
+  relationships?: (ProspectRelationship & { relatedProspect?: Prospect })[];
+  events?: ProspectEvent[];
+  badges?: ProspectBadge[];
+  recentInteractions?: Interaction[];
+}
+
+export interface ProspectSummaryData {
+  interactionHistory: {
+    totalCount: number;
+    lastTwoYears: Interaction[];
+    lastContactDate?: Date;
+    averageContactsPerMonth: number;
+  };
+  donorHistory: {
+    lifetimeGiving: number;
+    currentYearGiving: number;
+    priorYearGiving: number;
+    largestGift: number;
+    firstGiftDate?: Date;
+    lastGiftDate?: Date;
+    totalGifts: number;
+    averageGiftSize: number;
+  };
+  eventAttendance: {
+    totalEvents: number;
+    lastTwoYears: ProspectEvent[];
+    favoriteEventTypes: string[];
+    attendanceRate: number;
+  };
+  relationships: {
+    spouse?: string;
+    family: ProspectRelationship[];
+    professionalConnections: ProspectRelationship[];
+  };
+  professional: {
+    currentPosition?: string;
+    employer?: string;
+    linkedInUrl?: string;
+    careerHighlights: string[];
+    industryExpertise: string[];
+  };
+  engagement: {
+    prospectRating: string;
+    capacity: number;
+    inclination: string;
+    stage: string;
+    affinityScore: number;
+    engagementTrend: string;
+  };
 }

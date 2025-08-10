@@ -49,6 +49,17 @@ export async function seedInitialData() {
         sortOrder: 2,
       });
 
+      const portfolioApp = await storage.createApplication({
+        name: "portfolio-ai",
+        displayName: "portfolioAI",
+        description: "AI-powered prospect portfolio management for fundraisers",
+        route: "/apps/portfolio",
+        icon: "briefcase",
+        color: "green",
+        isActive: true,
+        sortOrder: 3,
+      });
+
       const userManagementApp = await storage.createApplication({
         name: "user-management",
         displayName: "User Management",
@@ -57,12 +68,13 @@ export async function seedInitialData() {
         icon: "users",
         color: "red",
         isActive: true,
-        sortOrder: 3,
+        sortOrder: 4,
       });
 
       console.log("Created default applications:", { 
         interactionApp: interactionApp.id, 
         settingsApp: settingsApp.id,
+        portfolioApp: portfolioApp.id,
         userManagementApp: userManagementApp.id
       });
 
@@ -73,15 +85,17 @@ export async function seedInitialData() {
       if (adminRole) {
         await storage.assignRoleApplication(adminRole.id, interactionApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, settingsApp.id, ["read", "write", "admin"]);
+        await storage.assignRoleApplication(adminRole.id, portfolioApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, userManagementApp.id, ["read", "write", "admin"]);
         console.log("Granted admin role access to all applications");
       }
 
-      // Grant user role access to interaction app
+      // Grant user role access to interaction and portfolio apps
       const userRole = adminRoles.find(r => r.name === "User");
       if (userRole) {
         await storage.assignRoleApplication(userRole.id, interactionApp.id, ["read", "write"]);
-        console.log("Granted user role access to interaction app");
+        await storage.assignRoleApplication(userRole.id, portfolioApp.id, ["read", "write"]);
+        console.log("Granted user role access to interaction and portfolio apps");
       }
     }
 
@@ -120,6 +134,95 @@ export async function seedInitialData() {
       }
     } catch (error) {
       console.log("Note: Could not update application display name:", error);
+    }
+
+    // Seed sample prospect data for demonstration
+    try {
+      const existingProspects = await storage.getProspects();
+      if (existingProspects.length === 0) {
+        const sampleProspects = [
+          {
+            buid: "BUID001",
+            bbecGuid: "BBEC-GUID-001",
+            firstName: "John",
+            lastName: "Smith",
+            fullName: "John Smith",
+            email: "john.smith@example.com",
+            phone: "(617) 555-0101",
+            prospectManagerId: "42195145", // elsirt@gmail.com's ID
+            prospectRating: "Major",
+            capacity: 500000,
+            inclination: "High",
+            stage: "Cultivation",
+            occupation: "CEO",
+            employer: "TechCorp Inc.",
+            lifetimeGiving: 125000,
+            currentYearGiving: 25000,
+            priorYearGiving: 30000,
+            largestGift: 50000,
+            lastContactDate: new Date('2024-12-15'),
+            totalInteractions: 18,
+            affinityTags: ["Technology", "Alumni", "Leadership"],
+            interests: ["Innovation", "Entrepreneurship", "Education"]
+          },
+          {
+            buid: "BUID002", 
+            bbecGuid: "BBEC-GUID-002",
+            firstName: "Sarah",
+            lastName: "Johnson",
+            fullName: "Sarah Johnson",
+            email: "sarah.johnson@example.com",
+            phone: "(617) 555-0102",
+            prospectManagerId: "42195145",
+            prospectRating: "Principal",
+            capacity: 250000,
+            inclination: "Medium",
+            stage: "Identification",
+            occupation: "Managing Director",
+            employer: "Financial Partners LLC",
+            lifetimeGiving: 45000,
+            currentYearGiving: 15000,
+            priorYearGiving: 10000,
+            largestGift: 20000,
+            lastContactDate: new Date('2025-01-05'),
+            totalInteractions: 12,
+            affinityTags: ["Finance", "Women's Leadership"],
+            interests: ["Economic Development", "Mentorship"]
+          },
+          {
+            buid: "BUID003",
+            bbecGuid: "BBEC-GUID-003", 
+            firstName: "Michael",
+            lastName: "Chen",
+            fullName: "Michael Chen",
+            email: "michael.chen@example.com",
+            phone: "(617) 555-0103",
+            prospectManagerId: "42195145",
+            prospectRating: "Leadership",
+            capacity: 1000000,
+            inclination: "High",
+            stage: "Stewardship",
+            occupation: "Founder & Chairman",
+            employer: "Chen Industries",
+            spouse: "Lisa Chen",
+            lifetimeGiving: 850000,
+            currentYearGiving: 100000,
+            priorYearGiving: 150000,
+            largestGift: 250000,
+            lastContactDate: new Date('2024-12-20'),
+            totalInteractions: 35,
+            affinityTags: ["Manufacturing", "Innovation", "Family Foundation"],
+            interests: ["STEM Education", "Sustainability", "Research"]
+          }
+        ];
+
+        for (const prospectData of sampleProspects) {
+          await storage.createProspect(prospectData);
+        }
+        console.log("Created sample prospect data");
+      }
+    } catch (error) {
+      console.log("Note: Could not create sample prospect data:", error);
     }
 
     console.log("Initial data seeding completed successfully");

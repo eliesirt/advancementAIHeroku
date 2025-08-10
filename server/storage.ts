@@ -9,6 +9,10 @@ import {
   applications,
   userRoles,
   roleApplications,
+  prospects,
+  prospectRelationships,
+  prospectEvents,
+  prospectBadges,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -31,7 +35,16 @@ import {
   type RoleApplication,
   type InsertRoleApplication,
   type UserWithRoles,
-  type ApplicationWithPermissions
+  type ApplicationWithPermissions,
+  type Prospect,
+  type InsertProspect,
+  type ProspectWithDetails,
+  type ProspectRelationship,
+  type InsertProspectRelationship,
+  type ProspectEvent,
+  type InsertProspectEvent,
+  type ProspectBadge,
+  type InsertProspectBadge
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -101,6 +114,31 @@ export interface IStorage {
   createVoiceRecording(recording: InsertVoiceRecording): Promise<VoiceRecording>;
   updateVoiceRecording(id: number, updates: Partial<InsertVoiceRecording>): Promise<VoiceRecording>;
   getUnprocessedRecordings(userId: string): Promise<VoiceRecording[]>;
+
+  // Prospect management methods
+  getProspects(prospectManagerId?: string): Promise<ProspectWithDetails[]>;
+  getProspectsByManager(prospectManagerId: string): Promise<ProspectWithDetails[]>;
+  getProspect(id: number): Promise<ProspectWithDetails | undefined>;
+  createProspect(prospect: InsertProspect): Promise<Prospect>;
+  updateProspect(id: number, updates: Partial<InsertProspect>): Promise<Prospect>;
+  deleteProspect(id: number): Promise<boolean>;
+  refreshProspectData(id: number): Promise<Prospect>;
+  refreshAllProspectData(prospectManagerId: string): Promise<void>;
+
+  // Prospect relationship methods
+  getProspectRelationships(prospectId: number): Promise<ProspectRelationship[]>;
+  createProspectRelationship(relationship: InsertProspectRelationship): Promise<ProspectRelationship>;
+  deleteProspectRelationship(id: number): Promise<boolean>;
+
+  // Prospect event methods
+  getProspectEvents(prospectId: number): Promise<ProspectEvent[]>;
+  createProspectEvent(event: InsertProspectEvent): Promise<ProspectEvent>;
+  deleteProspectEvent(id: number): Promise<boolean>;
+
+  // Prospect badge methods
+  getProspectBadges(prospectId: number): Promise<ProspectBadge[]>;
+  createProspectBadge(badge: InsertProspectBadge): Promise<ProspectBadge>;
+  deleteProspectBadge(id: number): Promise<boolean>;
 
   // Admin methods
   getAllUsersWithRoles(): Promise<UserWithRoles[]>;
@@ -1175,6 +1213,162 @@ export class DatabaseStorage implements IStorage {
 
   async getAllApplications(): Promise<Application[]> {
     return await db.select().from(applications).orderBy(applications.sortOrder);
+  }
+
+  // Prospect management methods
+  async getProspects(prospectManagerId?: string): Promise<ProspectWithDetails[]> {
+    let query = db.select().from(prospects);
+    
+    if (prospectManagerId) {
+      query = query.where(eq(prospects.prospectManagerId, prospectManagerId));
+    }
+    
+    const prospectsData = await query.orderBy(desc(prospects.updatedAt));
+    
+    return Promise.all(prospectsData.map(async (prospect) => {
+      const [prospectManager, relationships, events, badges] = await Promise.all([
+        prospect.prospectManagerId ? this.getUser(prospect.prospectManagerId) : undefined,
+        this.getProspectRelationships(prospect.id),
+        this.getProspectEvents(prospect.id),
+        this.getProspectBadges(prospect.id)
+      ]);
+
+      return {
+        ...prospect,
+        prospectManager: prospectManager,
+        relationships,
+        events,
+        badges
+      };
+    }));
+  }
+
+  async getProspectsByManager(prospectManagerId: string): Promise<ProspectWithDetails[]> {
+    return this.getProspects(prospectManagerId);
+  }
+
+  async getProspect(id: number): Promise<ProspectWithDetails | undefined> {
+    const [prospect] = await db.select().from(prospects).where(eq(prospects.id, id));
+    
+    if (!prospect) return undefined;
+
+    const [prospectManager, relationships, events, badges] = await Promise.all([
+      prospect.prospectManagerId ? this.getUser(prospect.prospectManagerId) : undefined,
+      this.getProspectRelationships(prospect.id),
+      this.getProspectEvents(prospect.id),
+      this.getProspectBadges(prospect.id)
+    ]);
+
+    return {
+      ...prospect,
+      prospectManager: prospectManager,
+      relationships,
+      events,
+      badges
+    };
+  }
+
+  async createProspect(prospectData: InsertProspect): Promise<Prospect> {
+    const [prospect] = await db.insert(prospects).values(prospectData).returning();
+    return prospect;
+  }
+
+  async updateProspect(id: number, updates: Partial<InsertProspect>): Promise<Prospect> {
+    const [prospect] = await db
+      .update(prospects)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(prospects.id, id))
+      .returning();
+    return prospect;
+  }
+
+  async deleteProspect(id: number): Promise<boolean> {
+    const result = await db.delete(prospects).where(eq(prospects.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async refreshProspectData(id: number): Promise<Prospect> {
+    // In a real implementation, this would fetch fresh data from CRM
+    const [prospect] = await db
+      .update(prospects)
+      .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
+      .where(eq(prospects.id, id))
+      .returning();
+    return prospect;
+  }
+
+  async refreshAllProspectData(prospectManagerId: string): Promise<void> {
+    // In a real implementation, this would batch refresh all prospects for a manager
+    await db
+      .update(prospects)
+      .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
+      .where(eq(prospects.prospectManagerId, prospectManagerId));
+  }
+
+  // Prospect relationship methods
+  async getProspectRelationships(prospectId: number): Promise<ProspectRelationship[]> {
+    return await db
+      .select()
+      .from(prospectRelationships)
+      .where(eq(prospectRelationships.prospectId, prospectId))
+      .orderBy(prospectRelationships.createdAt);
+  }
+
+  async createProspectRelationship(relationship: InsertProspectRelationship): Promise<ProspectRelationship> {
+    const [prospectRelationship] = await db
+      .insert(prospectRelationships)
+      .values(relationship)
+      .returning();
+    return prospectRelationship;
+  }
+
+  async deleteProspectRelationship(id: number): Promise<boolean> {
+    const result = await db.delete(prospectRelationships).where(eq(prospectRelationships.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Prospect event methods
+  async getProspectEvents(prospectId: number): Promise<ProspectEvent[]> {
+    return await db
+      .select()
+      .from(prospectEvents)
+      .where(eq(prospectEvents.prospectId, prospectId))
+      .orderBy(desc(prospectEvents.eventDate));
+  }
+
+  async createProspectEvent(event: InsertProspectEvent): Promise<ProspectEvent> {
+    const [prospectEvent] = await db
+      .insert(prospectEvents)
+      .values(event)
+      .returning();
+    return prospectEvent;
+  }
+
+  async deleteProspectEvent(id: number): Promise<boolean> {
+    const result = await db.delete(prospectEvents).where(eq(prospectEvents.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Prospect badge methods
+  async getProspectBadges(prospectId: number): Promise<ProspectBadge[]> {
+    return await db
+      .select()
+      .from(prospectBadges)
+      .where(eq(prospectBadges.prospectId, prospectId))
+      .orderBy(desc(prospectBadges.achievedAt));
+  }
+
+  async createProspectBadge(badge: InsertProspectBadge): Promise<ProspectBadge> {
+    const [prospectBadge] = await db
+      .insert(prospectBadges)
+      .values(badge)
+      .returning();
+    return prospectBadge;
+  }
+
+  async deleteProspectBadge(id: number): Promise<boolean> {
+    const result = await db.delete(prospectBadges).where(eq(prospectBadges.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 
