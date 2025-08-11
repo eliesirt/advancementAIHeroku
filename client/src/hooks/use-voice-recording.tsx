@@ -51,7 +51,11 @@ export function useVoiceRecording({
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Audio = (reader.result as string).split(',')[1];
-          onRecordingComplete?.(base64Audio, state.duration);
+          // Get the current transcript from state
+          setState(prevState => {
+            onRecordingComplete?.(base64Audio, prevState.transcript, prevState.duration);
+            return prevState;
+          });
         };
         reader.readAsDataURL(audioBlob);
         
