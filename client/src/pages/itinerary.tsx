@@ -104,6 +104,8 @@ export default function ItineraryAI() {
       return await apiRequest("POST", `/api/itineraries/${selectedItinerary}/meetings`, data);
     },
     onSuccess: () => {
+      // Invalidate both the itineraries list and the specific itinerary details
+      queryClient.invalidateQueries({ queryKey: ["/api/itineraries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries", selectedItinerary] });
       setShowNewMeetingDialog(false);
       toast({

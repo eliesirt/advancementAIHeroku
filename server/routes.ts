@@ -1836,6 +1836,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const meetings = await storage.getItineraryMeetings(parseInt(id));
       const travelSegments = await storage.getItineraryTravelSegments(parseInt(id));
       
+      console.log(`Fetching itinerary ${id}: found ${meetings.length} meetings`);
+      console.log('Meetings data:', meetings);
+      
       res.json({ ...itinerary, meetings, travelSegments });
     } catch (error) {
       console.error("Error fetching itinerary:", error);
