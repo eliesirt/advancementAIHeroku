@@ -46,13 +46,13 @@ export default function ItineraryAI() {
   const [showNewMeetingDialog, setShowNewMeetingDialog] = useState(false);
 
   // Fetch user's itineraries
-  const { data: itineraries, isLoading: loadingItineraries } = useQuery({
+  const { data: itineraries = [], isLoading: loadingItineraries } = useQuery({
     queryKey: ["/api/itineraries"],
     retry: false,
   });
 
   // Fetch prospects for meeting selection
-  const { data: prospects } = useQuery({
+  const { data: prospects = [] } = useQuery({
     queryKey: ["/api/prospects"],
     retry: false,
   });
@@ -67,7 +67,7 @@ export default function ItineraryAI() {
   // Create new itinerary mutation
   const createItineraryMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/itineraries", "POST", data);
+      return await apiRequest("POST", "/api/itineraries", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries"] });
@@ -100,7 +100,7 @@ export default function ItineraryAI() {
   // Add meeting mutation
   const addMeetingMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest(`/api/itineraries/${selectedItinerary}/meetings`, "POST", data);
+      return await apiRequest("POST", `/api/itineraries/${selectedItinerary}/meetings`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries", selectedItinerary] });
@@ -158,7 +158,7 @@ export default function ItineraryAI() {
       meetingType: formData.get("meetingType"),
       location: JSON.parse(formData.get("location") as string),
       notes: formData.get("notes"),
-      sortOrder: (itineraryDetails?.meetings?.length || 0) + 1,
+      sortOrder: ((itineraryDetails?.meetings as any[])?.length || 0) + 1,
     };
     
     addMeetingMutation.mutate(data);
@@ -333,7 +333,7 @@ export default function ItineraryAI() {
 
               {/* Itineraries Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(itineraries || []).map((itinerary: Itinerary) => (
+                {itineraries.map((itinerary: Itinerary) => (
                   <Card 
                     key={itinerary.id}
                     className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-red-200"
@@ -385,7 +385,7 @@ export default function ItineraryAI() {
                 ))}
               </div>
 
-              {(!itineraries || itineraries.length === 0) && (
+              {itineraries.length === 0 && (
                 <div className="text-center py-16">
                   <div className="mb-6">
                     <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center">
@@ -465,7 +465,7 @@ export default function ItineraryAI() {
                                     <SelectValue placeholder="Choose a prospect" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {(prospects || []).map((prospect: Prospect) => (
+                                    {prospects.map((prospect: Prospect) => (
                                       <SelectItem key={prospect.id} value={prospect.id.toString()}>
                                         {prospect.fullName}
                                       </SelectItem>
@@ -576,9 +576,9 @@ export default function ItineraryAI() {
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h3 className="font-semibold text-gray-900 mb-4">Scheduled Meetings</h3>
                         
-                        {(itineraryDetails.meetings || []).length > 0 ? (
+                        {(itineraryDetails?.meetings || []).length > 0 ? (
                           <div className="space-y-4">
-                            {(itineraryDetails.meetings || []).map((meeting: any, index: number) => (
+                            {(itineraryDetails?.meetings || []).map((meeting: any, index: number) => (
                               <div key={meeting.id} className="bg-white rounded-lg border p-4">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-4">
