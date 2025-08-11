@@ -216,82 +216,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Extracted interests:", { professionalInterests, personalInterests, philanthropicPriorities });
       console.log("Matched affinity tags:", suggestedAffinityTags);
 
-      // Update recording with transcript
+      // Update recording with transcript and processed data
       await storage.updateVoiceRecording(recordingId, {
         transcript,
-        processed: true,
-        interactionId: recording.interactionId
+        processed: true
       });
 
-      // If this recording is linked to an interaction, update it with the AI-processed data
-      if (recording.interactionId) {
-        // Generate enhanced comments with full synopsis and transcript
-        const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, 1);
-
-        // Parse first and last name from prospect name
-        const parseProspectName = (fullName: string) => {
-          if (!fullName || fullName.trim().length === 0) return { firstName: '', lastName: '' };
-
-          const nameParts = fullName.trim().split(/\s+/);
-          if (nameParts.length === 1) {
-            return { firstName: nameParts[0], lastName: '' };
-          } else if (nameParts.length === 2) {
-            return { firstName: nameParts[0], lastName: nameParts[1] };
-          } else {
-            // For names with more than 2 parts, assume first word is first name, rest is last name
-            return { 
-              firstName: nameParts[0], 
-              lastName: nameParts.slice(1).join(' ') 
-            };
-          }
-        };
-
-        const prospectName = extractedInfo.prospectName || 'Voice Recording';
-        const { firstName, lastName } = parseProspectName(prospectName);
-
-        // Get current interaction data for quality assessment
-        const currentInteraction = await storage.getInteraction(recording.interactionId);
-
-        // Evaluate interaction quality
-        const { evaluateInteractionQuality } = await import("./lib/openai");
-        const qualityAssessment = await evaluateInteractionQuality(
-          transcript,
-          extractedInfo,
-          {
-            prospectName: prospectName || currentInteraction?.prospectName || '',
-            firstName: firstName || currentInteraction?.firstName || '',
-            lastName: lastName || currentInteraction?.lastName || '',
-            contactLevel: extractedInfo.contactLevel || currentInteraction?.contactLevel || '',
-            method: currentInteraction?.method || '',
-            actualDate: currentInteraction?.actualDate?.toISOString() || '',
-            comments: enhancedComments || currentInteraction?.comments || '',
-            summary: conciseSummary || currentInteraction?.summary || '',
-            category: extractedInfo.category || currentInteraction?.category || '',
-            subcategory: extractedInfo.subcategory || currentInteraction?.subcategory || ''
-          }
-        );
-
-        await storage.updateInteraction(recording.interactionId, {
-          transcript,
-          extractedInfo: JSON.stringify(extractedInfo),
-          summary: conciseSummary,
-          prospectName,
-          firstName,
-          lastName,
-          category: extractedInfo.category || 'General',
-          subcategory: extractedInfo.subcategory || 'Other',
-          affinityTags: suggestedAffinityTags,
-          comments: enhancedComments,
-          qualityScore: qualityAssessment.qualityScore,
-          qualityExplanation: qualityAssessment.qualityExplanation,
-          qualityRecommendations: qualityAssessment.recommendations
-        });
-      }
+      // Generate enhanced comments with full synopsis and transcript
+      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, 1);
 
       res.json({
         transcript,
-        extractedInfo,
-        conciseSummary
+        extractedInfo: {
+          ...extractedInfo,
+          suggestedAffinityTags
+        },
+        conciseSummary,
+        enhancedComments
       });
     } catch (error) {
       console.error("Voice processing error details:", error);

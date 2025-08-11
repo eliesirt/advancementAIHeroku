@@ -73,14 +73,12 @@ type StatsType = {
 
 export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePageProps) {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
-  const [showProcessing, setShowProcessing] = useState(false);
   const [showInteractionForm, setShowInteractionForm] = useState(false);
   const [showTypeForm, setShowTypeForm] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [extractedInfo, setExtractedInfo] = useState<ExtractedInfo | null>(null);
   const [enhancedComments, setEnhancedComments] = useState("");
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
-  const [voiceRecordingDraftId, setVoiceRecordingDraftId] = useState<number | null>(null);
   const [expandedQualityTips, setExpandedQualityTips] = useState<Set<number>>(new Set());
   const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
 
@@ -128,23 +126,34 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       });
       const draft = await draftResponse.json();
 
-      // Then create voice recording linked to the draft
-      const response = await apiRequest("POST", "/api/voice-recordings", {
-        ...data,
+      // Then save the voice recording linked to this draft
+      const voiceResponse = await apiRequest("POST", "/api/voice-recordings", {
+        audioData: data.audioData,
+        transcript: data.transcript,
+        duration: data.duration,
+        processed: false,
         interactionId: draft.id
       });
-      return response.json();
+      const voiceRecording = await voiceResponse.json();
+
+      // Process the voice recording to get transcription and analysis
+      const processResponse = await apiRequest("POST", `/api/voice-recordings/${voiceRecording.id}/process`);
+      const processedData = await processResponse.json();
+
+      return { voiceRecording, processedData };
     },
-    onSuccess: (recording) => {
-      // Store the draft interaction ID for later use
-      setVoiceRecordingDraftId(recording.interactionId);
+    onSuccess: (data) => {
+      // Set the processed data and show the interaction form for review
+      setCurrentTranscript(data.processedData.transcript);
+      setExtractedInfo(data.processedData.extractedInfo);
+      setEnhancedComments(data.processedData.extractedInfo?.summary || '');
+      setEditingInteraction(null);
+      setShowInteractionForm(true);
 
-      // Refresh data to show the new draft
-      queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
-
-      // Process the recording
-      processVoiceRecording.mutate(recording.id);
+      toast({
+        title: "Voice Recording Processed",
+        description: "Your voice recording has been transcribed and analyzed. Please review and submit.",
+      });
     },
     onError: (error) => {
       toast({
@@ -233,7 +242,6 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         setExtractedInfo(null);
         setCurrentTranscript("");
         setEnhancedComments("");
-        setVoiceRecordingDraftId(null);
         queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
         queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       }
@@ -265,7 +273,6 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setCurrentTranscript("");
       setExtractedInfo(null);
       setEnhancedComments("");
-      setVoiceRecordingDraftId(null);
       setSubmittingInteractionId(null);
 
       // Refresh data
@@ -375,9 +382,6 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     if (editingInteraction) {
       // Update existing interaction
       updateInteraction.mutate({ id: editingInteraction.id, data });
-    } else if (voiceRecordingDraftId) {
-      // Update the voice recording draft instead of creating new
-      updateInteraction.mutate({ id: voiceRecordingDraftId, data });
     } else {
       // Create new interaction
       createInteraction.mutate(data);
