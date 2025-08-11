@@ -174,16 +174,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration 
       });
       
+      let finalTranscript = transcript;
+      
+      // If no transcript from speech recognition, use OpenAI Whisper to transcribe the audio
       if (!transcript || transcript.trim().length === 0) {
-        return res.status(400).json({ message: "No transcript provided or transcript is empty" });
+        console.log("No browser transcript available, using OpenAI Whisper for transcription...");
+        
+        if (!audioData) {
+          return res.status(400).json({ message: "No audio data or transcript available" });
+        }
+        
+        try {
+          // Convert base64 audio to buffer and transcribe with OpenAI Whisper
+          const audioBuffer = Buffer.from(audioData, 'base64');
+          const transcriptionResult = await openai.audio.transcriptions.create({
+            file: new File([audioBuffer], 'recording.wav', { type: 'audio/wav' }),
+            model: 'whisper-1',
+            language: 'en'
+          });
+          
+          finalTranscript = transcriptionResult.text;
+          console.log("OpenAI Whisper transcription completed:", { 
+            transcriptLength: finalTranscript.length 
+          });
+          
+        } catch (whisperError) {
+          console.error("OpenAI Whisper transcription failed:", whisperError);
+          return res.status(500).json({ 
+            message: "Failed to transcribe audio", 
+            error: (whisperError as Error).message 
+          });
+        }
+      }
+      
+      if (!finalTranscript || finalTranscript.trim().length === 0) {
+        return res.status(400).json({ message: "No transcript could be generated from the recording" });
       }
 
       // Generate concise summary
       const { generateConciseSummary } = await import("./lib/openai");
-      const conciseSummary = await generateConciseSummary(transcript);
+      const conciseSummary = await generateConciseSummary(finalTranscript);
 
       // Extract interaction information
-      const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(transcript) || {
+      const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(finalTranscript) || {
           summary: '',
           category: '',
           subcategory: '',
@@ -214,10 +247,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate enhanced comments with full synopsis and transcript
       const userId = req.user.claims.sub;
-      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, userId);
+      const enhancedComments = await enhanceInteractionComments(finalTranscript, extractedInfo, userId);
 
       res.json({
-        transcript,
+        transcript: finalTranscript,
         extractedInfo: {
           ...extractedInfo,
           suggestedAffinityTags
