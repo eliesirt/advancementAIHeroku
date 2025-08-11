@@ -33,6 +33,7 @@ import {
   Brain
 } from "lucide-react";
 import type { Itinerary, Prospect, ItineraryMeeting, UserWithRoles } from "@shared/schema";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 interface ItineraryWithDetails extends Itinerary {
   meetings?: (ItineraryMeeting & { prospect: Prospect })[];
@@ -320,6 +321,17 @@ export default function ItineraryAI() {
                         </div>
                         
                         <div>
+                          <Label htmlFor="homeAddress">Home Address (Starting Point)</Label>
+                          <LocationAutocomplete
+                            name="homeAddress"
+                            placeholder="Enter your starting address"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            This will be your starting point for route optimization
+                          </p>
+                        </div>
+
+                        <div>
                           <Label htmlFor="travelMode">Primary Travel Mode</Label>
                           <Select name="travelMode" defaultValue="driving">
                             <SelectTrigger>
@@ -559,14 +571,13 @@ export default function ItineraryAI() {
                               
                               <div>
                                 <Label htmlFor="location">Meeting Location</Label>
-                                <Input
-                                  id="location"
+                                <LocationAutocomplete
                                   name="location"
-                                  placeholder='{"address": "123 Main St, City, State", "lat": 42.3601, "lng": -71.0589}'
+                                  placeholder="Enter meeting location (e.g., restaurant, office, venue)"
                                   required
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Enter location as JSON with address, lat, and lng
+                                  Start typing to see location suggestions
                                 </p>
                               </div>
                               

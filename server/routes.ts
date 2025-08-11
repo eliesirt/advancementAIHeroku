@@ -6,6 +6,7 @@ import { bbecClient, type BBECInteractionSubmission } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema, insertItinerarySchema, insertItineraryMeetingSchema } from "@shared/schema";
+import fetch from 'node-fetch';
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { seedInitialData } from "./seedData";
@@ -1940,6 +1941,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting meeting:", error);
       res.status(500).json({ message: "Failed to delete meeting", error: (error as Error).message });
+    }
+  });
+
+  // Google Places API routes
+  app.get('/api/places/autocomplete', async (req, res) => {
+    try {
+      const { input } = req.query;
+      if (!input || typeof input !== 'string') {
+        return res.status(400).json({ error: 'Input parameter is required' });
+      }
+
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Google Places API key not configured' });
+      }
+
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=establishment|geocode&components=country:us`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Error with Places Autocomplete API:', error);
+      res.status(500).json({ error: 'Failed to fetch place suggestions' });
+    }
+  });
+
+  app.get('/api/places/details', async (req, res) => {
+    try {
+      const { place_id } = req.query;
+      if (!place_id || typeof place_id !== 'string') {
+        return res.status(400).json({ error: 'Place ID parameter is required' });
+      }
+
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Google Places API key not configured' });
+      }
+
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_address,address_components,geometry&key=${apiKey}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Error with Places Details API:', error);
+      res.status(500).json({ error: 'Failed to fetch place details' });
     }
   });
 
