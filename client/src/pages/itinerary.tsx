@@ -65,12 +65,14 @@ export default function ItineraryAI() {
     retry: false,
   });
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log("Selected itinerary:", selectedItinerary);
+  // Simple logging
+  console.log("Current selectedItinerary:", selectedItinerary);
+  if (itineraryDetails) {
     console.log("Itinerary details:", itineraryDetails);
-    console.log("Meetings in details:", itineraryDetails?.meetings);
-  }, [selectedItinerary, itineraryDetails]);
+    console.log("Meetings count:", itineraryDetails.meetings?.length || 0);
+  }
+
+
 
   // Create new itinerary mutation
   const createItineraryMutation = useMutation({
