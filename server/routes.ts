@@ -1634,6 +1634,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Impersonate user (admin only)
+  app.post('/api/admin/impersonate/:userId', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const adminId = req.user.claims.sub;
+      
+      // Verify the target user exists and is not an admin
+      const targetUser = await storage.getUserWithRoles(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Target user not found" });
+      }
+
+      // Prevent impersonating other admins
+      const isTargetAdmin = targetUser.roles.some(role => role.name === 'Administrator');
+      if (isTargetAdmin) {
+        return res.status(403).json({ message: "Cannot impersonate other administrators" });
+      }
+
+      // Store impersonation in session
+      req.session.impersonation = {
+        adminId: adminId,
+        targetUserId: userId,
+        startedAt: new Date().toISOString()
+      };
+
+      // Update user claims to target user
+      req.user.claims.sub = userId;
+      
+      res.json({ 
+        success: true, 
+        message: `Now impersonating ${targetUser.firstName} ${targetUser.lastName}`,
+        targetUser: targetUser
+      });
+    } catch (error) {
+      console.error("Error starting impersonation:", error);
+      res.status(500).json({ message: "Failed to start impersonation", error: (error as Error).message });
+    }
+  });
+
+  // Stop impersonation (return to admin)
+  app.post('/api/admin/stop-impersonation', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.session.impersonation) {
+        return res.status(400).json({ message: "Not currently impersonating anyone" });
+      }
+
+      const { adminId } = req.session.impersonation;
+      
+      // Restore admin user claims
+      req.user.claims.sub = adminId;
+      
+      // Clear impersonation from session
+      delete req.session.impersonation;
+      
+      res.json({ 
+        success: true, 
+        message: "Impersonation ended, returned to admin account" 
+      });
+    } catch (error) {
+      console.error("Error stopping impersonation:", error);
+      res.status(500).json({ message: "Failed to stop impersonation", error: (error as Error).message });
+    }
+  });
+
+  // Check impersonation status
+  app.get('/api/admin/impersonation-status', isAuthenticated, async (req: any, res) => {
+    try {
+      if (req.session.impersonation) {
+        const { adminId, targetUserId, startedAt } = req.session.impersonation;
+        const targetUser = await storage.getUserWithRoles(targetUserId);
+        const adminUser = await storage.getUserWithRoles(adminId);
+        
+        res.json({
+          isImpersonating: true,
+          admin: adminUser,
+          targetUser: targetUser,
+          startedAt: startedAt
+        });
+      } else {
+        res.json({ isImpersonating: false });
+      }
+    } catch (error) {
+      console.error("Error checking impersonation status:", error);
+      res.status(500).json({ message: "Failed to check impersonation status", error: (error as Error).message });
+    }
+  });
+
   // Get all roles (admin only)
   app.get('/api/admin/roles', isAuthenticated, requireAdmin, async (req: any, res) => {
     try {

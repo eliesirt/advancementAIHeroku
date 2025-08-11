@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, LogOut, User, Settings, Brain, Zap, Users, Database, Briefcase, Map } from "lucide-react";
 import type { ApplicationWithPermissions, UserWithRoles } from "@shared/schema";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 
 export default function Launcher() {
   const { user } = useAuth() as { user: UserWithRoles | undefined };
@@ -34,6 +35,9 @@ export default function Launcher() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Impersonation Banner */}
+      <ImpersonationBanner />
+      
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4" style={{ borderBottomColor: '#CC0000' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

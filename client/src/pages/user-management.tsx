@@ -25,7 +25,10 @@ import {
   Check,
   AlertTriangle,
   Crown,
-  User as UserIcon
+  User as UserIcon,
+  UserX,
+  LogIn,
+  LogOut
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -68,6 +71,29 @@ export default function UserManagementPage() {
   const [isAppDialogOpen, setIsAppDialogOpen] = useState(false);
   const [selectedRolePermissions, setSelectedRolePermissions] = useState<Record<number, string[]>>({});
   const { toast } = useToast();
+
+  // Impersonation mutations
+  const impersonateUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest("POST", `/api/admin/impersonate/${userId}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Impersonation Started", 
+        description: data.message 
+      });
+      // Redirect to launcher as the impersonated user
+      window.location.href = "/";
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Impersonation Failed", 
+        description: error.message || "Failed to start impersonation", 
+        variant: "destructive" 
+      });
+    },
+  });
 
   // Fetch all data
   const { data: users = [] } = useQuery<UserWithRoles[]>({
@@ -463,16 +489,31 @@ export default function UserManagementPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsUserDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingUser(user);
+                                setIsUserDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            {/* Only show impersonate button for non-admin users */}
+                            {!user.roles?.some(role => role.name === 'Administrator') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => impersonateUserMutation.mutate(user.id)}
+                                disabled={impersonateUserMutation.isPending}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title={`Impersonate ${user.firstName} ${user.lastName}`}
+                              >
+                                <LogIn className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
