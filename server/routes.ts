@@ -1822,8 +1822,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { id } = req.params;
       
-      console.log(`[DETAILED ENDPOINT] Fetching itinerary ${id} for user ${userId}`);
-      
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary) {
         return res.status(404).json({ message: "Itinerary not found" });
@@ -1837,9 +1835,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get meetings and travel segments
       const meetings = await storage.getItineraryMeetings(parseInt(id));
       const travelSegments = await storage.getItineraryTravelSegments(parseInt(id));
-      
-      console.log(`Fetching itinerary ${id}: found ${meetings.length} meetings`);
-      console.log('Meetings data:', meetings);
       
       res.json({ ...itinerary, meetings, travelSegments });
     } catch (error) {

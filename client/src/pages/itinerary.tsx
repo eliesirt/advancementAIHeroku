@@ -74,12 +74,7 @@ export default function ItineraryAI() {
     retry: false,
   });
 
-  // Simple logging
-  console.log("Current selectedItinerary:", selectedItinerary);
-  if (itineraryDetails) {
-    console.log("Itinerary details:", itineraryDetails);
-    console.log("Meetings count:", itineraryDetails.meetings?.length || 0);
-  }
+
 
 
 
@@ -671,7 +666,7 @@ export default function ItineraryAI() {
                                         </span>
                                         <span className="flex items-center space-x-1">
                                           <MapPin className="h-4 w-4" />
-                                          <span>{JSON.parse(meeting.location).address}</span>
+                                          <span>{meeting.location?.address || 'No address'}</span>
                                         </span>
                                       </div>
                                       {meeting.notes && (
