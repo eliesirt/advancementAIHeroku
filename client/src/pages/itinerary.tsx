@@ -59,11 +59,18 @@ export default function ItineraryAI() {
   });
 
   // Fetch selected itinerary details
-  const { data: itineraryDetails } = useQuery({
+  const { data: itineraryDetails, refetch: refetchItineraryDetails } = useQuery({
     queryKey: ["/api/itineraries", selectedItinerary],
     enabled: !!selectedItinerary,
     retry: false,
   });
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("Selected itinerary:", selectedItinerary);
+    console.log("Itinerary details:", itineraryDetails);
+    console.log("Meetings in details:", itineraryDetails?.meetings);
+  }, [selectedItinerary, itineraryDetails]);
 
   // Create new itinerary mutation
   const createItineraryMutation = useMutation({
@@ -107,6 +114,8 @@ export default function ItineraryAI() {
       // Invalidate both the itineraries list and the specific itinerary details
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries", selectedItinerary] });
+      // Force a refetch of the itinerary details to ensure fresh data
+      refetchItineraryDetails();
       setShowNewMeetingDialog(false);
       toast({
         title: "Success",
