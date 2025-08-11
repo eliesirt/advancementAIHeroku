@@ -134,12 +134,31 @@ export default function ItineraryAI() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
+    const homeAddressInput = formData.get("homeAddress") as string;
+    let homeAddressData = null;
+    
+    if (homeAddressInput) {
+      try {
+        // Try to parse as JSON first
+        homeAddressData = JSON.parse(homeAddressInput);
+      } catch {
+        // If it fails, treat it as a simple address string
+        homeAddressData = {
+          address: homeAddressInput,
+          city: "",
+          state: "",
+          zipCode: "",
+          coordinates: null
+        };
+      }
+    }
+    
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
       startDate: new Date(formData.get("startDate") as string),
       endDate: new Date(formData.get("endDate") as string),
-      homeAddress: formData.get("homeAddress") ? JSON.parse(formData.get("homeAddress") as string) : null,
+      homeAddress: homeAddressData,
       travelMode: formData.get("travelMode"),
     };
     
@@ -150,13 +169,30 @@ export default function ItineraryAI() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
+    const locationInput = formData.get("location") as string;
+    let locationData;
+    
+    try {
+      // Try to parse as JSON first
+      locationData = JSON.parse(locationInput);
+    } catch {
+      // If it fails, treat it as a simple address string
+      locationData = {
+        address: locationInput,
+        city: "",
+        state: "",
+        zipCode: "",
+        coordinates: null
+      };
+    }
+    
     const data = {
       prospectId: parseInt(formData.get("prospectId") as string),
       scheduledDate: new Date(formData.get("scheduledDate") as string),
       scheduledTime: formData.get("scheduledTime"),
       duration: parseInt(formData.get("duration") as string),
       meetingType: formData.get("meetingType"),
-      location: JSON.parse(formData.get("location") as string),
+      location: locationData,
       notes: formData.get("notes"),
       sortOrder: ((itineraryDetails?.meetings as any[])?.length || 0) + 1,
     };
