@@ -29,6 +29,7 @@ export function useVoiceRecording({
   const recognitionRef = useRef<any>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const currentTranscriptRef = useRef<string>('');
 
   const startRecording = useCallback(async () => {
     try {
@@ -51,9 +52,9 @@ export function useVoiceRecording({
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Audio = (reader.result as string).split(',')[1];
-          // Get the current transcript from state
+          // Use the current transcript from ref which has the latest accumulated text
           setState(prevState => {
-            onRecordingComplete?.(base64Audio, prevState.transcript, prevState.duration);
+            onRecordingComplete?.(base64Audio, currentTranscriptRef.current, prevState.duration);
             return prevState;
           });
         };
@@ -75,15 +76,19 @@ export function useVoiceRecording({
           recognition.lang = 'en-US';
 
           recognition.onresult = (event: any) => {
-            let transcript = '';
+            let newTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; i++) {
               if (event.results[i].isFinal) {
-                transcript += event.results[i][0].transcript + ' ';
+                newTranscript += event.results[i][0].transcript + ' ';
               }
             }
             
-            setState(prev => ({ ...prev, transcript: prev.transcript + transcript }));
-            onTranscriptUpdate?.(transcript);
+            if (newTranscript.trim()) {
+              // Update both the ref and state
+              currentTranscriptRef.current += newTranscript;
+              setState(prev => ({ ...prev, transcript: prev.transcript + newTranscript }));
+              onTranscriptUpdate?.(newTranscript);
+            }
           };
 
           recognition.onerror = (event: any) => {
@@ -107,6 +112,8 @@ export function useVoiceRecording({
         setState(prev => ({ ...prev, duration }));
       }, 1000);
 
+      // Reset transcript ref and state
+      currentTranscriptRef.current = '';
       setState(prev => ({ 
         ...prev, 
         isRecording: true, 
@@ -147,6 +154,7 @@ export function useVoiceRecording({
   }, [state.isRecording, startRecording, stopRecording]);
 
   const resetRecording = useCallback(() => {
+    currentTranscriptRef.current = '';
     setState(prev => ({ 
       ...prev, 
       duration: 0, 
