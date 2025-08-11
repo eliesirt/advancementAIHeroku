@@ -1105,11 +1105,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserApplications(userId: string): Promise<ApplicationWithPermissions[]> {
+    console.log(`Getting applications for user: ${userId}`);
     const userRolesList = await db
       .select()
       .from(userRoles)
       .where(eq(userRoles.userId, userId));
 
+    console.log(`User has ${userRolesList.length} roles:`, userRolesList.map(ur => ur.roleId));
     if (userRolesList.length === 0) return [];
 
     const roleIds = userRolesList.map(ur => ur.roleId);
@@ -1145,13 +1147,21 @@ export class DatabaseStorage implements IStorage {
     const result: ApplicationWithPermissions[] = [];
     for (const [appId, permissionSet] of permissionMap) {
       const roleApp = roleApplicationsList.find(ra => ra.applicationId === appId);
-      if (roleApp) {
+      const permissions = Array.from(permissionSet);
+      
+      // Only include applications where user has at least one permission
+      if (roleApp && permissions.length > 0) {
         result.push({
           ...roleApp.application,
-          permissions: Array.from(permissionSet),
+          permissions: permissions,
         });
       }
     }
+
+    console.log(`Returning ${result.length} applications with permissions:`, result.map(r => ({
+      name: r.name,
+      permissions: r.permissions
+    })));
 
     return result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
