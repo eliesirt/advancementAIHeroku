@@ -137,8 +137,8 @@ export default function ItineraryAI() {
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
-      startDate: formData.get("startDate"),
-      endDate: formData.get("endDate"),
+      startDate: new Date(formData.get("startDate") as string),
+      endDate: new Date(formData.get("endDate") as string),
       homeAddress: formData.get("homeAddress") ? JSON.parse(formData.get("homeAddress") as string) : null,
       travelMode: formData.get("travelMode"),
     };
@@ -152,7 +152,7 @@ export default function ItineraryAI() {
     
     const data = {
       prospectId: parseInt(formData.get("prospectId") as string),
-      scheduledDate: formData.get("scheduledDate"),
+      scheduledDate: new Date(formData.get("scheduledDate") as string),
       scheduledTime: formData.get("scheduledTime"),
       duration: parseInt(formData.get("duration") as string),
       meetingType: formData.get("meetingType"),
