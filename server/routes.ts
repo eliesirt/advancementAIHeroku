@@ -10,6 +10,12 @@ import fetch from 'node-fetch';
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { seedInitialData } from "./seedData";
+import OpenAI from "openai";
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Helper function to get current matching threshold
 async function getMatchingThreshold(): Promise<number> {
