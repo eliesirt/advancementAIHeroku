@@ -1804,6 +1804,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Itinerary routes
+  app.get('/api/itineraries', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itineraries = await storage.getItineraries(userId);
+      res.json(itineraries);
+    } catch (error) {
+      console.error("Error fetching itineraries:", error);
+      res.status(500).json({ message: "Failed to fetch itineraries", error: (error as Error).message });
+    }
+  });
+
+  app.get('/api/itineraries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const itinerary = await storage.getItinerary(parseInt(id));
+      if (!itinerary) {
+        return res.status(404).json({ message: "Itinerary not found" });
+      }
+      
+      // Check if user owns this itinerary
+      if (itinerary.userId !== userId) {
+        return res.status(403).json({ message: "Access denied to this itinerary" });
+      }
+      
+      // Get meetings and travel segments
+      const meetings = await storage.getItineraryMeetings(parseInt(id));
+      const travelSegments = await storage.getItineraryTravelSegments(parseInt(id));
+      
+      res.json({ ...itinerary, meetings, travelSegments });
+    } catch (error) {
+      console.error("Error fetching itinerary:", error);
+      res.status(500).json({ message: "Failed to fetch itinerary", error: (error as Error).message });
+    }
+  });
+
+  app.post('/api/itineraries', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const itineraryData = { ...req.body, userId };
+      
+      const newItinerary = await storage.createItinerary(itineraryData);
+      res.json(newItinerary);
+    } catch (error) {
+      console.error("Error creating itinerary:", error);
+      res.status(500).json({ message: "Failed to create itinerary", error: (error as Error).message });
+    }
+  });
+
+  app.put('/api/itineraries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const itinerary = await storage.getItinerary(parseInt(id));
+      if (!itinerary || itinerary.userId !== userId) {
+        return res.status(404).json({ message: "Itinerary not found or access denied" });
+      }
+      
+      const updatedItinerary = await storage.updateItinerary(parseInt(id), req.body);
+      res.json(updatedItinerary);
+    } catch (error) {
+      console.error("Error updating itinerary:", error);
+      res.status(500).json({ message: "Failed to update itinerary", error: (error as Error).message });
+    }
+  });
+
+  app.delete('/api/itineraries/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const itinerary = await storage.getItinerary(parseInt(id));
+      if (!itinerary || itinerary.userId !== userId) {
+        return res.status(404).json({ message: "Itinerary not found or access denied" });
+      }
+      
+      await storage.deleteItinerary(parseInt(id));
+      res.json({ success: true, message: "Itinerary deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting itinerary:", error);
+      res.status(500).json({ message: "Failed to delete itinerary", error: (error as Error).message });
+    }
+  });
+
+  // Itinerary meeting routes
+  app.post('/api/itineraries/:id/meetings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const itinerary = await storage.getItinerary(parseInt(id));
+      if (!itinerary || itinerary.userId !== userId) {
+        return res.status(404).json({ message: "Itinerary not found or access denied" });
+      }
+      
+      const meetingData = { ...req.body, itineraryId: parseInt(id) };
+      const newMeeting = await storage.createItineraryMeeting(meetingData);
+      res.json(newMeeting);
+    } catch (error) {
+      console.error("Error creating meeting:", error);
+      res.status(500).json({ message: "Failed to create meeting", error: (error as Error).message });
+    }
+  });
+
+  app.put('/api/meetings/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updatedMeeting = await storage.updateItineraryMeeting(parseInt(id), req.body);
+      res.json(updatedMeeting);
+    } catch (error) {
+      console.error("Error updating meeting:", error);
+      res.status(500).json({ message: "Failed to update meeting", error: (error as Error).message });
+    }
+  });
+
+  app.delete('/api/meetings/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteItineraryMeeting(parseInt(id));
+      res.json({ success: true, message: "Meeting deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting meeting:", error);
+      res.status(500).json({ message: "Failed to delete meeting", error: (error as Error).message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

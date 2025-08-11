@@ -238,6 +238,61 @@ export const prospectBadges = pgTable("prospect_badges", {
   isVisible: boolean("is_visible").default(true),
 });
 
+// Trip itineraries for travel planning
+export const itineraries = pgTable("itineraries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  homeAddress: jsonb("home_address"), // Starting point address
+  travelMode: text("travel_mode").notNull().default('driving'), // driving, flying, mixed
+  status: text("status").notNull().default('planning'), // planning, confirmed, in_progress, completed
+  totalDistance: integer("total_distance"), // in miles
+  totalDuration: integer("total_duration"), // in minutes
+  estimatedCost: integer("estimated_cost"), // in cents
+  aiOptimizations: text("ai_optimizations"), // AI-generated optimization suggestions
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Individual meetings within an itinerary
+export const itineraryMeetings = pgTable("itinerary_meetings", {
+  id: serial("id").primaryKey(),
+  itineraryId: integer("itinerary_id").notNull().references(() => itineraries.id, { onDelete: "cascade" }),
+  prospectId: integer("prospect_id").notNull().references(() => prospects.id),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  scheduledTime: text("scheduled_time"), // HH:MM format
+  duration: integer("duration").notNull().default(60), // minutes
+  meetingType: text("meeting_type").notNull(), // visit, call, event, meal
+  location: jsonb("location").notNull(), // Address object with coordinates
+  notes: text("notes"),
+  status: text("status").notNull().default('planned'), // planned, confirmed, cancelled, completed
+  sortOrder: integer("sort_order").notNull(),
+  travelTimeFromPrevious: integer("travel_time_from_previous"), // minutes
+  distanceFromPrevious: integer("distance_from_previous"), // miles
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Travel segments between meetings
+export const itineraryTravelSegments = pgTable("itinerary_travel_segments", {
+  id: serial("id").primaryKey(),
+  itineraryId: integer("itinerary_id").notNull().references(() => itineraries.id, { onDelete: "cascade" }),
+  fromMeetingId: integer("from_meeting_id").references(() => itineraryMeetings.id),
+  toMeetingId: integer("to_meeting_id").references(() => itineraryMeetings.id),
+  fromLocation: jsonb("from_location").notNull(),
+  toLocation: jsonb("to_location").notNull(),
+  transportMode: text("transport_mode").notNull().default('driving'), // driving, flying, walking, uber
+  distance: integer("distance"), // miles
+  duration: integer("duration"), // minutes
+  directions: jsonb("directions"), // Step-by-step directions
+  route: jsonb("route"), // Map route coordinates
+  cost: integer("cost"), // estimated cost in cents
+  notes: text("notes"),
+  sortOrder: integer("sort_order").notNull(),
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -323,6 +378,41 @@ export const prospectBadgesRelations = relations(prospectBadges, ({ one }) => ({
   }),
 }));
 
+export const itinerariesRelations = relations(itineraries, ({ one, many }) => ({
+  user: one(users, {
+    fields: [itineraries.userId],
+    references: [users.id],
+  }),
+  meetings: many(itineraryMeetings),
+  travelSegments: many(itineraryTravelSegments),
+}));
+
+export const itineraryMeetingsRelations = relations(itineraryMeetings, ({ one }) => ({
+  itinerary: one(itineraries, {
+    fields: [itineraryMeetings.itineraryId],
+    references: [itineraries.id],
+  }),
+  prospect: one(prospects, {
+    fields: [itineraryMeetings.prospectId],
+    references: [prospects.id],
+  }),
+}));
+
+export const itineraryTravelSegmentsRelations = relations(itineraryTravelSegments, ({ one }) => ({
+  itinerary: one(itineraries, {
+    fields: [itineraryTravelSegments.itineraryId],
+    references: [itineraries.id],
+  }),
+  fromMeeting: one(itineraryMeetings, {
+    fields: [itineraryTravelSegments.fromMeetingId],
+    references: [itineraryMeetings.id],
+  }),
+  toMeeting: one(itineraryMeetings, {
+    fields: [itineraryTravelSegments.toMeetingId],
+    references: [itineraryMeetings.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
@@ -405,6 +495,21 @@ export const insertProspectBadgeSchema = createInsertSchema(prospectBadges).omit
   achievedAt: true,
 });
 
+export const insertItinerarySchema = createInsertSchema(itineraries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertItineraryMeetingSchema = createInsertSchema(itineraryMeetings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertItineraryTravelSegmentSchema = createInsertSchema(itineraryTravelSegments).omit({
+  id: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -435,6 +540,12 @@ export type ProspectEvent = typeof prospectEvents.$inferSelect;
 export type InsertProspectEvent = z.infer<typeof insertProspectEventSchema>;
 export type ProspectBadge = typeof prospectBadges.$inferSelect;
 export type InsertProspectBadge = z.infer<typeof insertProspectBadgeSchema>;
+export type Itinerary = typeof itineraries.$inferSelect;
+export type InsertItinerary = z.infer<typeof insertItinerarySchema>;
+export type ItineraryMeeting = typeof itineraryMeetings.$inferSelect;
+export type InsertItineraryMeeting = z.infer<typeof insertItineraryMeetingSchema>;
+export type ItineraryTravelSegment = typeof itineraryTravelSegments.$inferSelect;
+export type InsertItineraryTravelSegment = z.infer<typeof insertItineraryTravelSegmentSchema>;
 
 // Extended types for UI
 export interface UserWithRoles extends User {
@@ -448,10 +559,6 @@ export interface RoleWithApplications extends Role {
 
 export interface ApplicationWithPermissions extends Application {
   permissions?: string[];
-}
-
-export interface RoleWithApplications extends Role {
-  applications?: RoleApplication[];
 }
 
 export interface ExtractedInteractionInfo {

@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, LogOut, User, Settings, Brain, Zap, Users, Database, Briefcase } from "lucide-react";
+import { Loader2, LogOut, User, Settings, Brain, Zap, Users, Database, Briefcase, Map } from "lucide-react";
 import type { ApplicationWithPermissions, UserWithRoles } from "@shared/schema";
 
 export default function Launcher() {
@@ -122,6 +122,7 @@ export default function Launcher() {
                       {app.icon === 'users' && <Users className="h-6 w-6" />}
                       {app.icon === 'settings' && <Settings className="h-6 w-6" />}
                       {app.icon === 'briefcase' && <Briefcase className="h-6 w-6" />}
+                      {app.icon === 'map' && <Map className="h-6 w-6" />}
                       {!app.icon && <Brain className="h-6 w-6" />}
                     </div>
                   </div>

@@ -60,6 +60,17 @@ export async function seedInitialData() {
         sortOrder: 3,
       });
 
+      const itineraryApp = await storage.createApplication({
+        name: "itinerary-ai",
+        displayName: "itineraryAI",
+        description: "AI-powered trip planning and prospect meeting optimization",
+        route: "/apps/itinerary",
+        icon: "map",
+        color: "blue",
+        isActive: true,
+        sortOrder: 4,
+      });
+
       const userManagementApp = await storage.createApplication({
         name: "user-management",
         displayName: "User Management",
@@ -68,13 +79,14 @@ export async function seedInitialData() {
         icon: "users",
         color: "red",
         isActive: true,
-        sortOrder: 4,
+        sortOrder: 5,
       });
 
       console.log("Created default applications:", { 
         interactionApp: interactionApp.id, 
         settingsApp: settingsApp.id,
         portfolioApp: portfolioApp.id,
+        itineraryApp: itineraryApp.id,
         userManagementApp: userManagementApp.id
       });
 
@@ -86,6 +98,7 @@ export async function seedInitialData() {
         await storage.assignRoleApplication(adminRole.id, interactionApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, settingsApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, portfolioApp.id, ["read", "write", "admin"]);
+        await storage.assignRoleApplication(adminRole.id, itineraryApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, userManagementApp.id, ["read", "write", "admin"]);
         console.log("Granted admin role access to all applications");
       }
@@ -95,7 +108,8 @@ export async function seedInitialData() {
       if (userRole) {
         await storage.assignRoleApplication(userRole.id, interactionApp.id, ["read", "write"]);
         await storage.assignRoleApplication(userRole.id, portfolioApp.id, ["read", "write"]);
-        console.log("Granted user role access to interaction and portfolio apps");
+        await storage.assignRoleApplication(userRole.id, itineraryApp.id, ["read", "write"]);
+        console.log("Granted user role access to interaction, portfolio, and itinerary apps");
       }
     }
 

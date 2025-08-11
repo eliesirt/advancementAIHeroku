@@ -44,7 +44,16 @@ import {
   type ProspectEvent,
   type InsertProspectEvent,
   type ProspectBadge,
-  type InsertProspectBadge
+  type InsertProspectBadge,
+  itineraries,
+  itineraryMeetings,
+  itineraryTravelSegments,
+  type Itinerary,
+  type InsertItinerary,
+  type ItineraryMeeting,
+  type InsertItineraryMeeting,
+  type ItineraryTravelSegment,
+  type InsertItineraryTravelSegment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -139,6 +148,25 @@ export interface IStorage {
   getProspectBadges(prospectId: number): Promise<ProspectBadge[]>;
   createProspectBadge(badge: InsertProspectBadge): Promise<ProspectBadge>;
   deleteProspectBadge(id: number): Promise<boolean>;
+
+  // Itinerary methods
+  getItineraries(userId: string): Promise<Itinerary[]>;
+  getItinerary(id: number): Promise<Itinerary | undefined>;
+  createItinerary(itinerary: InsertItinerary): Promise<Itinerary>;
+  updateItinerary(id: number, updates: Partial<InsertItinerary>): Promise<Itinerary>;
+  deleteItinerary(id: number): Promise<boolean>;
+
+  // Itinerary meeting methods
+  getItineraryMeetings(itineraryId: number): Promise<(ItineraryMeeting & { prospect: Prospect })[]>;
+  createItineraryMeeting(meeting: InsertItineraryMeeting): Promise<ItineraryMeeting>;
+  updateItineraryMeeting(id: number, updates: Partial<InsertItineraryMeeting>): Promise<ItineraryMeeting>;
+  deleteItineraryMeeting(id: number): Promise<boolean>;
+
+  // Itinerary travel segment methods
+  getItineraryTravelSegments(itineraryId: number): Promise<ItineraryTravelSegment[]>;
+  createItineraryTravelSegment(segment: InsertItineraryTravelSegment): Promise<ItineraryTravelSegment>;
+  updateItineraryTravelSegment(id: number, updates: Partial<InsertItineraryTravelSegment>): Promise<ItineraryTravelSegment>;
+  deleteItineraryTravelSegment(id: number): Promise<boolean>;
 
   // Admin methods
   getAllUsersWithRoles(): Promise<UserWithRoles[]>;
@@ -1369,6 +1397,134 @@ export class DatabaseStorage implements IStorage {
   async deleteProspectBadge(id: number): Promise<boolean> {
     const result = await db.delete(prospectBadges).where(eq(prospectBadges.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Itinerary methods
+  async getItineraries(userId: string): Promise<Itinerary[]> {
+    return await db
+      .select()
+      .from(itineraries)
+      .where(eq(itineraries.userId, userId))
+      .orderBy(desc(itineraries.createdAt));
+  }
+
+  async getItinerary(id: number): Promise<Itinerary | undefined> {
+    const [itinerary] = await db.select().from(itineraries).where(eq(itineraries.id, id));
+    return itinerary || undefined;
+  }
+
+  async createItinerary(itinerary: InsertItinerary): Promise<Itinerary> {
+    const [result] = await db.insert(itineraries).values(itinerary).returning();
+    return result;
+  }
+
+  async updateItinerary(id: number, updates: Partial<InsertItinerary>): Promise<Itinerary> {
+    const [itinerary] = await db
+      .update(itineraries)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(itineraries.id, id))
+      .returning();
+    return itinerary;
+  }
+
+  async deleteItinerary(id: number): Promise<boolean> {
+    const result = await db.delete(itineraries).where(eq(itineraries.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Itinerary meeting methods
+  async getItineraryMeetings(itineraryId: number): Promise<(ItineraryMeeting & { prospect: Prospect })[]> {
+    return await db
+      .select({
+        id: itineraryMeetings.id,
+        itineraryId: itineraryMeetings.itineraryId,
+        prospectId: itineraryMeetings.prospectId,
+        scheduledDate: itineraryMeetings.scheduledDate,
+        scheduledTime: itineraryMeetings.scheduledTime,
+        duration: itineraryMeetings.duration,
+        meetingType: itineraryMeetings.meetingType,
+        location: itineraryMeetings.location,
+        notes: itineraryMeetings.notes,
+        status: itineraryMeetings.status,
+        sortOrder: itineraryMeetings.sortOrder,
+        travelTimeFromPrevious: itineraryMeetings.travelTimeFromPrevious,
+        distanceFromPrevious: itineraryMeetings.distanceFromPrevious,
+        createdAt: itineraryMeetings.createdAt,
+        prospect: prospects
+      })
+      .from(itineraryMeetings)
+      .leftJoin(prospects, eq(itineraryMeetings.prospectId, prospects.id))
+      .where(eq(itineraryMeetings.itineraryId, itineraryId))
+      .orderBy(itineraryMeetings.sortOrder);
+  }
+
+  async createItineraryMeeting(meeting: InsertItineraryMeeting): Promise<ItineraryMeeting> {
+    const [result] = await db.insert(itineraryMeetings).values(meeting).returning();
+    return result;
+  }
+
+  async updateItineraryMeeting(id: number, updates: Partial<InsertItineraryMeeting>): Promise<ItineraryMeeting> {
+    const [meeting] = await db
+      .update(itineraryMeetings)
+      .set(updates)
+      .where(eq(itineraryMeetings.id, id))
+      .returning();
+    return meeting;
+  }
+
+  async deleteItineraryMeeting(id: number): Promise<boolean> {
+    const result = await db.delete(itineraryMeetings).where(eq(itineraryMeetings.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Itinerary travel segment methods
+  async getItineraryTravelSegments(itineraryId: number): Promise<ItineraryTravelSegment[]> {
+    return await db
+      .select()
+      .from(itineraryTravelSegments)
+      .where(eq(itineraryTravelSegments.itineraryId, itineraryId))
+      .orderBy(itineraryTravelSegments.sortOrder);
+  }
+
+  async createItineraryTravelSegment(segment: InsertItineraryTravelSegment): Promise<ItineraryTravelSegment> {
+    const [result] = await db.insert(itineraryTravelSegments).values(segment).returning();
+    return result;
+  }
+
+  async updateItineraryTravelSegment(id: number, updates: Partial<InsertItineraryTravelSegment>): Promise<ItineraryTravelSegment> {
+    const [segment] = await db
+      .update(itineraryTravelSegments)
+      .set(updates)
+      .where(eq(itineraryTravelSegments.id, id))
+      .returning();
+    return segment;
+  }
+
+  async deleteItineraryTravelSegment(id: number): Promise<boolean> {
+    const result = await db.delete(itineraryTravelSegments).where(eq(itineraryTravelSegments.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Admin methods - These should be at the end
+  async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
+    const allUsers = await db.select().from(users).orderBy(users.email);
+    
+    const usersWithRoles = await Promise.all(
+      allUsers.map(async (user) => {
+        const userRolesList = await this.getUserRoles(user.id);
+        const userApplications = await this.getUserApplications(user.id);
+        return { ...user, roles: userRolesList, applications: userApplications };
+      })
+    );
+
+    return usersWithRoles;
+  }
+
+  async getAllApplications(): Promise<Application[]> {
+    return await db
+      .select()
+      .from(applications)
+      .orderBy(applications.sortOrder);
   }
 }
 
