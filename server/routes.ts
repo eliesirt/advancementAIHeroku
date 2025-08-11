@@ -162,6 +162,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Process voice recording directly without creating interaction draft first
+  app.post("/api/voice-recordings/process-direct", isAuthenticated, async (req: any, res) => {
+    try {
+      const { transcript, audioData, duration } = req.body;
+      
+      if (!transcript) {
+        return res.status(400).json({ message: "No transcript provided" });
+      }
+
+      // Generate concise summary
+      const { generateConciseSummary } = await import("./lib/openai");
+      const conciseSummary = await generateConciseSummary(transcript);
+
+      // Extract interaction information
+      const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(transcript) || {
+          summary: '',
+          category: '',
+          subcategory: '',
+          contactLevel: 'Initial Contact',
+          professionalInterests: [],
+          personalInterests: [],
+          philanthropicPriorities: [],
+          keyPoints: [],
+          suggestedAffinityTags: [],
+          prospectName: ''
+        };
+
+      // Match interests to affinity tags
+      const affinityTags = await storage.getAffinityTags();
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+
+      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+      const matchedTags = affinityMatcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities
+      );
+      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+
+      // Generate enhanced comments with full synopsis and transcript
+      const userId = req.user.claims.sub;
+      const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, userId);
+
+      res.json({
+        transcript,
+        extractedInfo: {
+          ...extractedInfo,
+          suggestedAffinityTags
+        },
+        conciseSummary,
+        enhancedComments
+      });
+    } catch (error) {
+      console.error("Direct voice processing error:", error);
+      res.status(500).json({ message: "Failed to process voice recording", error: (error as Error).message });
+    }
+  });
+
   // Process voice recording (transcribe and extract info)
   app.post("/api/voice-recordings/:id/process", async (req, res) => {
     try {
