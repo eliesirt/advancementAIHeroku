@@ -67,10 +67,7 @@ export default function ItineraryAI() {
   // Create new itinerary mutation
   const createItineraryMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/itineraries", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("/api/itineraries", "POST", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries"] });
@@ -103,10 +100,7 @@ export default function ItineraryAI() {
   // Add meeting mutation
   const addMeetingMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest(`/api/itineraries/${selectedItinerary}/meetings`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest(`/api/itineraries/${selectedItinerary}/meetings`, "POST", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/itineraries", selectedItinerary] });
