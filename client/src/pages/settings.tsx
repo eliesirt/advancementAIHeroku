@@ -261,11 +261,14 @@ export default function SettingsPage() {
       const response = await apiRequest("POST", "/api/affinity-tags/settings", settings);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Settings Updated",
         description: "Affinity tag refresh settings have been updated.",
       });
+      // Invalidate and refetch the settings to ensure UI is in sync
+      queryClient.invalidateQueries({ queryKey: ["/api/affinity-tags/info"] });
+      refetchAffinityTags();
     },
     onError: () => {
       toast({
@@ -273,6 +276,9 @@ export default function SettingsPage() {
         description: "Unable to update affinity tag settings.",
         variant: "destructive",
       });
+      // Revert the local state on error
+      setTempThreshold(affinityTagSettings.matchingThreshold);
+      setHasUnsavedThreshold(false);
     },
   });
 
@@ -328,9 +334,13 @@ export default function SettingsPage() {
   // Save threshold to backend
   const saveThreshold = () => {
     const newSettings = { ...affinityTagSettings, matchingThreshold: tempThreshold };
-    setAffinityTagSettings(newSettings);
-    setHasUnsavedThreshold(false);
-    updateAffinitySettingsMutation.mutate(newSettings);
+    // Only update local state after successful mutation
+    updateAffinitySettingsMutation.mutate(newSettings, {
+      onSuccess: () => {
+        setAffinityTagSettings(newSettings);
+        setHasUnsavedThreshold(false);
+      }
+    });
   };
 
   // Reset threshold to saved value
