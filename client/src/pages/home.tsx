@@ -81,6 +81,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
   const [expandedQualityTips, setExpandedQualityTips] = useState<Set<number>>(new Set());
   const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
+  const [showProcessing, setShowProcessing] = useState(false);
 
   const { toast } = useToast();
 
