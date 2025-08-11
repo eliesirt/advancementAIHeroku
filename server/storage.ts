@@ -56,7 +56,7 @@ import {
   type InsertItineraryTravelSegment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User methods (updated for string IDs and authentication)
@@ -1126,17 +1126,20 @@ export class DatabaseStorage implements IStorage {
       .from(roleApplications)
       .innerJoin(applications, eq(roleApplications.applicationId, applications.id))
       .where(and(
-        eq(applications.isActive, true)
+        eq(applications.isActive, true),
+        // Only include role applications for the user's roles
+        roleIds.length > 0 ? 
+          inArray(roleApplications.roleId, roleIds) :
+          sql`false` // No roles, no applications
       ));
 
     const permissionMap = new Map<number, Set<string>>();
 
     roleApplicationsList.forEach(ra => {
-      if (roleIds.includes(ra.roleId)) {
-        const existing = permissionMap.get(ra.applicationId) || new Set();
-        ra.permissions.forEach(p => existing.add(p));
-        permissionMap.set(ra.applicationId, existing);
-      }
+      // No need to check roleIds.includes(ra.roleId) since we already filtered in SQL
+      const existing = permissionMap.get(ra.applicationId) || new Set();
+      ra.permissions.forEach(p => existing.add(p));
+      permissionMap.set(ra.applicationId, existing);
     });
 
     const result: ApplicationWithPermissions[] = [];

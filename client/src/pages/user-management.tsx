@@ -224,6 +224,8 @@ export default function UserManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/role-applications"] });
+      // Also invalidate applications cache since permissions might have changed for impersonated users
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       toast({
         title: "Success",
         description: "Role permissions updated successfully",
