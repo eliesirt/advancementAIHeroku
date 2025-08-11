@@ -5,7 +5,7 @@ import { transcribeAudio, extractInteractionInfo, enhanceInteractionComments, ty
 import { bbecClient, type BBECInteractionSubmission } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
-import { insertInteractionSchema, insertVoiceRecordingSchema } from "@shared/schema";
+import { insertInteractionSchema, insertVoiceRecordingSchema, insertItinerarySchema, insertItineraryMeetingSchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { seedInitialData } from "./seedData";
@@ -1845,9 +1845,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/itineraries', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const itineraryData = { ...req.body, userId };
       
-      const newItinerary = await storage.createItinerary(itineraryData);
+      // Validate and parse the request body
+      const validatedData = insertItinerarySchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const newItinerary = await storage.createItinerary(validatedData);
       res.json(newItinerary);
     } catch (error) {
       console.error("Error creating itinerary:", error);
@@ -1902,8 +1907,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Itinerary not found or access denied" });
       }
       
-      const meetingData = { ...req.body, itineraryId: parseInt(id) };
-      const newMeeting = await storage.createItineraryMeeting(meetingData);
+      // Validate and parse the request body
+      const validatedData = insertItineraryMeetingSchema.parse({
+        ...req.body,
+        itineraryId: parseInt(id)
+      });
+      
+      const newMeeting = await storage.createItineraryMeeting(validatedData);
       res.json(newMeeting);
     } catch (error) {
       console.error("Error creating meeting:", error);

@@ -499,11 +499,16 @@ export const insertItinerarySchema = createInsertSchema(itineraries).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startDate: z.union([z.date(), z.string().transform((str) => new Date(str))]),
+  endDate: z.union([z.date(), z.string().transform((str) => new Date(str))]),
 });
 
 export const insertItineraryMeetingSchema = createInsertSchema(itineraryMeetings).omit({
   id: true,
   createdAt: true,
+}).extend({
+  scheduledDate: z.union([z.date(), z.string().transform((str) => new Date(str))]),
 });
 
 export const insertItineraryTravelSegmentSchema = createInsertSchema(itineraryTravelSegments).omit({
