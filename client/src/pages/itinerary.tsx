@@ -61,6 +61,15 @@ export default function ItineraryAI() {
   // Fetch selected itinerary details
   const { data: itineraryDetails, refetch: refetchItineraryDetails } = useQuery({
     queryKey: ["/api/itineraries", selectedItinerary],
+    queryFn: async () => {
+      const response = await fetch(`/api/itineraries/${selectedItinerary}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch itinerary: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: !!selectedItinerary,
     retry: false,
   });

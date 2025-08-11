@@ -1822,6 +1822,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { id } = req.params;
       
+      console.log(`[DETAILED ENDPOINT] Fetching itinerary ${id} for user ${userId}`);
+      
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary) {
         return res.status(404).json({ message: "Itinerary not found" });
