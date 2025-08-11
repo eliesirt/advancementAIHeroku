@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,15 +19,9 @@ export function VoiceRecorder({
   disabled = false,
   className 
 }: VoiceRecorderProps) {
-  const [transcript, setTranscript] = useState('');
-
   const { state, toggleRecording, resetRecording } = useVoiceRecording({
-    onTranscriptUpdate: (newTranscript) => {
-      setTranscript(prev => prev + newTranscript);
-    },
-    onRecordingComplete: (audioData, duration) => {
+    onRecordingComplete: (audioData, transcript, duration) => {
       onRecordingComplete(audioData, transcript, duration);
-      setTranscript('');
     },
     onError
   });
@@ -107,19 +101,19 @@ export function VoiceRecorder({
           )}
 
           {/* Live Transcript */}
-          {(state.isRecording || transcript) && (
+          {(state.isRecording || state.transcript) && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-medium text-gray-700">Live Transcript</h4>
-                {transcript && (
+                {state.transcript && (
                   <Badge variant="secondary">
-                    {transcript.split(' ').length} words
+                    {state.transcript.split(' ').length} words
                   </Badge>
                 )}
               </div>
               <div className="bg-gray-50 rounded-lg p-4 min-h-24 text-left">
-                {transcript ? (
-                  <p className="text-gray-700 whitespace-pre-wrap">{transcript}</p>
+                {state.transcript ? (
+                  <p className="text-gray-700 whitespace-pre-wrap">{state.transcript}</p>
                 ) : state.isRecording ? (
                   <div className="flex items-center space-x-2 text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -133,12 +127,11 @@ export function VoiceRecorder({
           )}
 
           {/* Actions */}
-          {transcript && !state.isRecording && (
+          {state.transcript && !state.isRecording && (
             <div className="flex space-x-2">
               <Button
                 variant="outline"
                 onClick={() => {
-                  setTranscript('');
                   resetRecording();
                 }}
               >

@@ -167,8 +167,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { transcript, audioData, duration } = req.body;
       
-      if (!transcript) {
-        return res.status(400).json({ message: "No transcript provided" });
+      console.log("Voice processing request data:", { 
+        hasTranscript: !!transcript, 
+        transcriptLength: transcript?.length || 0,
+        hasAudioData: !!audioData,
+        duration 
+      });
+      
+      if (!transcript || transcript.trim().length === 0) {
+        return res.status(400).json({ message: "No transcript provided or transcript is empty" });
       }
 
       // Generate concise summary
