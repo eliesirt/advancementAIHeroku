@@ -109,45 +109,21 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Create voice recording mutation
   const createVoiceRecording = useMutation({
     mutationFn: async (data: { audioData: string; duration: number; transcript: string }) => {
-      // First create a draft interaction
-      const draftResponse = await apiRequest("POST", "/api/interactions/draft", {
-        userId: 1,
-        prospectName: 'Voice Recording',
-        summary: 'Voice recording captured',
-        category: 'General',
-        subcategory: 'Other',
-        contactLevel: 'In Person',
-        method: 'Voice Recording',
-        status: 'Draft',
-        actualDate: new Date().toISOString().slice(0, 16),
-        comments: 'Audio recorded, awaiting transcription',
+      // Process the voice recording directly without creating a draft interaction
+      const processResponse = await apiRequest("POST", "/api/voice-recordings/process-direct", {
         transcript: data.transcript,
-        isDraft: true,
-        bbecSubmitted: false
-      });
-      const draft = await draftResponse.json();
-
-      // Then save the voice recording linked to this draft
-      const voiceResponse = await apiRequest("POST", "/api/voice-recordings", {
         audioData: data.audioData,
-        transcript: data.transcript,
-        duration: data.duration,
-        processed: false,
-        interactionId: draft.id
+        duration: data.duration
       });
-      const voiceRecording = await voiceResponse.json();
-
-      // Process the voice recording to get transcription and analysis
-      const processResponse = await apiRequest("POST", `/api/voice-recordings/${voiceRecording.id}/process`);
       const processedData = await processResponse.json();
 
-      return { voiceRecording, processedData };
+      return processedData;
     },
     onSuccess: (data) => {
       // Set the processed data and show the interaction form for review
-      setCurrentTranscript(data.processedData.transcript);
-      setExtractedInfo(data.processedData.extractedInfo);
-      setEnhancedComments(data.processedData.extractedInfo?.summary || '');
+      setCurrentTranscript(data.transcript);
+      setExtractedInfo(data.extractedInfo);
+      setEnhancedComments(data.extractedInfo?.summary || '');
       setEditingInteraction(null);
       setShowInteractionForm(true);
 

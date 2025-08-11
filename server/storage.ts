@@ -1105,13 +1105,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserApplications(userId: string): Promise<ApplicationWithPermissions[]> {
-    console.log(`Getting applications for user: ${userId}`);
     const userRolesList = await db
       .select()
       .from(userRoles)
       .where(eq(userRoles.userId, userId));
 
-    console.log(`User has ${userRolesList.length} roles:`, userRolesList.map(ur => ur.roleId));
     if (userRolesList.length === 0) return [];
 
     const roleIds = userRolesList.map(ur => ur.roleId);
@@ -1157,11 +1155,6 @@ export class DatabaseStorage implements IStorage {
         });
       }
     }
-
-    console.log(`Returning ${result.length} applications with permissions:`, result.map(r => ({
-      name: r.name,
-      permissions: r.permissions
-    })));
 
     return result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
