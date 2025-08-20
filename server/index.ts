@@ -221,6 +221,30 @@ app.get('/health', (req, res) => {
           description: "Voice-enabled interaction tracking system",
           icon: "mic",
           path: "/apps/interactions"
+        },
+        {
+          id: 2,
+          name: "portfolio-management", 
+          displayName: "Portfolio Management",
+          description: "Manage donor portfolios and prospect assignments",
+          icon: "users",
+          path: "/apps/portfolio"
+        },
+        {
+          id: 3,
+          name: "itinerary-planner",
+          displayName: "Itinerary Planner", 
+          description: "Plan and schedule advancement visits",
+          icon: "calendar",
+          path: "/apps/itinerary"
+        },
+        {
+          id: 4,
+          name: "user-management",
+          displayName: "User Management",
+          description: "Manage users, roles, and permissions",
+          icon: "settings",
+          path: "/apps/user-management"
         }
       ]);
     });
@@ -232,9 +256,34 @@ app.get('/health', (req, res) => {
     
     console.log("✅ Essential auth and app routes registered immediately");
     
-    // Set up static file serving IMMEDIATELY
-    serveStatic(app);
-    console.log("✅ Static file serving enabled immediately");
+    // Set up static file serving IMMEDIATELY with SPA routing support
+    console.log("📁 Setting up static file serving with SPA routing...");
+    
+    // Serve static files from dist/public (Vite build output)
+    app.use(express.static('dist/public'));
+    
+    // CRITICAL: SPA fallback route - serve index.html for all non-API routes
+    app.get('*', (req: Request, res: Response) => {
+      // Skip API routes - let them return 404 if not found
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ message: 'API route not found' });
+      }
+      
+      try {
+        const indexPath = join(process.cwd(), 'dist/public/index.html');
+        if (existsSync(indexPath)) {
+          console.log(`🔄 SPA routing: serving index.html for ${req.path}`);
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('<h1>App Not Built</h1><p>Frontend assets not found. Run build process.</p>');
+        }
+      } catch (error) {
+        console.error("Error serving SPA route:", error);
+        res.status(500).send('<h1>Server Error</h1><p>Unable to serve application.</p>');
+      }
+    });
+    
+    console.log("✅ Static file serving with SPA routing enabled immediately");
     
     // Bind to port IMMEDIATELY
     const server = createServer(app);
