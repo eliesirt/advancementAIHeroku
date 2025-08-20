@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Heroku build starting...');
+console.log('🚀 Heroku build starting with new auth system...');
 
 try {
   // Step 1: Build frontend

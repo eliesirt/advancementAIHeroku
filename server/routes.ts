@@ -8,7 +8,17 @@ import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema, insertItinerarySchema, insertItineraryMeetingSchema } from "@shared/schema";
 import fetch from 'node-fetch';
 import { z } from "zod";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// Dynamic auth import function
+async function getAuthModule() {
+  const isHerokuDeployment = process.env.NODE_ENV === 'production' && 
+    (process.env.HEROKU_APP_NAME || !process.env.REPLIT_DOMAINS || !process.env.REPL_ID);
+  
+  if (isHerokuDeployment) {
+    return await import("./herokuAuth");
+  } else {
+    return await import("./replitAuth");
+  }
+}
 import { seedInitialData } from "./seedData";
 import OpenAI from "openai";
 
@@ -31,6 +41,9 @@ async function getMatchingThreshold(): Promise<number> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get auth module based on environment
+  const { setupAuth, isAuthenticated } = await getAuthModule();
+  
   // Auth middleware
   await setupAuth(app);
 
