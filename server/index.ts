@@ -153,31 +153,35 @@ app.get('/health', (req, res) => {
     // HEROKU FAST STARTUP MODE
     console.log("🚀 HEROKU: Using ultra-fast startup mode...");
     
-    // Add immediate health endpoint
+    // Initialize fallbacks immediately for static serving
+    await setupFallbacks();
+    
+    // Add immediate health endpoints
     app.get('/health', (req, res) => {
       res.json({ status: 'ok', port, startup: 'fast-mode' });
     });
     
-    // Add immediate API health endpoint  
     app.get('/api/health', (req, res) => {
       res.json({ status: 'ok', message: 'Server running in fast startup mode' });
     });
+    
+    // Set up static file serving IMMEDIATELY
+    serveStatic(app);
+    console.log("✅ Static file serving enabled immediately");
     
     // Bind to port IMMEDIATELY
     const server = createServer(app);
     server.listen(port, "0.0.0.0", () => {
       console.log(`🚀 HEROKU: Server listening on port ${port} - IMMEDIATE SUCCESS!`);
       
-      // Do ALL heavy initialization AFTER successful port binding
+      // Do heavy initialization AFTER successful port binding (optional)
       setTimeout(async () => {
         try {
           console.log("🔧 Starting full initialization (post-startup)...");
           
-          // Now do all the heavy work
           await initializeModules();
-          await setupFallbacks();
           
-          // Register all routes (this replaces the server but keeps the port binding)
+          // Register all routes (this adds routes but keeps static serving)
           await registerRoutes(app);
           console.log("✅ Full routes registered");
 
@@ -188,14 +192,14 @@ app.get('/health', (req, res) => {
             console.error("Express error:", err);
           });
 
-          serveStatic(app);
           console.log("✅ Full server initialization complete - Application ready!");
           
         } catch (error) {
           console.error("❌ Post-startup initialization failed:", error);
-          // Don't exit - keep basic server running
+          console.error("⚠️ Server continues to serve static files and basic endpoints");
+          // Don't exit - keep basic server running with static files
         }
-      }, 500); // Give port binding time to complete
+      }, 1000); // Give more time for port binding to complete
     });
     
     server.on('error', (error: any) => {

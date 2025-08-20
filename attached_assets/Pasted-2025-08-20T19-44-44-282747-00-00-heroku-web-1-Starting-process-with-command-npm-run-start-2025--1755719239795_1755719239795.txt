@@ -1,0 +1,160 @@
+2025-08-20T19:44:44.282747+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:44:45.161177+00:00 app[web.1]:
+2025-08-20T19:44:45.161200+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:44:45.161201+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:44:45.161201+00:00 app[web.1]:
+2025-08-20T19:44:45.201892+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-08-20T19:44:46.057596+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.4
+2025-08-20T19:44:47.307617+00:00 heroku[web.1]: State changed from starting to up
+2025-08-20T19:44:47.270865+00:00 app[web.1]: Starting application initialization...
+2025-08-20T19:44:47.270916+00:00 app[web.1]: NODE_ENV: production
+2025-08-20T19:44:47.270918+00:00 app[web.1]: Starting server on port 20293, NODE_ENV=production
+2025-08-20T19:44:47.270940+00:00 app[web.1]: 🚀 HEROKU: Using ultra-fast startup mode...
+2025-08-20T19:44:47.273983+00:00 app[web.1]: 🚀 HEROKU: Server listening on port 20293 - IMMEDIATE SUCCESS!
+2025-08-20T19:44:47.774949+00:00 app[web.1]: 🔧 Starting full initialization (post-startup)...
+2025-08-20T19:44:47.775140+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-20T19:44:47.775156+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:44:47.777256+00:00 app[web.1]: Available files in current directory: [
+2025-08-20T19:44:47.777256+00:00 app[web.1]: '.gitignore',
+2025-08-20T19:44:47.777257+00:00 app[web.1]: '.heroku',
+2025-08-20T19:44:47.777258+00:00 app[web.1]: '.herokuignore',
+2025-08-20T19:44:47.777258+00:00 app[web.1]: '.npm',
+2025-08-20T19:44:47.777259+00:00 app[web.1]: '.profile.d',
+2025-08-20T19:44:47.777259+00:00 app[web.1]: '.replit',
+2025-08-20T19:44:47.777259+00:00 app[web.1]: 'Procfile',
+2025-08-20T19:44:47.777259+00:00 app[web.1]: 'attached_assets',
+2025-08-20T19:44:47.777260+00:00 app[web.1]: 'build.cjs',
+2025-08-20T19:44:47.777260+00:00 app[web.1]: 'client',
+2025-08-20T19:44:47.777260+00:00 app[web.1]: 'components.json',
+2025-08-20T19:44:47.777260+00:00 app[web.1]: 'database_backup.dump',
+2025-08-20T19:44:47.777261+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-20T19:44:47.777261+00:00 app[web.1]: 'dist',
+2025-08-20T19:44:47.777261+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-20T19:44:47.777261+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-20T19:44:47.777262+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-20T19:44:47.777262+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-20T19:44:47.777262+00:00 app[web.1]: 'node_modules',
+2025-08-20T19:44:47.777262+00:00 app[web.1]: 'package-lock.json',
+2025-08-20T19:44:47.777262+00:00 app[web.1]: 'package.json',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'postcss.config.js',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'replit.md',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'scripts',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'server',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'shared',
+2025-08-20T19:44:47.777263+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'test_interaction.js',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'tsconfig.json',
+2025-08-20T19:44:47.777264+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-20T19:44:47.777265+00:00 app[web.1]: 'vite.config.ts'
+2025-08-20T19:44:47.777265+00:00 app[web.1]: ]
+2025-08-20T19:44:47.777430+00:00 app[web.1]: Available files in server directory: [
+2025-08-20T19:44:47.777430+00:00 app[web.1]: 'db.ts',
+2025-08-20T19:44:47.777431+00:00 app[web.1]: 'herokuAuth.ts',
+2025-08-20T19:44:47.777431+00:00 app[web.1]: 'index.ts',
+2025-08-20T19:44:47.777431+00:00 app[web.1]: 'lib',
+2025-08-20T19:44:47.777431+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-20T19:44:47.777432+00:00 app[web.1]: 'routes.ts',
+2025-08-20T19:44:47.777432+00:00 app[web.1]: 'seedData.ts',
+2025-08-20T19:44:47.777432+00:00 app[web.1]: 'storage.ts',
+2025-08-20T19:44:47.777432+00:00 app[web.1]: 'types',
+2025-08-20T19:44:47.777432+00:00 app[web.1]: 'vite.ts'
+2025-08-20T19:44:47.777432+00:00 app[web.1]: ]
+2025-08-20T19:44:47.777459+00:00 app[web.1]: Importing routes module...
+2025-08-20T19:44:48.458319+00:00 app[web.1]: Routes module imported successfully
+2025-08-20T19:44:48.458362+00:00 app[web.1]: Skipping Vite import in production for faster startup
+2025-08-20T19:44:48.458471+00:00 app[web.1]: Setting up production fallbacks for Vite functions
+2025-08-20T19:45:08.993081+00:00 heroku[router]: at=info method=GET path="/" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=0953e2c0-cb65-382b-8435-02512e490590 fwd="73.253.249.113" dyno=web.1 connect=0ms service=8ms status=404 bytes=139 protocol=http1.1 tls=true tls_version=unknown
+2025-08-20T19:46:57.940237+00:00 app[web.1]: Failed to create admin user: ErrorEvent {
+2025-08-20T19:46:57.940247+00:00 app[web.1]: [Symbol(kTarget)]: WebSocket {
+2025-08-20T19:46:57.940247+00:00 app[web.1]: _events: [Object: null prototype] {
+2025-08-20T19:46:57.940248+00:00 app[web.1]: error: [Function],
+2025-08-20T19:46:57.940249+00:00 app[web.1]: message: [Function],
+2025-08-20T19:46:57.940249+00:00 app[web.1]: close: [Function],
+2025-08-20T19:46:57.940250+00:00 app[web.1]: open: [Function]
+2025-08-20T19:46:57.940251+00:00 app[web.1]: },
+2025-08-20T19:46:57.940251+00:00 app[web.1]: _eventsCount: 4,
+2025-08-20T19:46:57.940251+00:00 app[web.1]: _maxListeners: undefined,
+2025-08-20T19:46:57.940252+00:00 app[web.1]: _binaryType: 'arraybuffer',
+2025-08-20T19:46:57.940252+00:00 app[web.1]: _closeCode: 1006,
+2025-08-20T19:46:57.940252+00:00 app[web.1]: _closeFrameReceived: false,
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _closeFrameSent: false,
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _closeMessage: <Buffer >,
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _closeTimer: null,
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _errorEmitted: true,
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _extensions: {},
+2025-08-20T19:46:57.940253+00:00 app[web.1]: _paused: false,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _protocol: '',
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _readyState: 3,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _receiver: null,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _sender: null,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _socket: null,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _bufferedAmount: 0,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _isServer: false,
+2025-08-20T19:46:57.940254+00:00 app[web.1]: _redirects: 0,
+2025-08-20T19:46:57.940255+00:00 app[web.1]: _autoPong: true,
+2025-08-20T19:46:57.940256+00:00 app[web.1]: _url: 'wss://c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com/v2',
+2025-08-20T19:46:57.940256+00:00 app[web.1]: _req: null,
+2025-08-20T19:46:57.940256+00:00 app[web.1]: [Symbol(kCapture)]: false
+2025-08-20T19:46:57.940256+00:00 app[web.1]: },
+2025-08-20T19:46:57.940256+00:00 app[web.1]: [Symbol(kType)]: 'error',
+2025-08-20T19:46:57.940257+00:00 app[web.1]: [Symbol(kError)]: Error: connect ETIMEDOUT 54.164.6.70:443
+2025-08-20T19:46:57.940258+00:00 app[web.1]: at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+2025-08-20T19:46:57.940258+00:00 app[web.1]: at __node_internal_exceptionWithHostPort (node:internal/errors:671:12)
+2025-08-20T19:46:57.940258+00:00 app[web.1]: at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+2025-08-20T19:46:57.940258+00:00 app[web.1]: errno: -110,
+2025-08-20T19:46:57.940259+00:00 app[web.1]: code: 'ETIMEDOUT',
+2025-08-20T19:46:57.940259+00:00 app[web.1]: syscall: 'connect',
+2025-08-20T19:46:57.940259+00:00 app[web.1]: address: '54.164.6.70',
+2025-08-20T19:46:57.940259+00:00 app[web.1]: port: 443
+2025-08-20T19:46:57.940259+00:00 app[web.1]: },
+2025-08-20T19:46:57.940259+00:00 app[web.1]: [Symbol(kMessage)]: 'connect ETIMEDOUT 54.164.6.70:443'
+2025-08-20T19:46:57.940259+00:00 app[web.1]: }
+2025-08-20T19:46:57.940916+00:00 app[web.1]: Seeding initial data...
+2025-08-20T19:46:57.943436+00:00 app[web.1]: Failed to initialize affinity tag scheduler: ErrorEvent {
+2025-08-20T19:46:57.943437+00:00 app[web.1]: [Symbol(kTarget)]: WebSocket {
+2025-08-20T19:46:57.943437+00:00 app[web.1]: _events: [Object: null prototype] {
+2025-08-20T19:46:57.943437+00:00 app[web.1]: error: [Function],
+2025-08-20T19:46:57.943438+00:00 app[web.1]: message: [Function],
+2025-08-20T19:46:57.943438+00:00 app[web.1]: close: [Function],
+2025-08-20T19:46:57.943438+00:00 app[web.1]: open: [Function]
+2025-08-20T19:46:57.943439+00:00 app[web.1]: },
+2025-08-20T19:46:57.943439+00:00 app[web.1]: _eventsCount: 4,
+2025-08-20T19:46:57.943439+00:00 app[web.1]: _maxListeners: undefined,
+2025-08-20T19:46:57.943439+00:00 app[web.1]: _binaryType: 'arraybuffer',
+2025-08-20T19:46:57.943439+00:00 app[web.1]: _closeCode: 1006,
+2025-08-20T19:46:57.943440+00:00 app[web.1]: _closeFrameReceived: false,
+2025-08-20T19:46:57.943440+00:00 app[web.1]: _closeFrameSent: false,
+2025-08-20T19:46:57.943440+00:00 app[web.1]: _closeMessage: <Buffer >,
+2025-08-20T19:46:57.943440+00:00 app[web.1]: _closeTimer: null,
+2025-08-20T19:46:57.943440+00:00 app[web.1]: _errorEmitted: true,
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _extensions: {},
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _paused: false,
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _protocol: '',
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _readyState: 3,
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _receiver: null,
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _sender: null,
+2025-08-20T19:46:57.943441+00:00 app[web.1]: _socket: null,
+2025-08-20T19:46:57.943442+00:00 app[web.1]: _bufferedAmount: 0,
+2025-08-20T19:46:57.943442+00:00 app[web.1]: _isServer: false,
+2025-08-20T19:46:57.943442+00:00 app[web.1]: _redirects: 0,
+2025-08-20T19:46:57.943442+00:00 app[web.1]: _autoPong: true,
+2025-08-20T19:46:57.943443+00:00 app[web.1]: _url: 'wss://c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com/v2',
+2025-08-20T19:46:57.943443+00:00 app[web.1]: _req: null,
+2025-08-20T19:46:57.943443+00:00 app[web.1]: [Symbol(kCapture)]: false
+2025-08-20T19:46:57.943443+00:00 app[web.1]: },
+2025-08-20T19:46:57.943443+00:00 app[web.1]: [Symbol(kType)]: 'error',
+2025-08-20T19:46:57.943444+00:00 app[web.1]: [Symbol(kError)]: Error: connect ETIMEDOUT 54.164.6.70:443
+2025-08-20T19:46:57.943445+00:00 app[web.1]: at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+2025-08-20T19:46:57.943445+00:00 app[web.1]: at __node_internal_exceptionWithHostPort (node:internal/errors:671:12)
+2025-08-20T19:46:57.943445+00:00 app[web.1]: at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+2025-08-20T19:46:57.943445+00:00 app[web.1]: errno: -110,
+2025-08-20T19:46:57.943445+00:00 app[web.1]: code: 'ETIMEDOUT',
+2025-08-20T19:46:57.943446+00:00 app[web.1]: syscall: 'connect',
+2025-08-20T19:46:57.943446+00:00 app[web.1]: address: '54.164.6.70',
+2025-08-20T19:46:57.943446+00:00 app[web.1]: port: 443
+2025-08-20T19:46:57.943446+00:00 app[web.1]: },
+2025-08-20T19:46:57.943447+00:00 app[web.1]: [Symbol(kMessage)]: 'connect ETIMEDOUT 54.164.6.70:443'
+2025-08-20T19:46:57.943447+00:00 app[web.1]: }
