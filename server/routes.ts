@@ -560,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (reprocessAffinity && currentInteraction?.extractedInfo) {
         try {
           // Parse the existing extracted info
-          const extractedInfo = JSON.parse(currentInteraction.extractedInfo) as ExtractedInteractionInfo;
+          const extractedInfo = JSON.parse(typeof currentInteraction.extractedInfo === 'string' ? currentInteraction.extractedInfo : JSON.stringify(currentInteraction.extractedInfo)) as ExtractedInteractionInfo;
 
           // Match interests to affinity tags with improved logic
           const affinityTags = await storage.getAffinityTags();
@@ -932,7 +932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get AI prompt settings for user
   app.get("/api/ai-prompt-settings/:userId", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.params.userId;
       const settings = await storage.getUserAiPromptSettings(userId);
       res.json(settings);
     } catch (error) {
@@ -943,7 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get specific AI prompt setting
   app.get("/api/ai-prompt-settings/:userId/:promptType", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.params.userId;
       const { promptType } = req.params;
       const setting = await storage.getAiPromptSettings(userId, promptType);
       res.json(setting || null);
@@ -967,8 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingSetting) {
         // Update existing
         const updatedSetting = await storage.updateAiPromptSettings(existingSetting.id, {
-          promptTemplate,
-          updatedAt: new Date()
+          promptTemplate
         });
         res.json({ success: true, setting: updatedSetting, message: "AI prompt setting updated successfully" });
       } else {
@@ -1283,7 +1282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process each interaction
       for (const interaction of validInteractions) {
         try {
-          let extractedInfo: ExtractedInteractionInfo | null = interaction.extractedInfo ? JSON.parse(interaction.extractedInfo) : null;
+          let extractedInfo: ExtractedInteractionInfo | null = interaction.extractedInfo ? JSON.parse(typeof interaction.extractedInfo === 'string' ? interaction.extractedInfo : JSON.stringify(interaction.extractedInfo)) : null;
           let enhancedComments = interaction.comments;
           let suggestedAffinityTags = interaction.affinityTags || [];
 
@@ -1508,7 +1507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/user/profile", async (req, res) => {
     try {
       const { firstName, lastName, email, buid } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.id || (req.user as any)?.sub;
 
       const updatedUser = await storage.updateUser(userId, {
         firstName,
@@ -1560,7 +1559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByUsername(email);
       if (!user) {
         // Try to find by ID (for Replit Auth users)
-        const userId = req.user?.claims?.sub;
+        const userId = (req.user as any)?.id || (req.user as any)?.sub;
         if (userId) {
           user = await storage.getUser(userId);
         }
@@ -1687,7 +1686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/impersonate/:userId', isAuthenticated, requireAdmin, async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const adminId = req.user.claims.sub;
+      const adminId = req.user?.id;
       
       // Verify the target user exists and is not an admin
       const targetUser = await storage.getUserWithRoles(userId);
@@ -1696,7 +1695,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Prevent impersonating other admins
-      const isTargetAdmin = targetUser.roles.some(role => role.name === 'Administrator');
+      const isTargetAdmin = targetUser.roles?.some(role => role.name === 'Administrator') || false;
       if (isTargetAdmin) {
         return res.status(403).json({ message: "Cannot impersonate other administrators" });
       }

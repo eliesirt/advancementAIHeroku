@@ -1,0 +1,108 @@
+-----> Building on the Heroku-24 stack
+-----> Determining which buildpack to use for this app
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Validating checksum
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 555 packages, and audited 556 packages in 7s
+       
+       75 packages are looking for funding
+         run `npm fund` for details
+       
+       10 vulnerabilities (3 low, 7 moderate)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       npm notice
+       npm notice New major version of npm available! 10.9.3 -> 11.5.2
+       npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+       npm notice To update run: npm install -g npm@11.5.2
+       npm notice
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > npm run build
+       
+       
+       > rest-express@1.0.0 build
+       > tsc && vite build
+       
+       client/src/components/voice-recorder.tsx(23,5): error TS2322: Type '(audioData: any, transcript: any, duration: any) => void' is not assignable to type '(audioData: string, duration: number) => void'.
+         Target signature provides too few arguments. Expected 3 or more, but got 2.
+       client/src/components/voice-recorder.tsx(23,27): error TS7006: Parameter 'audioData' implicitly has an 'any' type.
+       client/src/components/voice-recorder.tsx(23,38): error TS7006: Parameter 'transcript' implicitly has an 'any' type.
+       client/src/components/voice-recorder.tsx(23,50): error TS7006: Parameter 'duration' implicitly has an 'any' type.
+       client/src/hooks/use-voice-recording.tsx(57,78): error TS2554: Expected 2 arguments, but got 3.
+       client/src/pages/itinerary.tsx(401,18): error TS18046: 'itineraries' is of type 'unknown'.
+       client/src/pages/itinerary.tsx(453,16): error TS18046: 'itineraries' is of type 'unknown'.
+       client/src/pages/itinerary.tsx(533,38): error TS18046: 'prospects' is of type 'unknown'.
+       client/src/pages/settings.tsx(280,24): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'SetStateAction<number>'.
+         Type 'undefined' is not assignable to type 'SetStateAction<number>'.
+       client/src/pages/settings.tsx(1038,25): error TS2339: Property 'roles' does not exist on type '{}'.
+       client/src/pages/user-management.tsx(704,39): error TS2322: Type 'boolean | null' is not assignable to type 'boolean | undefined'.
+         Type 'null' is not assignable to type 'boolean | undefined'.
+       server/lib/openai.ts(185,60): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+       server/routes.ts(563,44): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+       server/routes.ts(936,62): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+       server/routes.ts(948,57): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+       server/routes.ts(971,11): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type 'Partial<{ userId: string; promptType: string; promptTemplate: string; isDefault?: boolean | null | undefined; }>'.
+       server/routes.ts(1286,103): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+       server/routes.ts(1511,22): error TS18048: 'req.user' is possibly 'undefined'.
+       server/routes.ts(1511,31): error TS2339: Property 'claims' does not exist on type 'User'.
+       server/routes.ts(1563,34): error TS2339: Property 'claims' does not exist on type 'User'.
+       server/routes.ts(1699,29): error TS18048: 'targetUser.roles' is possibly 'undefined'.
+       server/storage.ts(176,14): error TS2420: Class 'MemStorage' incorrectly implements interface 'IStorage'.
+         Type 'MemStorage' is missing the following properties from type 'IStorage': getProspects, getProspectsByManager, getProspect, createProspect, and 26 more.
+       server/storage.ts(550,7): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type '{ id: number; name: string; description: string | null; createdAt: Date; isSystemRole: boolean | null; }'.
+       server/storage.ts(564,7): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type '{ id: number; name: string; description: string | null; createdAt: Date; isSystemRole: boolean | null; }'.
+       server/storage.ts(1058,26): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type '{ name?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; id?: number | SQL<unknown> | PgColumn<...> | undefined; description?: string | ... 3 more ... | undefined; createdAt?: Date | ... 2 more ... | undefined; isSystemRole?: boolean | ... 3 more ... | undefined; }'.
+       server/storage.ts(1239,9): error TS2393: Duplicate function implementation.
+       server/storage.ts(1248,9): error TS2393: Duplicate function implementation.
+       server/storage.ts(1257,7): error TS2740: Type 'Omit<PgSelectBase<"prospects", { id: PgColumn<{ name: "id"; tableName: "prospects"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; ... 5 more ...; generated: undefined; }, {}, {}>; ... 38 more ...; updatedAt: PgColumn<...>; }, ... 5...' is missing the following properties from type 'PgSelectBase<"prospects", { id: PgColumn<{ name: "id"; tableName: "prospects"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; isPrimaryKey: true; ... 5 more ...; generated: undefined; }, {}, {}>; ... 38 more ...; updatedAt: PgColumn<...>; }, ... 5 more...': config, joinsNotNullableMap, tableName, isPartialSelect, and 5 more.
+       server/storage.ts(1443,5): error TS2322: Type '{ id: number; itineraryId: number; prospectId: number; scheduledDate: Date; scheduledTime: string | null; duration: number; meetingType: string; location: unknown; notes: string | null; status: string; ... 4 more ...; prospect: { ...; } | null; }[]' is not assignable to type '({ id: number; duration: number; status: string; location: unknown; createdAt: Date; sortOrder: number; prospectId: number; notes: string | null; itineraryId: number; scheduledDate: Date; scheduledTime: string | null; meetingType: string; travelTimeFromPrevious: number | null; distanceFromPrevious: number | null; } ...'.
+         Type '{ id: number; itineraryId: number; prospectId: number; scheduledDate: Date; scheduledTime: string | null; duration: number; meetingType: string; location: unknown; notes: string | null; status: string; ... 4 more ...; prospect: { ...; } | null; }' is not assignable to type '{ id: number; duration: number; status: string; location: unknown; createdAt: Date; sortOrder: number; prospectId: number; notes: string | null; itineraryId: number; scheduledDate: Date; scheduledTime: string | null; meetingType: string; travelTimeFromPrevious: number | null; distanceFromPrevious: number | null; } &...'.
+           Type '{ id: number; itineraryId: number; prospectId: number; scheduledDate: Date; scheduledTime: string | null; duration: number; meetingType: string; location: unknown; notes: string | null; status: string; ... 4 more ...; prospect: { ...; } | null; }' is not assignable to type '{ prospect: { address: unknown; id: number; email: string | null; affinityTags: string[] | null; lastName: string; firstName: string; buid: string; bbecGuid: string | null; constituentGuid: string | null; ... 30 more ...; lastSyncedAt: Date | null; }; }'.
+             Types of property 'prospect' are incompatible.
+               Type '{ id: number; buid: string; bbecGuid: string | null; constituentGuid: string | null; firstName: string; lastName: string; fullName: string; email: string | null; phone: string | null; ... 30 more ...; updatedAt: Date; } | null' is not assignable to type '{ address: unknown; id: number; email: string | null; affinityTags: string[] | null; lastName: string; firstName: string; buid: string; bbecGuid: string | null; constituentGuid: string | null; isActive: boolean | null; ... 29 more ...; lastSyncedAt: Date | null; }'.
+                 Type 'null' is not assignable to type '{ address: unknown; id: number; email: string | null; affinityTags: string[] | null; lastName: string; firstName: string; buid: string; bbecGuid: string | null; constituentGuid: string | null; isActive: boolean | null; ... 29 more ...; lastSyncedAt: Date | null; }'.
+       server/storage.ts(1515,9): error TS2393: Duplicate function implementation.
+       server/storage.ts(1529,9): error TS2393: Duplicate function implementation.
+-----> Build failed
+       
+       We're sorry this build is failing! You can troubleshoot common issues here:
+       https://devcenter.heroku.com/articles/troubleshooting-node-deploys
+       
+       If you're stuck, please submit a ticket so we can help:
+       https://help.heroku.com/
+       
+       Love,
+       Heroku
+       
+ !     Push rejected, failed to compile Node.js app.
+ !     Push failed

@@ -277,7 +277,7 @@ export default function SettingsPage() {
         variant: "destructive",
       });
       // Revert the local state on error
-      setTempThreshold(affinityTagSettings.matchingThreshold);
+      setTempThreshold(affinityTagSettings.matchingThreshold || 70);
       setHasUnsavedThreshold(false);
     },
   });
@@ -1035,7 +1035,7 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         </Card>
 
         {/* User & Role Management - Only for Administrators */}
-        {userWithRoles?.roles?.some((role: any) => role.name === "Administrator") && (
+        {(userWithRoles as any)?.roles?.some((role: any) => role.name === "Administrator") && (
           <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
             <CardHeader className="border-b border-gray-100">
               <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">

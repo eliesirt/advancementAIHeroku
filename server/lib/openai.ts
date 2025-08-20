@@ -182,7 +182,7 @@ export async function generateInteractionSynopsis(
   try {
     // Get custom prompt from database if available
     const { storage } = await import('../storage');
-    const customPrompt = await storage.getAiPromptSettings(userId, 'synopsis');
+    const customPrompt = await storage.getAiPromptSettings(userId.toString(), 'synopsis');
     
     const defaultPrompt = `
 Analyze this fundraising interaction and create a concise synopsis for Boston University's Advancement office. 

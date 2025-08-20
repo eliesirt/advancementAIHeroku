@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 
 interface UseVoiceRecordingProps {
   onTranscriptUpdate?: (transcript: string) => void;
-  onRecordingComplete?: (audioData: string, duration: number) => void;
+  onRecordingComplete?: (audioData: string, transcript: string, duration: number) => void;
   onError?: (error: string) => void;
 }
 

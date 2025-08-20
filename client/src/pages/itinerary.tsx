@@ -398,7 +398,7 @@ export default function ItineraryAI() {
 
               {/* Itineraries Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {itineraries.map((itinerary: Itinerary) => (
+                {(itineraries as Itinerary[])?.map((itinerary: Itinerary) => (
                   <Card 
                     key={itinerary.id}
                     className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-red-200"
@@ -450,7 +450,7 @@ export default function ItineraryAI() {
                 ))}
               </div>
 
-              {itineraries.length === 0 && (
+              {(itineraries as Itinerary[])?.length === 0 && (
                 <div className="text-center py-16">
                   <div className="mb-6">
                     <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center">
@@ -530,7 +530,7 @@ export default function ItineraryAI() {
                                     <SelectValue placeholder="Choose a prospect" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {prospects.map((prospect: Prospect) => (
+                                    {(prospects as Prospect[])?.map((prospect: Prospect) => (
                                       <SelectItem key={prospect.id} value={prospect.id.toString()}>
                                         {prospect.fullName}
                                       </SelectItem>

@@ -701,7 +701,7 @@ export default function UserManagementPage() {
                                       onCheckedChange={(checked) => 
                                         handlePermissionChange(role.id, app.id, permission, !!checked)
                                       }
-                                      disabled={role.isSystemRole}
+                                      disabled={role.isSystemRole || false}
                                     />
                                     <Label
                                       htmlFor={`${role.id}-${app.id}-${permission}`}

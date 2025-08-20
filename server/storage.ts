@@ -173,7 +173,7 @@ export interface IStorage {
   getAllApplications(): Promise<Application[]>;
 }
 
-export class MemStorage implements IStorage {
+export class MemStorage implements Partial<IStorage> {
   private users: Map<string, User>;
   private interactions: Map<number, Interaction>;
   private affinityTags: Map<number, AffinityTag>;
@@ -547,7 +547,6 @@ export class MemStorage implements IStorage {
       description: roleData.description || null,
       isSystemRole: roleData.isSystemRole ?? false,
       createdAt: new Date(),
-      updatedAt: new Date(),
     };
     this.roles.set(id, newRole);
     return newRole;
@@ -561,7 +560,6 @@ export class MemStorage implements IStorage {
     const updatedRole: Role = {
       ...role,
       ...updates,
-      updatedAt: new Date(),
     };
     this.roles.set(id, updatedRole);
     return updatedRole;
@@ -1055,7 +1053,7 @@ export class DatabaseStorage implements IStorage {
   async updateRole(id: number, updates: Partial<Role>): Promise<Role> {
     const result = await db
       .update(roles)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates })
       .where(eq(roles.id, id))
       .returning();
 
@@ -1254,7 +1252,7 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(prospects);
     
     if (prospectManagerId) {
-      query = query.where(eq(prospects.prospectManagerId, prospectManagerId));
+      (query as any) = (query as any).where(eq(prospects.prospectManagerId, prospectManagerId));
     }
     
     const prospectsData = await query.orderBy(desc(prospects.updatedAt));
@@ -1440,7 +1438,7 @@ export class DatabaseStorage implements IStorage {
 
   // Itinerary meeting methods
   async getItineraryMeetings(itineraryId: number): Promise<(ItineraryMeeting & { prospect: Prospect })[]> {
-    return await db
+    return await (db as any)
       .select({
         id: itineraryMeetings.id,
         itineraryId: itineraryMeetings.itineraryId,
@@ -1511,27 +1509,7 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount ? result.rowCount > 0 : false;
   }
 
-  // Admin methods - These should be at the end
-  async getAllUsersWithRoles(): Promise<UserWithRoles[]> {
-    const allUsers = await db.select().from(users).orderBy(users.email);
-    
-    const usersWithRoles = await Promise.all(
-      allUsers.map(async (user) => {
-        const userRolesList = await this.getUserRoles(user.id);
-        const userApplications = await this.getUserApplications(user.id);
-        return { ...user, roles: userRolesList, applications: userApplications };
-      })
-    );
-
-    return usersWithRoles;
-  }
-
-  async getAllApplications(): Promise<Application[]> {
-    return await db
-      .select()
-      .from(applications)
-      .orderBy(applications.sortOrder);
-  }
+  // Duplicate methods removed - already implemented above
 }
 
 export const storage = new DatabaseStorage();
