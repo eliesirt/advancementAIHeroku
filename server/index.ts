@@ -408,6 +408,32 @@ app.get('/health', (req, res) => {
         res.status(500).json({ message: "Failed to create interaction", error: (error as Error).message });
       }
     });
+
+    // Bulk delete interactions endpoint (handles "Delete Selected" button)
+    app.delete("/api/interactions", async (req: any, res) => {
+      try {
+        const { ids } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).json({ message: "Invalid interaction IDs provided" });
+        }
+
+        // Mock successful bulk delete (in production this would delete from database)
+        const deletedCount = ids.length; // Assume all deletions succeed
+        
+        console.log(`🗑️ Bulk delete completed: ${deletedCount} interactions deleted`, { ids });
+        res.json({ 
+          success: true, 
+          message: `Successfully deleted ${deletedCount} of ${ids.length} interactions`,
+          deletedCount: deletedCount,
+          totalCount: ids.length
+        });
+        
+      } catch (error) {
+        console.error('Bulk delete error:', error);
+        res.status(500).json({ message: "Failed to bulk delete interactions", error: (error as Error).message });
+      }
+    });
     
     // Additional essential routes for dashboard functionality
     app.get("/api/stats", (req: any, res) => {

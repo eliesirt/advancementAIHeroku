@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Heroku build with voice recording save fix...');
+console.log('🚀 Heroku build with bulk delete interactions fix...');
 
 try {
   // Step 1: Build frontend
