@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Heroku postbuild script - executable shell script
+echo "🚀 Heroku postbuild starting..."
+
+# Run the standard build process
+echo "📦 Running TypeScript compilation..."
+npx --no-install typescript && echo "TypeScript found" || echo "Installing TypeScript temporarily"
+npx --package=typescript@latest tsc && npx vite build
+
+# Create the entry point
+echo "🔧 Creating Heroku entry point..."
+mkdir -p dist
+cat > dist/index.js << 'EOF'
+// Heroku entry point
+import "./server/index.js";
+EOF
+
+echo "✅ Created entry point at dist/index.js"
+echo "🎉 Heroku build completed successfully!"
