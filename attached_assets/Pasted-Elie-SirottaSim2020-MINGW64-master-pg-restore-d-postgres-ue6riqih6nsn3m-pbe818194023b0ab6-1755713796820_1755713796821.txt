@@ -1,0 +1,113 @@
+Elie@SirottaSim2020 MINGW64 ~ (master)
+$ pg_restore -d "postgres://ue6riqih6nsn3m:pbe818194023b0ab6749070f2cfe3f2a9191fa7281427c06024430d72dc095c42@c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d5lcl6iabj2mrh" database_backup.dump
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.affinity_tag_settings OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.affinity_tag_settings_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.affinity_tags OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.affinity_tags_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.ai_prompt_settings OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.ai_prompt_settings_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.applications OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.applications_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.interactions OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.interactions_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.itineraries OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.itineraries_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.itinerary_meetings OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.itinerary_meetings_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.itinerary_travel_segments OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.itinerary_travel_segments_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.prospect_badges OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.prospect_badges_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.prospect_events OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.prospect_events_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.prospect_relationships OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.prospect_relationships_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.prospects OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.prospects_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.role_applications OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.role_applications_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.roles OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.roles_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.sessions OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.user_roles OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.user_roles_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.users OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER TABLE public.voice_recordings OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neondb_owner" does not exist
+Command was: ALTER SEQUENCE public.voice_recordings_id_seq OWNER TO neondb_owner;
+
+pg_restore: error: could not execute query: ERROR:  role "neon_superuser" does not exist
+Command was: ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO neon_superuser WITH GRANT OPTION;
+
+
+pg_restore: error: could not execute query: ERROR:  role "neon_superuser" does not exist
+Command was: ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON TABLES TO neon_superuser WITH GRANT OPTION;
+
+
+pg_restore: warning: errors ignored on restore: 36
