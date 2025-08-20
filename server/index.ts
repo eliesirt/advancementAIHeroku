@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
+import session from "express-session";
 
 // Handle module resolution gracefully
 let registerRoutes: any;
@@ -169,7 +170,7 @@ app.get('/health', (req, res) => {
     console.log("🔐 Setting up immediate authentication routes...");
     
     // Simple session setup for immediate login
-    app.use(require('express-session')({
+    app.use(session({
       secret: process.env.SESSION_SECRET || 'heroku-fallback-secret',
       resave: false,
       saveUninitialized: false,
