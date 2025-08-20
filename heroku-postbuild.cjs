@@ -7,47 +7,53 @@ const path = require('path');
 console.log('🚀 Heroku build starting...');
 
 try {
-  // Build frontend first (this is critical for static files)
-  console.log('🎨 Building frontend with Vite...');
+  // Step 1: Build frontend (this always works)
+  console.log('🎨 Building frontend...');
   execSync('npx vite build', { stdio: 'inherit' });
   
-  // Try TypeScript compilation (but don't fail if it has issues)
-  console.log('📦 Attempting TypeScript compilation...');
-  try {
-    execSync('npx tsc --project tsconfig.json --noEmitOnError false', { stdio: 'inherit' });
-    console.log('✅ TypeScript compilation completed');
-  } catch (tsError) {
-    console.log('⚠️ TypeScript had issues, using fallback server mode');
+  // Step 2: Force create basic server JS files if they don't exist
+  console.log('🔧 Ensuring server files exist...');
+  
+  const serverDir = path.join(__dirname, 'dist', 'server');
+  if (!fs.existsSync(serverDir)) {
+    fs.mkdirSync(serverDir, { recursive: true });
   }
   
-  // Create entry point that works with or without compiled TypeScript
-  console.log('🔧 Creating robust entry point...');
+  // Create minimal server/index.js that imports the TypeScript directly
+  const serverIndex = path.join(serverDir, 'index.js');
+  fs.writeFileSync(serverIndex, `
+// Minimal server that imports TypeScript directly using tsx
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+async function startServer() {
+  try {
+    // Try to use tsx to run TypeScript directly
+    const { spawn } = require('child_process');
+    const serverProcess = spawn('npx', ['tsx', '../server/index.ts'], {
+      stdio: 'inherit',
+      cwd: __dirname
+    });
+    
+    serverProcess.on('error', (error) => {
+      console.error('Server startup failed:', error);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+`);
+  
+  // Step 3: Create entry point
+  console.log('📦 Creating entry point...');
   const entryPoint = path.join(__dirname, 'dist', 'index.js');
-  const entryContent = `// Heroku entry point with fallback handling
-try {
-  await import("./server/index.js");
-} catch (error) {
-  console.log("Using fallback server mode");
-  // Basic Express server for serving static files
-  const express = require('express');
-  const path = require('path');
-  const app = express();
+  fs.writeFileSync(entryPoint, 'import "./server/index.js";');
   
-  app.use(express.static(path.join(__dirname, 'public')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-  
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(\`Fallback server running on port \${port}\`);
-  });
-}`;
-  
-  fs.writeFileSync(entryPoint, entryContent);
-  console.log('✅ Robust entry point created');
-  
-  console.log('🎉 Build complete!');
+  console.log('✅ Build complete!');
 } catch (error) {
   console.error('❌ Build failed:', error.message);
   process.exit(1);
