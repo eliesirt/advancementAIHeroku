@@ -211,40 +211,63 @@ app.get('/health', (req, res) => {
       });
     });
     
-    // Immediate applications endpoint (mock for launcher)
+    // Immediate applications endpoint (matches real seed data)
     app.get("/api/applications", (req: any, res) => {
       res.json([
         {
           id: 1,
           name: "interaction-manager",
-          displayName: "Interaction Manager", 
-          description: "Voice-enabled interaction tracking system",
-          icon: "mic",
-          path: "/apps/interactions"
+          displayName: "interactionAI", 
+          description: "Manage prospect interactions and CRM data",
+          icon: "users",
+          color: "blue",
+          route: "/apps/interactions",
+          isActive: true,
+          sortOrder: 1
         },
         {
           id: 2,
-          name: "portfolio-management", 
-          displayName: "Portfolio Management",
-          description: "Manage donor portfolios and prospect assignments",
-          icon: "users",
-          path: "/apps/portfolio"
+          name: "settings", 
+          displayName: "Settings",
+          description: "Application and user configuration",
+          icon: "settings",
+          color: "gray",
+          route: "/apps/settings",
+          isActive: true,
+          sortOrder: 2
         },
         {
           id: 3,
-          name: "itinerary-planner",
-          displayName: "Itinerary Planner", 
-          description: "Plan and schedule advancement visits",
-          icon: "calendar",
-          path: "/apps/itinerary"
+          name: "portfolio-ai",
+          displayName: "portfolioAI", 
+          description: "AI-powered prospect portfolio management for fundraisers",
+          icon: "briefcase",
+          color: "green", 
+          route: "/apps/portfolio",
+          isActive: true,
+          sortOrder: 3
         },
         {
           id: 4,
+          name: "itinerary-ai",
+          displayName: "itineraryAI",
+          description: "AI-powered trip planning and prospect meeting optimization", 
+          icon: "map",
+          color: "blue",
+          route: "/apps/itinerary",
+          isActive: true,
+          sortOrder: 4
+        },
+        {
+          id: 5,
           name: "user-management",
           displayName: "User Management",
           description: "Manage users, roles, and permissions",
-          icon: "settings",
-          path: "/apps/user-management"
+          icon: "users",
+          color: "red",
+          route: "/apps/user-management", 
+          isActive: true,
+          sortOrder: 5
         }
       ]);
     });
