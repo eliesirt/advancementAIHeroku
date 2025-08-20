@@ -1,0 +1,91 @@
+2025-08-20T19:16:30.000000+00:00 app[api]: Build succeeded
+2025-08-20T19:16:32.328660+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:16:33.186894+00:00 app[web.1]:
+2025-08-20T19:16:33.186924+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:16:33.186925+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:16:33.186925+00:00 app[web.1]:
+2025-08-20T19:16:33.315181+00:00 app[web.1]: Starting application initialization...
+2025-08-20T19:16:33.315582+00:00 app[web.1]: NODE_ENV: production
+2025-08-20T19:16:33.315586+00:00 app[web.1]: Current working directory: /app
+2025-08-20T19:16:33.316087+00:00 app[web.1]: __dirname equivalent: undefined
+2025-08-20T19:16:33.316213+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-20T19:16:33.316241+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:16:33.317760+00:00 app[web.1]: Available files in current directory: [
+2025-08-20T19:16:33.317760+00:00 app[web.1]: '.gitignore',
+2025-08-20T19:16:33.317761+00:00 app[web.1]: '.heroku',
+2025-08-20T19:16:33.317761+00:00 app[web.1]: '.herokuignore',
+2025-08-20T19:16:33.317762+00:00 app[web.1]: '.npm',
+2025-08-20T19:16:33.317762+00:00 app[web.1]: '.profile.d',
+2025-08-20T19:16:33.317762+00:00 app[web.1]: '.replit',
+2025-08-20T19:16:33.317762+00:00 app[web.1]: 'Procfile',
+2025-08-20T19:16:33.317763+00:00 app[web.1]: 'attached_assets',
+2025-08-20T19:16:33.317763+00:00 app[web.1]: 'build.cjs',
+2025-08-20T19:16:33.317763+00:00 app[web.1]: 'client',
+2025-08-20T19:16:33.317763+00:00 app[web.1]: 'components.json',
+2025-08-20T19:16:33.317764+00:00 app[web.1]: 'database_backup.dump',
+2025-08-20T19:16:33.317764+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-20T19:16:33.317764+00:00 app[web.1]: 'dist',
+2025-08-20T19:16:33.317764+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'node_modules',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'package-lock.json',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'package.json',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'postcss.config.js',
+2025-08-20T19:16:33.317765+00:00 app[web.1]: 'replit.md',
+2025-08-20T19:16:33.317766+00:00 app[web.1]: 'scripts',
+2025-08-20T19:16:33.317766+00:00 app[web.1]: 'server',
+2025-08-20T19:16:33.317766+00:00 app[web.1]: 'shared',
+2025-08-20T19:16:33.317766+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-20T19:16:33.317766+00:00 app[web.1]: 'test_interaction.js',
+2025-08-20T19:16:33.317767+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-20T19:16:33.317767+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-20T19:16:33.317767+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-20T19:16:33.317767+00:00 app[web.1]: 'tsconfig.json',
+2025-08-20T19:16:33.317767+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-20T19:16:33.317768+00:00 app[web.1]: 'vite.config.ts'
+2025-08-20T19:16:33.317768+00:00 app[web.1]: ]
+2025-08-20T19:16:33.317974+00:00 app[web.1]: Available files in server directory: [
+2025-08-20T19:16:33.317974+00:00 app[web.1]: 'db.ts',
+2025-08-20T19:16:33.317974+00:00 app[web.1]: 'index.ts',
+2025-08-20T19:16:33.317975+00:00 app[web.1]: 'lib',
+2025-08-20T19:16:33.317975+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-20T19:16:33.317975+00:00 app[web.1]: 'routes.ts',
+2025-08-20T19:16:33.317976+00:00 app[web.1]: 'seedData.ts',
+2025-08-20T19:16:33.317976+00:00 app[web.1]: 'storage.ts',
+2025-08-20T19:16:33.317976+00:00 app[web.1]: 'types',
+2025-08-20T19:16:33.317976+00:00 app[web.1]: 'vite.ts'
+2025-08-20T19:16:33.317977+00:00 app[web.1]: ]
+2025-08-20T19:16:33.318014+00:00 app[web.1]: Importing routes module...
+2025-08-20T19:16:33.318794+00:00 app[web.1]: === MODULE IMPORT FAILURE ===
+2025-08-20T19:16:33.318847+00:00 app[web.1]: Error message: Cannot find module '/app/dist/server/routes' imported from /app/dist/server/index.js
+2025-08-20T19:16:33.318868+00:00 app[web.1]: Error name: Error
+2025-08-20T19:16:33.319280+00:00 app[web.1]: Error stack: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/dist/server/routes' imported from /app/dist/server/index.js
+2025-08-20T19:16:33.319281+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-20T19:16:33.319284+00:00 app[web.1]: at finalizeResolution (node:internal/modules/esm/resolve:327:11)
+2025-08-20T19:16:33.319284+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:980:10)
+2025-08-20T19:16:33.319284+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-20T19:16:33.319284+00:00 app[web.1]: at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+2025-08-20T19:16:33.319285+00:00 app[web.1]: at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+2025-08-20T19:16:33.319285+00:00 app[web.1]: at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+2025-08-20T19:16:33.319285+00:00 app[web.1]: at ModuleLoader.import (node:internal/modules/esm/loader:336:34)
+2025-08-20T19:16:33.319285+00:00 app[web.1]: at importModuleDynamically (node:internal/modules/esm/translators:143:35)
+2025-08-20T19:16:33.319286+00:00 app[web.1]: at importModuleDynamicallyCallback (node:internal/modules/esm/utils:176:14)
+2025-08-20T19:16:33.319306+00:00 app[web.1]: Error code: ERR_MODULE_NOT_FOUND
+2025-08-20T19:16:33.319343+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:16:33.319489+00:00 app[web.1]: Server directory exists: true
+2025-08-20T19:16:33.319527+00:00 app[web.1]: Routes file exists: true
+2025-08-20T19:16:33.319563+00:00 app[web.1]: Vite file exists: true
+2025-08-20T19:16:33.319674+00:00 app[web.1]: Routes JS file exists: false
+2025-08-20T19:16:33.319722+00:00 app[web.1]: Vite JS file exists: false
+2025-08-20T19:16:33.319733+00:00 app[web.1]: Attempting to continue with fallback...
+2025-08-20T19:16:33.319852+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-08-20T19:16:33.319945+00:00 app[web.1]: Vite module failed to load, using fallback
+2025-08-20T19:16:33.320408+00:00 app[web.1]: Routes registered successfully
+2025-08-20T19:16:33.320444+00:00 app[web.1]: Setting up static file serving for production
+2025-08-20T19:16:33.320699+00:00 app[web.1]: Starting server on port 28664, NODE_ENV=production
+2025-08-20T19:16:33.324398+00:00 app[web.1]: [fallback] serving on port 28664
+2025-08-20T19:16:33.583310+00:00 heroku[web.1]: State changed from starting to up
+2025-08-20T19:16:42.455400+00:00 heroku[router]: at=info method=GET path="/" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=3762a4be-4ee4-8100-4cc0-1d05677f3026 fwd="73.253.249.113" dyno=web.1 connect=0ms service=7ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-20T19:16:42.513411+00:00 heroku[router]: at=info method=GET path="/favicon.ico" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=1153025c-4f5d-7423-180e-1e5795cb7752 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
