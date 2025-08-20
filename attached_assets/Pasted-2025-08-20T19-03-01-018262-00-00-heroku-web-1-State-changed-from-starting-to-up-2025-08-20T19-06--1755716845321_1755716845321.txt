@@ -1,0 +1,59 @@
+2025-08-20T19:03:01.018262+00:00 heroku[web.1]: State changed from starting to up
+2025-08-20T19:06:51.310619+00:00 heroku[web.1]: Restarting
+2025-08-20T19:06:51.365923+00:00 heroku[web.1]: State changed from up to starting
+2025-08-20T19:06:51.933794+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2025-08-20T19:06:52.003753+00:00 heroku[web.1]: Process exited with status 143
+2025-08-20T19:06:56.952437+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:06:11.000000+00:00 app[api]: Build started by user esirotta@bu.edu
+2025-08-20T19:06:57.831602+00:00 heroku[web.1]: Process exited with status 1
+2025-08-20T19:06:57.736414+00:00 app[web.1]:
+2025-08-20T19:06:57.736432+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:06:57.736432+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:06:57.736433+00:00 app[web.1]:
+2025-08-20T19:06:57.771508+00:00 app[web.1]: node:internal/errors:496
+2025-08-20T19:06:57.771510+00:00 app[web.1]: ErrorCaptureStackTrace(err);
+2025-08-20T19:06:57.771511+00:00 app[web.1]: ^
+2025-08-20T19:06:57.771511+00:00 app[web.1]:
+2025-08-20T19:06:57.771512+00:00 app[web.1]: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/dist/server/index.js' imported from /app/dist/index.js
+2025-08-20T19:06:57.771512+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-20T19:06:57.771518+00:00 app[web.1]: at finalizeResolution (node:internal/modules/esm/resolve:327:11)
+2025-08-20T19:06:57.771519+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:980:10)
+2025-08-20T19:06:57.771519+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-20T19:06:57.771519+00:00 app[web.1]: at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+2025-08-20T19:06:57.771519+00:00 app[web.1]: at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+2025-08-20T19:06:57.771520+00:00 app[web.1]: at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+2025-08-20T19:06:57.771520+00:00 app[web.1]: at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+2025-08-20T19:06:57.771520+00:00 app[web.1]: at link (node:internal/modules/esm/module_job:75:36) {
+2025-08-20T19:06:57.771521+00:00 app[web.1]: url: 'file:///app/dist/server/index.js',
+2025-08-20T19:06:57.771521+00:00 app[web.1]: code: 'ERR_MODULE_NOT_FOUND'
+2025-08-20T19:06:57.771521+00:00 app[web.1]: }
+2025-08-20T19:06:57.771521+00:00 app[web.1]:
+2025-08-20T19:06:57.771522+00:00 app[web.1]: Node.js v18.20.8
+2025-08-20T19:06:57.854436+00:00 heroku[web.1]: State changed from starting to crashed
+2025-08-20T19:06:57.857804+00:00 heroku[web.1]: State changed from crashed to starting
+2025-08-20T19:07:03.697255+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:07:04.633700+00:00 heroku[web.1]: Process exited with status 1
+2025-08-20T19:07:04.538836+00:00 app[web.1]:
+2025-08-20T19:07:04.538857+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:07:04.538857+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:07:04.538857+00:00 app[web.1]:
+2025-08-20T19:07:04.575926+00:00 app[web.1]: node:internal/errors:496
+2025-08-20T19:07:04.575927+00:00 app[web.1]: ErrorCaptureStackTrace(err);
+2025-08-20T19:07:04.575927+00:00 app[web.1]: ^
+2025-08-20T19:07:04.575928+00:00 app[web.1]:
+2025-08-20T19:07:04.575929+00:00 app[web.1]: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/dist/server/index.js' imported from /app/dist/index.js
+2025-08-20T19:07:04.575929+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-20T19:07:04.575930+00:00 app[web.1]: at finalizeResolution (node:internal/modules/esm/resolve:327:11)
+2025-08-20T19:07:04.575930+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:980:10)
+2025-08-20T19:07:04.575931+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-20T19:07:04.575931+00:00 app[web.1]: at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+2025-08-20T19:07:04.575931+00:00 app[web.1]: at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+2025-08-20T19:07:04.575931+00:00 app[web.1]: at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+2025-08-20T19:07:04.575932+00:00 app[web.1]: at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+2025-08-20T19:07:04.575932+00:00 app[web.1]: at link (node:internal/modules/esm/module_job:75:36) {
+2025-08-20T19:07:04.575932+00:00 app[web.1]: url: 'file:///app/dist/server/index.js',
+2025-08-20T19:07:04.575932+00:00 app[web.1]: code: 'ERR_MODULE_NOT_FOUND'
+2025-08-20T19:07:04.575932+00:00 app[web.1]: }
+2025-08-20T19:07:04.575933+00:00 app[web.1]:
+2025-08-20T19:07:04.575933+00:00 app[web.1]: Node.js v18.20.8
+2025-08-20T19:07:04.656799+00:00 heroku[web.1]: State changed from starting to crashed
