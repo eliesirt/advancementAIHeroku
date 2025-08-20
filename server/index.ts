@@ -21,9 +21,14 @@ async function initializeModules() {
     ({ registerRoutes } = await import("./routes"));
     console.log("Routes module imported successfully");
     
-    console.log("Importing vite module...");
-    ({ setupVite, serveStatic, log } = await import("./vite"));
-    console.log("Vite module imported successfully");
+    // Skip Vite import in production to speed up startup
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Importing vite module...");
+      ({ setupVite, serveStatic, log } = await import("./vite"));
+      console.log("Vite module imported successfully");
+    } else {
+      console.log("Skipping Vite import in production for faster startup");
+    }
   } catch (error: any) {
     console.error("=== MODULE IMPORT FAILURE ===");
     console.error("Error message:", error?.message);
@@ -65,18 +70,30 @@ async function setupFallbacks() {
   }
 
   if (!setupVite || !serveStatic || !log) {
-    console.error("Vite module failed to load, using fallback");
+    console.log("Setting up production fallbacks for Vite functions");
     setupVite = async () => {
-      console.log("Vite setup skipped (fallback mode)");
+      console.log("Vite setup skipped (production mode)");
     };
     serveStatic = (app: express.Application) => {
-      app.use(express.static('dist'));
+      // Serve static files from dist/public (Vite build output)
+      app.use(express.static('dist/public'));
+      
+      // Fallback to serve index.html for SPA routes
       app.get('*', (req: Request, res: Response) => {
-        res.send('<h1>Application Error</h1><p>Static files not available</p>');
+        try {
+          const indexPath = join(process.cwd(), 'dist/public/index.html');
+          if (existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            res.status(404).send('<h1>App Not Built</h1><p>Frontend assets not found. Run build process.</p>');
+          }
+        } catch (error) {
+          res.status(500).send('<h1>Server Error</h1><p>Unable to serve application.</p>');
+        }
       });
     };
     log = (message: string) => {
-      console.log(`[fallback] ${message}`);
+      console.log(`[production] ${message}`);
     };
   }
 }

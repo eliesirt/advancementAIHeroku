@@ -1,0 +1,93 @@
+2025-08-20T19:36:42.000000+00:00 app[api]: Build succeeded
+2025-08-20T19:36:44.682074+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:36:45.464971+00:00 app[web.1]:
+2025-08-20T19:36:45.464991+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:36:45.464992+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:36:45.464992+00:00 app[web.1]:
+2025-08-20T19:36:45.507359+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-08-20T19:36:46.245159+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.4
+2025-08-20T19:36:47.309206+00:00 app[web.1]: Starting application initialization...
+2025-08-20T19:36:47.309246+00:00 app[web.1]: NODE_ENV: production
+2025-08-20T19:36:47.309269+00:00 app[web.1]: Current working directory: /app
+2025-08-20T19:36:47.309593+00:00 app[web.1]: __dirname equivalent: undefined
+2025-08-20T19:36:47.309714+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-20T19:36:47.309730+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:36:47.311057+00:00 app[web.1]: Available files in current directory: [
+2025-08-20T19:36:47.311058+00:00 app[web.1]: '.gitignore',
+2025-08-20T19:36:47.311059+00:00 app[web.1]: '.heroku',
+2025-08-20T19:36:47.311060+00:00 app[web.1]: '.herokuignore',
+2025-08-20T19:36:47.311060+00:00 app[web.1]: '.npm',
+2025-08-20T19:36:47.311060+00:00 app[web.1]: '.profile.d',
+2025-08-20T19:36:47.311061+00:00 app[web.1]: '.replit',
+2025-08-20T19:36:47.311061+00:00 app[web.1]: 'Procfile',
+2025-08-20T19:36:47.311061+00:00 app[web.1]: 'attached_assets',
+2025-08-20T19:36:47.311061+00:00 app[web.1]: 'build.cjs',
+2025-08-20T19:36:47.311062+00:00 app[web.1]: 'client',
+2025-08-20T19:36:47.311062+00:00 app[web.1]: 'components.json',
+2025-08-20T19:36:47.311062+00:00 app[web.1]: 'database_backup.dump',
+2025-08-20T19:36:47.311062+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-20T19:36:47.311063+00:00 app[web.1]: 'dist',
+2025-08-20T19:36:47.311063+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-20T19:36:47.311063+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-20T19:36:47.311063+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-20T19:36:47.311063+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'node_modules',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'package-lock.json',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'package.json',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'postcss.config.js',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'replit.md',
+2025-08-20T19:36:47.311064+00:00 app[web.1]: 'scripts',
+2025-08-20T19:36:47.311065+00:00 app[web.1]: 'server',
+2025-08-20T19:36:47.311065+00:00 app[web.1]: 'shared',
+2025-08-20T19:36:47.311065+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-20T19:36:47.311065+00:00 app[web.1]: 'test_interaction.js',
+2025-08-20T19:36:47.311066+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-20T19:36:47.311066+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-20T19:36:47.311066+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-20T19:36:47.311067+00:00 app[web.1]: 'tsconfig.json',
+2025-08-20T19:36:47.311067+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-20T19:36:47.311067+00:00 app[web.1]: 'vite.config.ts'
+2025-08-20T19:36:47.311067+00:00 app[web.1]: ]
+2025-08-20T19:36:47.311273+00:00 app[web.1]: Available files in server directory: [
+2025-08-20T19:36:47.311273+00:00 app[web.1]: 'db.ts',
+2025-08-20T19:36:47.311273+00:00 app[web.1]: 'herokuAuth.ts',
+2025-08-20T19:36:47.311273+00:00 app[web.1]: 'index.ts',
+2025-08-20T19:36:47.311273+00:00 app[web.1]: 'lib',
+2025-08-20T19:36:47.311274+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-20T19:36:47.311274+00:00 app[web.1]: 'routes.ts',
+2025-08-20T19:36:47.311274+00:00 app[web.1]: 'seedData.ts',
+2025-08-20T19:36:47.311274+00:00 app[web.1]: 'storage.ts',
+2025-08-20T19:36:47.311274+00:00 app[web.1]: 'types',
+2025-08-20T19:36:47.311275+00:00 app[web.1]: 'vite.ts'
+2025-08-20T19:36:47.311275+00:00 app[web.1]: ]
+2025-08-20T19:36:47.311294+00:00 app[web.1]: Importing routes module...
+2025-08-20T19:36:47.913268+00:00 app[web.1]: Routes module imported successfully
+2025-08-20T19:36:47.913290+00:00 app[web.1]: Importing vite module...
+2025-08-20T19:36:47.936347+00:00 app[web.1]: === MODULE IMPORT FAILURE ===
+2025-08-20T19:36:47.936369+00:00 app[web.1]: Error message: Cannot find package '@vitejs/plugin-react' imported from /app/vite.config.ts
+2025-08-20T19:36:47.936384+00:00 app[web.1]: Error name: Error
+2025-08-20T19:36:47.936397+00:00 app[web.1]: Error stack: Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@vitejs/plugin-react' imported from /app/vite.config.ts
+2025-08-20T19:36:47.936398+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-20T19:36:47.936398+00:00 app[web.1]: at packageResolve (node:internal/modules/esm/resolve:916:9)
+2025-08-20T19:36:47.936398+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:973:20)
+2025-08-20T19:36:47.936401+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-20T19:36:47.936401+00:00 app[web.1]: at nextResolve (node:internal/modules/esm/hooks:864:28)
+2025-08-20T19:36:47.936401+00:00 app[web.1]: at resolveBase (file:///app/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1755718607101:2:3811)
+2025-08-20T19:36:47.936402+00:00 app[web.1]: at resolveDirectory (file:///app/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1755718607101:2:4310)
+2025-08-20T19:36:47.936402+00:00 app[web.1]: at resolveTsPaths (file:///app/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1755718607101:2:5051)
+2025-08-20T19:36:47.936402+00:00 app[web.1]: at async resolve (file:///app/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1755718607101:2:5422)
+2025-08-20T19:36:47.936403+00:00 app[web.1]: at async nextResolve (node:internal/modules/esm/hooks:864:22)
+2025-08-20T19:36:47.936405+00:00 app[web.1]: Error code: ERR_MODULE_NOT_FOUND
+2025-08-20T19:36:47.936539+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:36:47.936604+00:00 app[web.1]: Server directory exists: true
+2025-08-20T19:36:47.936629+00:00 app[web.1]: Routes file exists: true
+2025-08-20T19:36:47.936653+00:00 app[web.1]: Vite file exists: true
+2025-08-20T19:36:47.936687+00:00 app[web.1]: Routes JS file exists: false
+2025-08-20T19:36:47.936713+00:00 app[web.1]: Vite JS file exists: false
+2025-08-20T19:36:47.936724+00:00 app[web.1]: Attempting to continue with fallback...
+2025-08-20T19:36:47.936802+00:00 app[web.1]: Vite module failed to load, using fallback
+2025-08-20T19:37:18.277319+00:00 heroku[router]: sock=client at=warning code=H27 desc="Client Request Interrupted" method=GET path="/" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=d4bb29b4-243d-362a-f0b0-3a317050856e fwd="" dyno= connect=0ms service=0ms status=499 bytes=567 protocol=http1.1 tls=true tls_version=unknown
+2025-08-20T19:37:45.043974+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2025-08-20T19:37:45.057575+00:00 heroku[web.1]: Stopping process with SIGKILL
+2025-08-20T19:37:45.118831+00:00 heroku[web.1]: Process exited with status 137
+2025-08-20T19:37:45.144262+00:00 heroku[web.1]: State changed from starting to crashed
