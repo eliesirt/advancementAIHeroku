@@ -1,0 +1,89 @@
+2025-08-20T19:23:30.000000+00:00 app[api]: Build started by user esirotta@bu.edu
+2025-08-20T19:24:04.577794+00:00 heroku[web.1]: State changed from crashed to starting
+2025-08-20T19:24:10.377191+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T19:24:11.184672+00:00 app[web.1]:
+2025-08-20T19:24:11.184686+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:24:11.184687+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:24:11.184687+00:00 app[web.1]:
+2025-08-20T19:24:11.221924+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-08-20T19:24:11.942176+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.4
+2025-08-20T19:24:04.270818+00:00 app[api]: Deploy 4a1f477a by user esirotta@bu.edu
+2025-08-20T19:24:13.112753+00:00 app[web.1]: Starting application initialization...
+2025-08-20T19:24:13.112787+00:00 app[web.1]: NODE_ENV: production
+2025-08-20T19:24:13.112804+00:00 app[web.1]: Current working directory: /app
+2025-08-20T19:24:13.113125+00:00 app[web.1]: __dirname equivalent: undefined
+2025-08-20T19:24:13.113246+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-20T19:24:13.113259+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:24:13.114675+00:00 app[web.1]: Available files in current directory: [
+2025-08-20T19:24:13.114675+00:00 app[web.1]: '.gitignore',
+2025-08-20T19:24:13.114675+00:00 app[web.1]: '.heroku',
+2025-08-20T19:24:13.114675+00:00 app[web.1]: '.herokuignore',
+2025-08-20T19:24:13.114675+00:00 app[web.1]: '.npm',
+2025-08-20T19:24:13.114676+00:00 app[web.1]: '.profile.d',
+2025-08-20T19:24:13.114676+00:00 app[web.1]: '.replit',
+2025-08-20T19:24:13.114676+00:00 app[web.1]: 'Procfile',
+2025-08-20T19:24:13.114676+00:00 app[web.1]: 'attached_assets',
+2025-08-20T19:24:13.114676+00:00 app[web.1]: 'build.cjs',
+2025-08-20T19:24:13.114677+00:00 app[web.1]: 'client',
+2025-08-20T19:24:13.114677+00:00 app[web.1]: 'components.json',
+2025-08-20T19:24:13.114677+00:00 app[web.1]: 'database_backup.dump',
+2025-08-20T19:24:13.114677+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-20T19:24:13.114677+00:00 app[web.1]: 'dist',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'node_modules',
+2025-08-20T19:24:13.114678+00:00 app[web.1]: 'package-lock.json',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'package.json',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'postcss.config.js',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'replit.md',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'scripts',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'server',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'shared',
+2025-08-20T19:24:13.114679+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'test_interaction.js',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'tsconfig.json',
+2025-08-20T19:24:13.114680+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-20T19:24:13.114681+00:00 app[web.1]: 'vite.config.ts'
+2025-08-20T19:24:13.114681+00:00 app[web.1]: ]
+2025-08-20T19:24:13.114899+00:00 app[web.1]: Available files in server directory: [
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'db.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'index.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'lib',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'routes.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'seedData.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'storage.ts',
+2025-08-20T19:24:13.114900+00:00 app[web.1]: 'types',
+2025-08-20T19:24:13.114901+00:00 app[web.1]: 'vite.ts'
+2025-08-20T19:24:13.114901+00:00 app[web.1]: ]
+2025-08-20T19:24:13.114918+00:00 app[web.1]: Importing routes module...
+2025-08-20T19:24:04.270818+00:00 app[api]: Release v15 created by user esirotta@bu.edu
+2025-08-20T19:24:13.900182+00:00 heroku[web.1]: State changed from starting to up
+2025-08-20T19:24:13.760859+00:00 app[web.1]: === MODULE IMPORT FAILURE ===
+2025-08-20T19:24:13.760884+00:00 app[web.1]: Error message: Environment variable REPLIT_DOMAINS not provided
+2025-08-20T19:24:13.760910+00:00 app[web.1]: Error name: Error
+2025-08-20T19:24:13.762884+00:00 app[web.1]: Error stack: Error: Environment variable REPLIT_DOMAINS not provided
+2025-08-20T19:24:13.762884+00:00 app[web.1]: at <anonymous> (/app/server/replitAuth.ts:12:9)
+2025-08-20T19:24:13.762885+00:00 app[web.1]: at ModuleJob.run (node:internal/modules/esm/module_job:195:25)
+2025-08-20T19:24:13.762885+00:00 app[web.1]: at async ModuleLoader.import (node:internal/modules/esm/loader:337:24)
+2025-08-20T19:24:13.762885+00:00 app[web.1]: at initializeModules (/app/server/index.ts:21:27)
+2025-08-20T19:24:13.762885+00:00 app[web.1]: at <anonymous> (/app/server/index.ts:136:5)
+2025-08-20T19:24:13.762928+00:00 app[web.1]: Error code: undefined
+2025-08-20T19:24:13.762943+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:24:13.762989+00:00 app[web.1]: Server directory exists: true
+2025-08-20T19:24:13.763020+00:00 app[web.1]: Routes file exists: true
+2025-08-20T19:24:13.763045+00:00 app[web.1]: Vite file exists: true
+2025-08-20T19:24:13.763162+00:00 app[web.1]: Routes JS file exists: false
+2025-08-20T19:24:13.763187+00:00 app[web.1]: Vite JS file exists: false
+2025-08-20T19:24:13.763198+00:00 app[web.1]: Attempting to continue with fallback...
+2025-08-20T19:24:13.763281+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-08-20T19:24:13.763302+00:00 app[web.1]: Vite module failed to load, using fallback
+2025-08-20T19:24:13.763813+00:00 app[web.1]: Routes registered successfully
+2025-08-20T19:24:13.763857+00:00 app[web.1]: Setting up static file serving for production
+2025-08-20T19:24:13.764100+00:00 app[web.1]: Starting server on port 30524, NODE_ENV=production
+2025-08-20T19:24:13.766476+00:00 app[web.1]: [fallback] serving on port 30524
