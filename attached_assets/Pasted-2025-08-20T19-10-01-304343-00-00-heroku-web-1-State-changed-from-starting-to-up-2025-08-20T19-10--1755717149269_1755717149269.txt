@@ -1,0 +1,88 @@
+2025-08-20T19:10:01.304343+00:00 heroku[web.1]: State changed from starting to up
+2025-08-20T19:10:01.033312+00:00 app[web.1]:
+2025-08-20T19:10:01.033341+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T19:10:01.033341+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T19:10:01.033342+00:00 app[web.1]:
+2025-08-20T19:10:01.233798+00:00 app[web.1]: Starting application initialization...
+2025-08-20T19:10:01.236135+00:00 app[web.1]: NODE_ENV: production
+2025-08-20T19:10:01.236138+00:00 app[web.1]: Current working directory: /app
+2025-08-20T19:10:01.236138+00:00 app[web.1]: __dirname equivalent: undefined
+2025-08-20T19:10:01.236139+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-20T19:10:01.236139+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:10:01.237077+00:00 app[web.1]: Available files in current directory: [
+2025-08-20T19:10:01.237079+00:00 app[web.1]: '.gitignore',
+2025-08-20T19:10:01.237079+00:00 app[web.1]: '.heroku',
+2025-08-20T19:10:01.237080+00:00 app[web.1]: '.herokuignore',
+2025-08-20T19:10:01.237080+00:00 app[web.1]: '.npm',
+2025-08-20T19:10:01.237080+00:00 app[web.1]: '.profile.d',
+2025-08-20T19:10:01.237080+00:00 app[web.1]: '.replit',
+2025-08-20T19:10:01.237081+00:00 app[web.1]: 'Procfile',
+2025-08-20T19:10:01.237081+00:00 app[web.1]: 'attached_assets',
+2025-08-20T19:10:01.237081+00:00 app[web.1]: 'build.cjs',
+2025-08-20T19:10:01.237081+00:00 app[web.1]: 'client',
+2025-08-20T19:10:01.237082+00:00 app[web.1]: 'components.json',
+2025-08-20T19:10:01.237082+00:00 app[web.1]: 'database_backup.dump',
+2025-08-20T19:10:01.237082+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-20T19:10:01.237082+00:00 app[web.1]: 'dist',
+2025-08-20T19:10:01.237082+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'node_modules',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'package-lock.json',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'package.json',
+2025-08-20T19:10:01.237083+00:00 app[web.1]: 'postcss.config.js',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'replit.md',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'scripts',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'server',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'shared',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-20T19:10:01.237084+00:00 app[web.1]: 'test_interaction.js',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'tsconfig.json',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-20T19:10:01.237085+00:00 app[web.1]: 'vite.config.ts'
+2025-08-20T19:10:01.237086+00:00 app[web.1]: ]
+2025-08-20T19:10:01.238677+00:00 app[web.1]: Available files in server directory: [
+2025-08-20T19:10:01.238678+00:00 app[web.1]: 'db.ts',
+2025-08-20T19:10:01.238678+00:00 app[web.1]: 'index.ts',
+2025-08-20T19:10:01.238678+00:00 app[web.1]: 'lib',
+2025-08-20T19:10:01.238679+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-20T19:10:01.238679+00:00 app[web.1]: 'routes.ts',
+2025-08-20T19:10:01.238679+00:00 app[web.1]: 'seedData.ts',
+2025-08-20T19:10:01.238679+00:00 app[web.1]: 'storage.ts',
+2025-08-20T19:10:01.238680+00:00 app[web.1]: 'types',
+2025-08-20T19:10:01.238680+00:00 app[web.1]: 'vite.ts'
+2025-08-20T19:10:01.238680+00:00 app[web.1]: ]
+2025-08-20T19:10:01.238680+00:00 app[web.1]: Importing routes module...
+2025-08-20T19:10:01.238681+00:00 app[web.1]: === MODULE IMPORT FAILURE ===
+2025-08-20T19:10:01.238681+00:00 app[web.1]: Error message: Cannot find module '/app/dist/server/routes' imported from /app/dist/server/index.js
+2025-08-20T19:10:01.238704+00:00 app[web.1]: Error name: Error
+2025-08-20T19:10:01.239929+00:00 app[web.1]: Error stack: Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/dist/server/routes' imported from /app/dist/server/index.js
+2025-08-20T19:10:01.239930+00:00 app[web.1]: at new NodeError (node:internal/errors:405:5)
+2025-08-20T19:10:01.239931+00:00 app[web.1]: at finalizeResolution (node:internal/modules/esm/resolve:327:11)
+2025-08-20T19:10:01.239931+00:00 app[web.1]: at moduleResolve (node:internal/modules/esm/resolve:980:10)
+2025-08-20T19:10:01.239931+00:00 app[web.1]: at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+2025-08-20T19:10:01.239932+00:00 app[web.1]: at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+2025-08-20T19:10:01.239932+00:00 app[web.1]: at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+2025-08-20T19:10:01.239932+00:00 app[web.1]: at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+2025-08-20T19:10:01.239933+00:00 app[web.1]: at ModuleLoader.import (node:internal/modules/esm/loader:336:34)
+2025-08-20T19:10:01.239933+00:00 app[web.1]: at importModuleDynamically (node:internal/modules/esm/translators:143:35)
+2025-08-20T19:10:01.239933+00:00 app[web.1]: at importModuleDynamicallyCallback (node:internal/modules/esm/utils:176:14)
+2025-08-20T19:10:01.239934+00:00 app[web.1]: Error code: ERR_MODULE_NOT_FOUND
+2025-08-20T19:10:01.239934+00:00 app[web.1]: Working directory: /app
+2025-08-20T19:10:01.239934+00:00 app[web.1]: Server directory exists: true
+2025-08-20T19:10:01.239934+00:00 app[web.1]: Routes file exists: true
+2025-08-20T19:10:01.239934+00:00 app[web.1]: Vite file exists: true
+2025-08-20T19:10:01.239935+00:00 app[web.1]: Routes JS file exists: false
+2025-08-20T19:10:01.239935+00:00 app[web.1]: Vite JS file exists: false
+2025-08-20T19:10:01.239935+00:00 app[web.1]: Attempting to continue with fallback...
+2025-08-20T19:10:01.240100+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-08-20T19:10:01.240326+00:00 app[web.1]: Vite module failed to load, using fallback
+2025-08-20T19:10:01.242824+00:00 app[web.1]: Routes registered successfully
+2025-08-20T19:10:01.242825+00:00 app[web.1]: Setting up static file serving for production
+2025-08-20T19:10:01.242825+00:00 app[web.1]: Starting server on port 19782, NODE_ENV=production
+2025-08-20T19:10:01.246961+00:00 app[web.1]: [fallback] serving on port 19782
+
