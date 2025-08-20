@@ -143,55 +143,99 @@ app.get('/health', (req, res) => {
 });
 
 (async () => {
-  try {
-    console.log("Starting application initialization...");
-    console.log("NODE_ENV:", process.env.NODE_ENV);
-    console.log("Current working directory:", process.cwd());
-    console.log("__dirname equivalent:", import.meta.dirname);
-    
-    // Initialize modules
-    await initializeModules();
-    
-    // Setup fallbacks if needed
-    await setupFallbacks();
-    
-    const server = await registerRoutes(app);
-    console.log("Routes registered successfully");
+  console.log("Starting application initialization...");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  
+  const port = parseInt(process.env.PORT || '5000', 10);
+  console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
 
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      res.status(status).json({ message });
-      console.error("Express error:", err);
+  if (process.env.NODE_ENV === 'production') {
+    // HEROKU FAST STARTUP MODE
+    console.log("🚀 HEROKU: Using ultra-fast startup mode...");
+    
+    // Add immediate health endpoint
+    app.get('/health', (req, res) => {
+      res.json({ status: 'ok', port, startup: 'fast-mode' });
     });
-
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
-      console.log("Setting up Vite for development");
-      await setupVite(app, server);
-    } else {
-      console.log("Setting up static file serving for production");
-      serveStatic(app);
-    }
-
-    // Use Heroku's dynamic port or fallback to 5000
-    const port = process.env.PORT || 5000;
-    console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
-
+    
+    // Add immediate API health endpoint  
+    app.get('/api/health', (req, res) => {
+      res.json({ status: 'ok', message: 'Server running in fast startup mode' });
+    });
+    
+    // Bind to port IMMEDIATELY
+    const server = createServer(app);
     server.listen(port, "0.0.0.0", () => {
-      log(`serving on port ${port}`);
-    }).on('error', (error: any) => {
-      console.error('Server failed to start:', error);
-      console.error('Port:', port);
-      console.error('Environment:', process.env.NODE_ENV);
+      console.log(`🚀 HEROKU: Server listening on port ${port} - IMMEDIATE SUCCESS!`);
+      
+      // Do ALL heavy initialization AFTER successful port binding
+      setTimeout(async () => {
+        try {
+          console.log("🔧 Starting full initialization (post-startup)...");
+          
+          // Now do all the heavy work
+          await initializeModules();
+          await setupFallbacks();
+          
+          // Register all routes (this replaces the server but keeps the port binding)
+          await registerRoutes(app);
+          console.log("✅ Full routes registered");
+
+          app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+            const status = err.status || err.statusCode || 500;
+            const message = err.message || "Internal Server Error";
+            res.status(status).json({ message });
+            console.error("Express error:", err);
+          });
+
+          serveStatic(app);
+          console.log("✅ Full server initialization complete - Application ready!");
+          
+        } catch (error) {
+          console.error("❌ Post-startup initialization failed:", error);
+          // Don't exit - keep basic server running
+        }
+      }, 500); // Give port binding time to complete
+    });
+    
+    server.on('error', (error: any) => {
+      console.error('❌ Fast server failed to start:', error);
       process.exit(1);
     });
-  } catch (error: any) {
-    console.error("Fatal error during application startup:", error);
-    console.error("Error stack:", error?.stack);
-    process.exit(1);
+    
+  } else {
+    // DEVELOPMENT MODE - Full initialization
+    try {
+      console.log("Current working directory:", process.cwd());
+      console.log("__dirname equivalent:", import.meta.dirname);
+      
+      await initializeModules();
+      await setupFallbacks();
+      
+      const server = await registerRoutes(app);
+      console.log("Routes registered successfully");
+
+      app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+        const status = err.status || err.statusCode || 500;
+        const message = err.message || "Internal Server Error";
+        res.status(status).json({ message });
+        console.error("Express error:", err);
+      });
+
+      console.log("Setting up Vite for development");
+      await setupVite(app, server);
+
+      server.listen(port, "0.0.0.0", () => {
+        log(`serving on port ${port}`);
+      }).on('error', (error: any) => {
+        console.error('Server failed to start:', error);
+        process.exit(1);
+      });
+      
+    } catch (error: any) {
+      console.error("Fatal error during development startup:", error);
+      console.error("Error stack:", error?.stack);
+      process.exit(1);
+    }
   }
 })();

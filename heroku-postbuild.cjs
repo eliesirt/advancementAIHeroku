@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Heroku build starting with optimized startup...');
+console.log('🚀 Heroku build with ULTRA-FAST startup mode...');
 
 try {
   // Step 1: Build frontend
