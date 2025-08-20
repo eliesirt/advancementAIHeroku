@@ -1,0 +1,14 @@
+client/
+*.ts
+*.tsx
+tsconfig*.json
+vite.config.ts
+.replit
+.upm
+.cache
+.config
+.local
+test_interaction.js
+database_backup.*
+attached_assets/
+replit.md

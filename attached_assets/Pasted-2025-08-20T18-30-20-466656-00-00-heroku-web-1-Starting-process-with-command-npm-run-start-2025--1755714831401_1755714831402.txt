@@ -1,0 +1,43 @@
+2025-08-20T18:30:20.466656+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T18:30:21.337870+00:00 app[web.1]:
+2025-08-20T18:30:21.337895+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T18:30:21.337895+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T18:30:21.337896+00:00 app[web.1]:
+2025-08-20T18:30:21.368203+00:00 app[web.1]: node:internal/modules/cjs/loader:1143
+2025-08-20T18:30:21.368204+00:00 app[web.1]: throw err;
+2025-08-20T18:30:21.368215+00:00 app[web.1]: ^
+2025-08-20T18:30:21.368215+00:00 app[web.1]:
+2025-08-20T18:30:21.368215+00:00 app[web.1]: Error: Cannot find module '/app/dist/index.js'
+2025-08-20T18:30:21.368216+00:00 app[web.1]: at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+2025-08-20T18:30:21.368217+00:00 app[web.1]: at Module._load (node:internal/modules/cjs/loader:981:27)
+2025-08-20T18:30:21.368217+00:00 app[web.1]: at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+2025-08-20T18:30:21.368218+00:00 app[web.1]: at node:internal/main/run_main_module:28:49 {
+2025-08-20T18:30:21.368218+00:00 app[web.1]: code: 'MODULE_NOT_FOUND',
+2025-08-20T18:30:21.368219+00:00 app[web.1]: requireStack: []
+2025-08-20T18:30:21.368219+00:00 app[web.1]: }
+2025-08-20T18:30:21.368219+00:00 app[web.1]:
+2025-08-20T18:30:21.368219+00:00 app[web.1]: Node.js v18.20.8
+2025-08-20T18:30:21.428891+00:00 heroku[web.1]: Process exited with status 1
+2025-08-20T18:30:21.456597+00:00 heroku[web.1]: State changed from starting to crashed
+2025-08-20T18:30:21.460643+00:00 heroku[web.1]: State changed from crashed to starting
+2025-08-20T18:30:27.881543+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-20T18:30:28.786833+00:00 app[web.1]:
+2025-08-20T18:30:28.786861+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-20T18:30:28.786862+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-20T18:30:28.786862+00:00 app[web.1]:
+2025-08-20T18:30:28.818956+00:00 app[web.1]: node:internal/modules/cjs/loader:1143
+2025-08-20T18:30:28.818958+00:00 app[web.1]: throw err;
+2025-08-20T18:30:28.818958+00:00 app[web.1]: ^
+2025-08-20T18:30:28.818958+00:00 app[web.1]:
+2025-08-20T18:30:28.818958+00:00 app[web.1]: Error: Cannot find module '/app/dist/index.js'
+2025-08-20T18:30:28.818977+00:00 app[web.1]: at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+2025-08-20T18:30:28.818977+00:00 app[web.1]: at Module._load (node:internal/modules/cjs/loader:981:27)
+2025-08-20T18:30:28.818979+00:00 app[web.1]: at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+2025-08-20T18:30:28.818980+00:00 app[web.1]: at node:internal/main/run_main_module:28:49 {
+2025-08-20T18:30:28.818980+00:00 app[web.1]: code: 'MODULE_NOT_FOUND',
+2025-08-20T18:30:28.818982+00:00 app[web.1]: requireStack: []
+2025-08-20T18:30:28.818983+00:00 app[web.1]: }
+2025-08-20T18:30:28.818984+00:00 app[web.1]:
+2025-08-20T18:30:28.818984+00:00 app[web.1]: Node.js v18.20.8
+2025-08-20T18:30:28.878633+00:00 heroku[web.1]: Process exited with status 1
+2025-08-20T18:30:28.904050+00:00 heroku[web.1]: State changed from starting to crashed
