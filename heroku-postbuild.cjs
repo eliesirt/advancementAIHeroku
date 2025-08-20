@@ -7,45 +7,49 @@ const path = require('path');
 console.log('🚀 Heroku build starting...');
 
 try {
-  // Step 1: Build frontend (this always works)
+  // Step 1: Build frontend
   console.log('🎨 Building frontend...');
   execSync('npx vite build', { stdio: 'inherit' });
   
-  // Step 2: Force create basic server JS files if they don't exist
-  console.log('🔧 Ensuring server files exist...');
+  // Step 2: Create server files
+  console.log('🔧 Creating server files...');
   
   const serverDir = path.join(__dirname, 'dist', 'server');
   if (!fs.existsSync(serverDir)) {
     fs.mkdirSync(serverDir, { recursive: true });
   }
   
-  // Create minimal server/index.js that imports the TypeScript directly
+  // Create server/index.js with ESM-compatible code
   const serverIndex = path.join(serverDir, 'index.js');
   fs.writeFileSync(serverIndex, `
-// Minimal server that imports TypeScript directly using tsx
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+// Server entry point using tsx to run TypeScript directly
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-async function startServer() {
-  try {
-    // Try to use tsx to run TypeScript directly
-    const { spawn } = require('child_process');
-    const serverProcess = spawn('npx', ['tsx', '../server/index.ts'], {
-      stdio: 'inherit',
-      cwd: __dirname
-    });
-    
-    serverProcess.on('error', (error) => {
-      console.error('Server startup failed:', error);
-      process.exit(1);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.join(__dirname, '..', '..');
+
+console.log('🚀 Starting TypeScript server with tsx...');
+
+const serverProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+  stdio: 'inherit',
+  cwd: projectRoot,
+  env: { ...process.env, NODE_ENV: 'production' }
+});
+
+serverProcess.on('error', (error) => {
+  console.error('❌ Server startup failed:', error);
+  process.exit(1);
+});
+
+serverProcess.on('exit', (code) => {
+  if (code !== 0) {
+    console.error(\`❌ Server exited with code \${code}\`);
+    process.exit(code);
   }
-}
-
-startServer();
+});
 `);
   
   // Step 3: Create entry point
