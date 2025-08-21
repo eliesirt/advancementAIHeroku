@@ -847,6 +847,42 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // Constituent search endpoints for Blackbaud CRM integration
+    app.get("/api/constituents/search/:lastName", async (req: any, res) => {
+      try {
+        const { lastName } = req.params;
+        const { firstName } = req.query;
+        
+        console.log(`🔍 Searching constituents: lastName="${lastName}" firstName="${firstName || 'N/A'}"`);
+        
+        const { bbecClient } = await import("./lib/soap-client");
+        await bbecClient.initialize();
+        
+        // Use the searchConstituentsByLastName method from the SOAP client
+        const results = await bbecClient.searchConstituentsByLastName(lastName);
+        
+        // Filter results by first name if provided
+        let filteredResults = results;
+        if (firstName && firstName.trim()) {
+          const firstNameLower = firstName.toLowerCase().trim();
+          filteredResults = results.filter((constituent: any) => 
+            constituent.first_name && 
+            constituent.first_name.toLowerCase().includes(firstNameLower)
+          );
+        }
+        
+        console.log(`✅ Found ${filteredResults.length} constituents`);
+        res.json(filteredResults);
+        
+      } catch (error) {
+        console.error('Constituent search error:', error);
+        res.status(500).json({ 
+          message: "Failed to search constituents", 
+          error: (error as Error).message 
+        });
+      }
+    });
+
     // Voice recording processing endpoints
     app.post("/api/voice-recordings/:id/process", async (req: any, res) => {
       try {
