@@ -99,6 +99,8 @@ export async function transcribeAudio(audioData: string): Promise<string> {
 
 export async function extractInteractionInfo(transcript: string): Promise<ExtractedInteractionInfo> {
   try {
+    console.log("🤖 Starting OpenAI extraction...");
+    
     const prompt = `
 Analyze this fundraiser interaction transcript and extract structured information. 
 Focus on identifying the prospect's professional interests, personal interests, and philanthropic priorities.
@@ -138,14 +140,29 @@ Important: Leave suggestedAffinityTags as an empty array. The system will match 
         }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.3,
+      temperature: 0.3
+    }, {
+      timeout: 12000 // 12 second timeout
     });
 
+    console.log("✅ OpenAI extraction completed");
     const result = JSON.parse(response.choices[0].message.content!);
     return result as ExtractedInteractionInfo;
   } catch (error) {
-    console.error('Information extraction error:', error);
-    throw new Error('Failed to extract interaction information: ' + (error as Error).message);
+    console.error('❌ Information extraction error:', error);
+    // Return a fallback response instead of throwing
+    return {
+      prospectName: "Analysis unavailable", 
+      summary: "OpenAI analysis temporarily unavailable",
+      category: "Meeting",
+      subcategory: "General Meeting",
+      contactLevel: "Initial Contact",
+      professionalInterests: [],
+      personalInterests: [],
+      philanthropicPriorities: [],
+      keyPoints: [transcript.substring(0, 100) + "..."],
+      suggestedAffinityTags: []
+    };
   }
 }
 
