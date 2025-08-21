@@ -1132,30 +1132,42 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(applications.sortOrder); // Ensure database returns results in correct order
 
-    const permissionMap = new Map<number, Set<string>>();
-
+    // Group by application ID while preserving database sort order
+    const appMap = new Map<number, {application: any, permissions: Set<string>}>();
+    
+    // Process in the order returned by database (already sorted by sortOrder)
     roleApplicationsList.forEach(ra => {
-      // No need to check roleIds.includes(ra.roleId) since we already filtered in SQL
-      const existing = permissionMap.get(ra.applicationId) || new Set();
-      ra.permissions.forEach(p => existing.add(p));
-      permissionMap.set(ra.applicationId, existing);
-    });
-
-    const result: ApplicationWithPermissions[] = [];
-    for (const [appId, permissionSet] of permissionMap) {
-      const roleApp = roleApplicationsList.find(ra => ra.applicationId === appId);
-      const permissions = Array.from(permissionSet);
-      
-      // Only include applications where user has at least one permission
-      if (roleApp && permissions.length > 0) {
-        result.push({
-          ...roleApp.application,
-          permissions: permissions,
+      if (!appMap.has(ra.applicationId)) {
+        appMap.set(ra.applicationId, {
+          application: ra.application,
+          permissions: new Set()
         });
       }
-    }
+      const appData = appMap.get(ra.applicationId)!;
+      ra.permissions.forEach(p => appData.permissions.add(p));
+    });
 
-    return result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    // Convert to result array in the same order as database returned (preserving sortOrder)
+    const result: ApplicationWithPermissions[] = [];
+    
+    // Create a set to track which apps we've already added
+    const addedApps = new Set<number>();
+    
+    // Iterate through the original query results to maintain sortOrder
+    roleApplicationsList.forEach(ra => {
+      if (!addedApps.has(ra.applicationId)) {
+        const appData = appMap.get(ra.applicationId);
+        if (appData && appData.permissions.size > 0) {
+          result.push({
+            ...appData.application,
+            permissions: Array.from(appData.permissions),
+          });
+          addedApps.add(ra.applicationId);
+        }
+      }
+    });
+
+    return result; // No need to re-sort, already in correct order from database
   }
 
   // User role assignment methods
