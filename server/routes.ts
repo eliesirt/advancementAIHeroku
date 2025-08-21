@@ -73,6 +73,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      
+      // TEMPORARY: Fix production database sortOrder values
+      if (process.env.NODE_ENV === 'production') {
+        console.log("🔧 Fixing production database sortOrder values...");
+        
+        // Update Settings from sortOrder 2 to 4
+        await storage.updateApplication(2, { sortOrder: 4 });
+        
+        // Update portfolioAI from sortOrder 3 to 2
+        await storage.updateApplication(3, { sortOrder: 2 });
+        
+        // Update itineraryAI from sortOrder 4 to 3
+        await storage.updateApplication(5, { sortOrder: 3 });
+        
+        console.log("✅ Production database sortOrder values fixed");
+      }
+      
       const applications = await storage.getUserApplications(userId);
       
       // Debug logging for Heroku deployment issue
