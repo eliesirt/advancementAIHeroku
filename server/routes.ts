@@ -74,20 +74,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // TEMPORARY: Fix production database sortOrder values
+      // TEMPORARY: Fix production database sortOrder values using direct database update
       if (process.env.NODE_ENV === 'production') {
         console.log("🔧 Fixing production database sortOrder values...");
         
-        // Update Settings from sortOrder 2 to 4
-        await storage.updateApplication(2, { sortOrder: 4 });
+        // Import db directly for production fix
+        const { db } = await import("./db");
+        const { applications } = await import("../shared/schema");
+        const { eq } = await import("drizzle-orm");
         
-        // Update portfolioAI from sortOrder 3 to 2
-        await storage.updateApplication(3, { sortOrder: 2 });
-        
-        // Update itineraryAI from sortOrder 4 to 3
-        await storage.updateApplication(5, { sortOrder: 3 });
-        
-        console.log("✅ Production database sortOrder values fixed");
+        try {
+          // Update Settings (name='settings') from sortOrder 2 to 4
+          await db.update(applications)
+            .set({ sortOrder: 4 })
+            .where(eq(applications.name, 'settings'));
+          
+          // Update portfolioAI (name='portfolio-ai') from sortOrder 3 to 2
+          await db.update(applications)
+            .set({ sortOrder: 2 })
+            .where(eq(applications.name, 'portfolio-ai'));
+          
+          // Update itineraryAI (name='itinerary-ai') from sortOrder 4 to 3
+          await db.update(applications)
+            .set({ sortOrder: 3 })
+            .where(eq(applications.name, 'itinerary-ai'));
+          
+          console.log("✅ Production database sortOrder values fixed");
+        } catch (error) {
+          console.error("❌ Error fixing sortOrder values:", error);
+        }
       }
       
       const applications = await storage.getUserApplications(userId);
