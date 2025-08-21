@@ -10,7 +10,7 @@ export default function Launcher() {
   const { user } = useAuth() as { user: UserWithRoles | undefined };
 
   const { data: applications, isLoading } = useQuery<ApplicationWithPermissions[]>({
-    queryKey: ["/api/applications", "v2"], // Force fresh cache
+    queryKey: ["/api/applications-fresh"], // Force fresh cache with new URL
     enabled: !!user,
   });
 

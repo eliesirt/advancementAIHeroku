@@ -69,8 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Applications endpoint
-  app.get('/api/applications', isAuthenticated, async (req: any, res) => {
+  // Fresh Applications endpoint (bypasses cache)
+  app.get('/api/applications-fresh', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       
