@@ -1,0 +1,25 @@
+2025-08-21T03:35:53.223854+00:00 heroku[router]: at=info method=GET path="/api/stats" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=27c1f10f-1558-e6dc-8116-8f7ed8d67a92 fwd="73.253.249.113" dyno=web.1 connect=0ms service=20012ms status=500 bytes=55 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:35:53.233651+00:00 heroku[router]: at=info method=GET path="/api/interactions/recent" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=382df55c-8ae0-9052-6ba9-20319497dc50 fwd="73.253.249.113" dyno=web.1 connect=0ms service=20005ms status=500 bytes=69 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:35:53.222896+00:00 app[web.1]: Stats error: Error: DB timeout
+2025-08-21T03:35:53.222899+00:00 app[web.1]: at Timeout._onTimeout (/app/server/index.ts:561:35)
+2025-08-21T03:35:53.222900+00:00 app[web.1]: at listOnTimeout (node:internal/timers:569:17)
+2025-08-21T03:35:53.222900+00:00 app[web.1]: at process.processTimers (node:internal/timers:512:7)
+2025-08-21T03:35:53.223715+00:00 app[web.1]: [production] GET /api/stats 500 in 20012ms :: {"message":"Failed to load stats","error":"DB …
+2025-08-21T03:35:53.232885+00:00 app[web.1]: Recent interactions error: Error: DB timeout
+2025-08-21T03:35:53.232886+00:00 app[web.1]: at Timeout._onTimeout (/app/server/index.ts:621:35)
+2025-08-21T03:35:53.232886+00:00 app[web.1]: at listOnTimeout (node:internal/timers:569:17)
+2025-08-21T03:35:53.232886+00:00 app[web.1]: at process.processTimers (node:internal/timers:512:7)
+2025-08-21T03:35:53.233495+00:00 app[web.1]: [production] GET /api/interactions/recent 500 in 20005ms :: {"message":"Failed to load recen…
+2025-08-21T03:35:58.812269+00:00 heroku[router]: at=info method=POST path="/api/interactions/analyze-text" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=c88b08c4-ac33-2d34-3255-f20b2715eed3 fwd="73.253.249.113" dyno=web.1 connect=0ms service=10163ms status=200 bytes=890 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:35:58.810669+00:00 app[web.1]: ✅ Optimized AI analysis completed: {
+2025-08-21T03:35:58.810708+00:00 app[web.1]: textLength: 58,
+2025-08-21T03:35:58.810708+00:00 app[web.1]: prospectName: 'Elie Sirotta',
+2025-08-21T03:35:58.810709+00:00 app[web.1]: affinityStatus: 'rejected',
+2025-08-21T03:35:58.810709+00:00 app[web.1]: qualityStatus: 'fulfilled'
+2025-08-21T03:35:58.810709+00:00 app[web.1]: }
+2025-08-21T03:35:58.812198+00:00 app[web.1]: [production] POST /api/interactions/analyze-text 200 in 10152ms :: {"success":true,"extracte…
+2025-08-21T03:36:03.216108+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=5c52ef1c-bba5-6ed6-695d-6a1739865273 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:36:03.215995+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
+2025-08-21T03:36:28.848303+00:00 heroku[router]: at=error code=H12 desc="Request timeout" method=POST path="/api/interactions/enhance-comments" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=66533b60-5324-518e-2f1d-e7a597b5a293 fwd="73.253.249.113" dyno=web.1 connect=0ms service=30000ms status=503 bytes=567 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:36:33.249252+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=8315c0c7-287e-b9de-fd30-eb84b3343d9f fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T03:36:33.249176+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}

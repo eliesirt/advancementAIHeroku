@@ -552,13 +552,13 @@ app.get('/health', (req, res) => {
           console.warn("⚠️ Stats timeout");
           res.status(503).json({ message: "Stats loading timed out" });
         }
-      }, 25000);
+      }, 20000);
 
       try {
         const { storage } = await import("./storage");
         const interactionsPromise = storage.getInteractionsByUser("42195145");
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('DB timeout')), 20000);
+          setTimeout(() => reject(new Error('DB timeout')), 15000);
         });
         
         const interactions = await Promise.race([interactionsPromise, timeoutPromise]) as any[];
@@ -612,13 +612,13 @@ app.get('/health', (req, res) => {
           console.warn("⚠️ Recent interactions timeout");
           res.status(503).json({ message: "Recent interactions loading timed out" });
         }
-      }, 25000);
+      }, 20000);
 
       try {
         const { storage } = await import("./storage");
         const interactionsPromise = storage.getInteractionsByUser("42195145");
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('DB timeout')), 20000);
+          setTimeout(() => reject(new Error('DB timeout')), 15000);
         });
         
         const interactions = await Promise.race([interactionsPromise, timeoutPromise]) as any[];
@@ -924,54 +924,84 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Additional interaction processing endpoints
+    // Additional interaction processing endpoints - OPTIMIZED FOR HEROKU
     app.post("/api/interactions/enhance-comments", async (req: any, res) => {
+      const timeoutId = setTimeout(() => {
+        if (!res.headersSent) {
+          console.warn("⚠️ Comment enhancement timeout");
+          res.status(500).json({ 
+            success: false,
+            message: "Comment enhancement timed out - please try again" 
+          });
+        }
+      }, 25000);
+
       try {
         const { transcript, extractedInfo, comments } = req.body;
         const inputText = transcript || comments || "";
         
         if (!inputText || inputText.trim().length === 0) {
+          clearTimeout(timeoutId);
           return res.status(400).json({ 
             success: false,
             message: "Text content is required for enhancement" 
           });
         }
 
-        // Use real OpenAI integration for comment enhancement
+        console.log("🚀 Starting optimized comment enhancement:", { inputLength: inputText.length });
+
+        // Use real OpenAI integration with timeout protection
         const { enhanceInteractionComments, generateInteractionSynopsis } = await import("./lib/openai");
         
-        // Get custom AI prompt settings (with fallback)
-        let customPrompt = null;
-        try {
-          const { storage } = await import("./storage");
-          const aiPromptSettings = await storage.getAiPromptSettings("42195145", "interaction_synopsis");
-          customPrompt = aiPromptSettings?.promptTemplate;
-        } catch (e) {
-          console.warn("Could not load custom AI prompts, using default");
-        }
+        // Run AI operations in parallel with timeouts
+        const [enhancedCommentsResult, synopsisResult] = await Promise.allSettled([
+          // Enhanced comments with timeout
+          Promise.race([
+            enhanceInteractionComments(inputText, extractedInfo),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Enhancement timeout')), 12000))
+          ]),
+          
+          // Synopsis generation with timeout
+          Promise.race([
+            generateInteractionSynopsis(inputText, extractedInfo, 42195145),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Synopsis timeout')), 12000))
+          ])
+        ]);
 
-        // Generate enhanced comments
-        const enhancedComments = await enhanceInteractionComments(inputText, extractedInfo);
+        // Process results
+        const enhancedComments = enhancedCommentsResult.status === 'fulfilled' ? 
+          enhancedCommentsResult.value : `Enhanced analysis temporarily unavailable. Original content: ${inputText}`;
         
-        // Generate synopsis
-        const synopsis = await generateInteractionSynopsis(inputText, extractedInfo, 42195145);
-        
-        console.log("🔍 Comments enhanced with real AI:", { inputLength: inputText.length });
-        res.json({
-          success: true,
-          enhancedComments: enhancedComments,
-          originalComments: inputText,
-          synopsis: synopsis,
-          qualityScore: extractedInfo?.qualityScore || 80
+        const synopsis = synopsisResult.status === 'fulfilled' ? 
+          synopsisResult.value : "Synopsis generation temporarily unavailable";
+
+        console.log("✅ Optimized comment enhancement completed:", { 
+          inputLength: inputText.length,
+          enhancementStatus: enhancedCommentsResult.status,
+          synopsisStatus: synopsisResult.status
         });
+        
+        clearTimeout(timeoutId);
+        if (!res.headersSent) {
+          res.json({
+            success: true,
+            enhancedComments: enhancedComments,
+            originalComments: inputText,
+            synopsis: synopsis,
+            qualityScore: extractedInfo?.qualityScore || 80
+          });
+        }
         
       } catch (error) {
-        console.error('Enhance comments error:', error);
-        res.status(500).json({ 
-          success: false,
-          message: "Failed to enhance comments", 
-          error: (error as Error).message 
-        });
+        clearTimeout(timeoutId);
+        console.error('❌ Comment enhancement error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ 
+            success: false,
+            message: "Failed to enhance comments", 
+            error: (error as Error).message 
+          });
+        }
       }
     });
 
