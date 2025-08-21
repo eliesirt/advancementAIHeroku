@@ -10,8 +10,10 @@ export default function Launcher() {
   const { user } = useAuth() as { user: UserWithRoles | undefined };
 
   const { data: applications, isLoading } = useQuery<ApplicationWithPermissions[]>({
-    queryKey: ["/api/applications"],
+    queryKey: ["/api/applications", "cache-bust-20250821"], // Force cache refresh
     enabled: !!user,
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache
   });
 
   const handleLogout = () => {
