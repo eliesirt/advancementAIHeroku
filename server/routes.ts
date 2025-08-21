@@ -208,19 +208,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Voice processing request data:", { 
         hasTranscript: !!transcript, 
         transcriptLength: transcript?.length || 0,
+        transcriptSample: transcript?.substring(0, 50) || 'EMPTY',
         hasAudioData: !!audioData,
         audioDataLength: audioData?.length || 0,
+        audioDataSample: audioData?.substring(0, 50) || 'EMPTY',
         duration,
-        userId: req.user?.claims?.sub
+        userId: req.user?.claims?.sub,
+        bodyKeys: Object.keys(req.body || {}),
+        contentType: req.headers['content-type']
       });
       
       let finalTranscript = transcript;
       
       // If no transcript from speech recognition, use OpenAI Whisper to transcribe the audio
       if (!transcript || transcript.trim().length === 0) {
-        console.log("No browser transcript available, using OpenAI Whisper for transcription...");
+        console.log("🎤 No browser transcript available, using OpenAI Whisper for transcription...");
+        console.log("Audio data details:", {
+          hasAudio: !!audioData,
+          audioLength: audioData?.length || 0,
+          audioStart: audioData?.substring(0, 20) || 'NO DATA'
+        });
         
         if (!audioData) {
+          console.log("❌ No audio data available for transcription");
           return res.status(400).json({ message: "No audio data or transcript available" });
         }
         
