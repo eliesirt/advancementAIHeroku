@@ -222,69 +222,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If no transcript from speech recognition, use OpenAI Whisper to transcribe the audio
       if (!transcript || transcript.trim().length === 0) {
-        console.log("🎤 No browser transcript available, using OpenAI Whisper for transcription...");
-        console.log("Audio data details:", {
-          hasAudio: !!audioData,
-          audioLength: audioData?.length || 0,
-          audioStart: audioData?.substring(0, 20) || 'NO DATA'
-        });
+        console.log("No browser transcript available, using OpenAI Whisper for transcription...");
         
-        if (!audioData) {
-          console.log("❌ No audio data available for transcription");
-          return res.status(400).json({ message: "No audio data or transcript available" });
+        if (!audioData || audioData.length === 0) {
+          return res.status(400).json({ 
+            message: "Recording failed - no audio or transcript captured",
+            suggestion: "Please ensure microphone permissions are enabled and speak clearly during recording" 
+          });
         }
         
         try {
-          console.log("🔄 Starting OpenAI Whisper transcription...");
+          console.log("Starting OpenAI Whisper transcription...");
           const { transcribeAudio } = await import("./lib/openai");
           finalTranscript = await transcribeAudio(audioData);
           
-          console.log("✅ OpenAI Whisper transcription completed:", { 
-            transcriptLength: finalTranscript.length,
-            transcriptPreview: finalTranscript.substring(0, 100)
+          console.log("OpenAI Whisper transcription completed:", { 
+            transcriptLength: finalTranscript.length
           });
           
         } catch (whisperError) {
-          console.error("❌ OpenAI Whisper transcription failed:");
-          console.error("Error type:", typeof whisperError);
-          console.error("Error message:", (whisperError as Error).message);
-          console.error("Full error:", whisperError);
-          
-          // Check for specific OpenAI API errors
-          if (whisperError instanceof Error) {
-            if (whisperError.message.includes('401') || whisperError.message.includes('Unauthorized')) {
-              return res.status(500).json({ 
-                message: "OpenAI API authentication failed", 
-                error: "Invalid or missing OpenAI API key" 
-              });
-            }
-            if (whisperError.message.includes('rate limit') || whisperError.message.includes('429')) {
-              return res.status(500).json({ 
-                message: "OpenAI API rate limit exceeded", 
-                error: "Too many requests to OpenAI API" 
-              });
-            }
-            if (whisperError.message.includes('timeout')) {
-              return res.status(500).json({ 
-                message: "OpenAI API timeout", 
-                error: "Request to OpenAI timed out" 
-              });
-            }
-          }
-          
+          console.error("OpenAI Whisper transcription failed:", whisperError);
           return res.status(500).json({ 
-            message: "Audio transcription failed", 
-            error: (whisperError as Error).message,
-            errorType: typeof whisperError
+            message: "Voice transcription service temporarily unavailable", 
+            error: "Please try speaking more clearly or check your microphone settings",
+            technical: process.env.NODE_ENV === 'development' ? (whisperError as Error).message : undefined
           });
         }
       }
       
       if (!finalTranscript || finalTranscript.trim().length === 0) {
-        console.log("❌ No transcript generated from either browser or OpenAI Whisper");
+        console.log("No transcript generated from either browser or OpenAI Whisper");
         return res.status(400).json({ 
-          message: "Unable to transcribe audio recording", 
-          details: "Both browser speech recognition and OpenAI Whisper transcription failed" 
+          message: "Voice recording could not be processed", 
+          suggestion: "Please ensure you speak clearly and have a stable internet connection. Try recording again with better audio quality."
         });
       }
 

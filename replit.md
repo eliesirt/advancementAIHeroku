@@ -114,13 +114,15 @@ The system follows a mobile-first, voice-enabled design philosophy with strong i
 
 ## Recent Changes
 
-### August 21, 2025 - Application Launcher Groupings
+### August 21, 2025 - Application Launcher Groupings & Voice Recording Fix
 - **Implemented Application Groupings**: Added organized sections to the launcher page for better user experience
 - **Applications Section**: Groups primary AI tools (interactionAI, portfolioAI, itineraryAI) under "Applications" with description "AI-powered advancement tools for fundraising excellence"
 - **Configuration Section**: Groups system tools (Settings, User Management) under "Configuration" with description "System settings and user management tools"
 - **Fixed Production Database**: Resolved sortOrder inconsistencies between development and production databases using direct SQL updates
 - **Enhanced User Interface**: Improved launcher layout with clear section headers and better visual organization
-- **Maintained Functionality**: All applications launch correctly while providing improved navigation structure
+- **Voice Recording Bug Fix**: Resolved critical Node.js compatibility issue where browser File API was causing transcription failures in production
+- **Enhanced Error Handling**: Added comprehensive error messages and fallback handling for voice recording transcription issues
+- **OpenAI Integration Fix**: Corrected audio transcription pipeline to use proper Node.js-compatible functions instead of browser APIs
 
 ### August 11, 2025 - Admin User Impersonation System
 - **Complete Impersonation Framework**: Built comprehensive admin impersonation system allowing administrators to run as any non-admin user
