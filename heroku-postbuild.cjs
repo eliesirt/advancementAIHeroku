@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Heroku build with real OpenAI integration for AI analysis...');
+console.log('🚀 Heroku build with full real database and API integration...');
 
 try {
   // Step 1: Build frontend

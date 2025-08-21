@@ -457,25 +457,26 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Create interaction endpoint
+    // Create interaction endpoint - using real database
     app.post("/api/interactions", async (req: any, res) => {
       try {
+        const { storage } = await import("./storage");
+        
         const interactionData = {
-          id: Date.now(),
           userId: "42195145",
-          prospectName: req.body.prospectName || "Test Prospect",
+          prospectName: req.body.prospectName || "Unknown Prospect",
           category: req.body.category || "Meeting",
-          subcategory: req.body.subcategory || "General",
-          summary: req.body.summary || "Interaction created successfully",
+          subcategory: req.body.subcategory || "General Meeting",
+          summary: req.body.summary || "New interaction",
           notes: req.body.notes || "",
           contactLevel: req.body.contactLevel || "Initial Contact",
-          qualityScore: req.body.qualityScore || 80,
-          createdAt: new Date().toISOString(),
+          qualityScore: req.body.qualityScore || 75,
           ...req.body
         };
 
-        console.log("💾 Interaction created:", { id: interactionData.id, prospect: interactionData.prospectName });
-        res.json(interactionData);
+        const createdInteraction = await storage.createInteraction(interactionData);
+        console.log("💾 Real interaction created:", { id: createdInteraction.id, prospect: createdInteraction.prospectName });
+        res.json(createdInteraction);
         
       } catch (error) {
         console.error('Create interaction error:', error);
@@ -509,36 +510,64 @@ app.get('/health', (req, res) => {
       }
     });
     
-    // Additional essential routes for dashboard functionality
-    app.get("/api/stats", (req: any, res) => {
-      res.json({
-        todayInteractions: 0,
-        thisWeekInteractions: 1,
-        thisMonthInteractions: 5,
-        totalInteractions: 25,
-        averageQualityScore: 82.5,
-        topCategories: [
-          { name: "Meetings", count: 12 },
-          { name: "Phone Calls", count: 8 },
-          { name: "Events", count: 5 }
-        ]
-      });
+    // Additional essential routes for dashboard functionality - using real database
+    app.get("/api/stats", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const interactions = await storage.getInteractionsByUser("42195145");
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        
+        const todayInteractions = interactions.filter((i: any) => new Date(i.createdAt) >= today).length;
+        const thisWeekInteractions = interactions.filter((i: any) => new Date(i.createdAt) >= weekAgo).length;
+        const thisMonthInteractions = interactions.filter((i: any) => new Date(i.createdAt) >= monthAgo).length;
+        
+        const qualityScores = interactions.filter((i: any) => i.qualityScore).map((i: any) => i.qualityScore!);
+        const averageQualityScore = qualityScores.length > 0 ? 
+          qualityScores.reduce((sum: number, score: number) => sum + score, 0) / qualityScores.length : 0;
+        
+        const categoryCounts = interactions.reduce((acc: any, i: any) => {
+          acc[i.category] = (acc[i.category] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        const topCategories = Object.entries(categoryCounts)
+          .map(([name, count]) => ({ name, count: count as number }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3);
+        
+        res.json({
+          todayInteractions,
+          thisWeekInteractions,
+          thisMonthInteractions,
+          totalInteractions: interactions.length,
+          averageQualityScore: Math.round(averageQualityScore * 10) / 10,
+          topCategories
+        });
+      } catch (error) {
+        console.error('Get stats error:', error);
+        res.status(500).json({ message: "Failed to load stats", error: (error as Error).message });
+      }
     });
 
-    app.get("/api/interactions/recent", (req: any, res) => {
-      res.json([
-        {
-          id: 22,
-          userId: "42195145",
-          prospectName: "Sample Prospect",
-          category: "Meeting",
-          subcategory: "Discovery Meeting",
-          summary: "Initial prospect meeting to discuss philanthropic interests",
-          qualityScore: 85,
-          createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
-          contactLevel: "Initial Contact"
-        }
-      ]);
+    app.get("/api/interactions/recent", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const interactions = await storage.getInteractionsByUser("42195145");
+        
+        // Get most recent 10 interactions, sorted by creation date
+        const recentInteractions = interactions
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 10);
+          
+        res.json(recentInteractions);
+      } catch (error) {
+        console.error('Get recent interactions error:', error);
+        res.status(500).json({ message: "Failed to load recent interactions", error: (error as Error).message });
+      }
     });
 
     app.get("/api/user", (req: any, res) => {
@@ -553,58 +582,57 @@ app.get('/health', (req, res) => {
       });
     });
 
-    // GET interactions endpoints
-    app.get("/api/interactions", (req: any, res) => {
-      res.json([
-        {
-          id: 22,
-          userId: "42195145",
-          prospectName: "Sample Prospect",
-          category: "Meeting",
-          subcategory: "Discovery Meeting",
-          summary: "Initial prospect meeting to discuss philanthropic interests",
-          qualityScore: 85,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          contactLevel: "Initial Contact",
-          notes: "Productive conversation about education initiatives"
+    // GET interactions endpoints - using real database
+    app.get("/api/interactions", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const interactions = await storage.getInteractionsByUser("42195145");
+        res.json(interactions);
+      } catch (error) {
+        console.error('Get interactions error:', error);
+        res.status(500).json({ message: "Failed to load interactions", error: (error as Error).message });
+      }
+    });
+
+    app.get("/api/interactions/drafts", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const drafts = await storage.getDraftInteractions("42195145");
+        res.json(drafts);
+      } catch (error) {
+        console.error('Get draft interactions error:', error);
+        res.status(500).json({ message: "Failed to load draft interactions", error: (error as Error).message });
+      }
+    });
+
+    // Individual interaction endpoints - using real database
+    app.get("/api/interactions/:id", async (req: any, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const { storage } = await import("./storage");
+        const interaction = await storage.getInteraction(id);
+        
+        if (!interaction) {
+          return res.status(404).json({ message: "Interaction not found" });
         }
-      ]);
+        
+        res.json(interaction);
+      } catch (error) {
+        console.error('Get interaction error:', error);
+        res.status(500).json({ message: "Failed to load interaction", error: (error as Error).message });
+      }
     });
 
-    app.get("/api/interactions/drafts", (req: any, res) => {
-      res.json([]);
-    });
-
-    // Individual interaction endpoints
-    app.get("/api/interactions/:id", (req: any, res) => {
-      const id = req.params.id;
-      res.json({
-        id: parseInt(id),
-        userId: "42195145",
-        prospectName: "Sample Prospect",
-        category: "Meeting",
-        subcategory: "Discovery Meeting",
-        summary: "Detailed interaction record",
-        qualityScore: 85,
-        createdAt: new Date().toISOString(),
-        contactLevel: "Initial Contact",
-        notes: "Complete interaction details"
-      });
-    });
-
-    // UPDATE interaction endpoints  
+    // UPDATE interaction endpoints - using real database
     app.put("/api/interactions/:id", async (req: any, res) => {
       try {
-        const id = req.params.id;
-        const updatedData = {
-          id: parseInt(id),
-          userId: "42195145",
-          updatedAt: new Date().toISOString(),
-          ...req.body
-        };
+        const id = parseInt(req.params.id);
+        const { storage } = await import("./storage");
+        
+        const updatedInteraction = await storage.updateInteraction(id, req.body);
         
         console.log("📝 Interaction updated:", { id, changes: Object.keys(req.body) });
-        res.json(updatedData);
+        res.json(updatedInteraction);
         
       } catch (error) {
         console.error('Update interaction error:', error);
@@ -614,16 +642,40 @@ app.get('/health', (req, res) => {
 
     app.patch("/api/interactions/:id", async (req: any, res) => {
       try {
-        const id = req.params.id;
-        const patchedData = {
-          id: parseInt(id),
-          userId: "42195145",
-          updatedAt: new Date().toISOString(),
-          ...req.body
-        };
+        const id = parseInt(req.params.id);
+        const { storage } = await import("./storage");
+        
+        // Handle affinity tag reprocessing if requested
+        if (req.body.reprocessAffinityTags) {
+          const interaction = await storage.getInteraction(id);
+          if (interaction) {
+            try {
+              const affinityTags = await storage.getAffinityTags();
+              const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+              const threshold = (await storage.getAffinityTagSettings())?.matchingThreshold || 0.25;
+              const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+
+              const professionalInterests = Array.isArray((interaction as any).professionalInterests) ? (interaction as any).professionalInterests : [];
+              const personalInterests = Array.isArray((interaction as any).personalInterests) ? (interaction as any).personalInterests : [];
+              const philanthropicPriorities = Array.isArray((interaction as any).philanthropicPriorities) ? (interaction as any).philanthropicPriorities : [];
+
+              const matchedTags = affinityMatcher.matchInterests(
+                professionalInterests,
+                personalInterests,
+                philanthropicPriorities
+              );
+              
+              req.body.suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+            } catch (affinityError) {
+              console.warn("Affinity tag reprocessing failed:", affinityError);
+            }
+          }
+        }
+        
+        const updatedInteraction = await storage.updateInteraction(id, req.body);
         
         console.log("🔧 Interaction patched:", { id, changes: Object.keys(req.body) });
-        res.json(patchedData);
+        res.json(updatedInteraction);
         
       } catch (error) {
         console.error('Patch interaction error:', error);
@@ -631,16 +683,23 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // DELETE single interaction endpoint
+    // DELETE single interaction endpoint - using real database
     app.delete("/api/interactions/:id", async (req: any, res) => {
       try {
-        const id = req.params.id;
+        const id = parseInt(req.params.id);
+        const { storage } = await import("./storage");
+        
+        const deleted = await storage.deleteInteraction(id);
+        
+        if (!deleted) {
+          return res.status(404).json({ message: "Interaction not found" });
+        }
         
         console.log(`🗑️ Single interaction deleted: ${id}`);
         res.json({ 
           success: true, 
           message: `Interaction ${id} deleted successfully`,
-          deletedId: parseInt(id)
+          deletedId: id
         });
         
       } catch (error) {
@@ -649,19 +708,20 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Draft interaction endpoints
+    // Draft interaction endpoints - using real database
     app.post("/api/interactions/draft", async (req: any, res) => {
       try {
+        const { storage } = await import("./storage");
+        
         const draftData = {
-          id: Date.now(),
           userId: "42195145",
           isDraft: true,
-          createdAt: new Date().toISOString(),
           ...req.body
         };
 
-        console.log("📄 Draft interaction created:", { id: draftData.id });
-        res.json(draftData);
+        const createdDraft = await storage.createInteraction(draftData);
+        console.log("📄 Draft interaction created:", { id: createdDraft.id });
+        res.json(createdDraft);
         
       } catch (error) {
         console.error('Create draft error:', error);
@@ -697,26 +757,34 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Affinity tags endpoints
-    app.get("/api/affinity-tags", (req: any, res) => {
-      res.json([
-        { id: 1, name: "Alumni", category: "Affiliation" },
-        { id: 2, name: "Technology", category: "Interest" },
-        { id: 3, name: "Healthcare", category: "Priority" },
-        { id: 4, name: "Education", category: "Priority" }
-      ]);
+    // Affinity tags endpoints - using real database
+    app.get("/api/affinity-tags", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const affinityTags = await storage.getAffinityTags();
+        res.json(affinityTags);
+      } catch (error) {
+        console.error('Get affinity tags error:', error);
+        res.status(500).json({ message: "Failed to load affinity tags", error: (error as Error).message });
+      }
     });
 
     app.post("/api/affinity-tags/match", async (req: any, res) => {
       try {
         const { interests } = req.body;
         
+        const { storage } = await import("./storage");
+        const affinityTags = await storage.getAffinityTags();
+        const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+        const threshold = (await storage.getAffinityTagSettings())?.matchingThreshold || 0.25;
+        const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+        
         const matches = interests?.map((interest: string) => ({
           interest,
-          matches: ["Alumni", "Technology"].filter(() => Math.random() > 0.5)
+          matches: affinityMatcher.matchInterests([interest], [], []).map(match => match.tag.name)
         })) || [];
 
-        console.log("🔗 Affinity tags matched:", { matchCount: matches.length });
+        console.log("🔗 Affinity tags matched with real matcher:", { matchCount: matches.length });
         res.json({ matches });
         
       } catch (error) {
@@ -725,12 +793,23 @@ app.get('/health', (req, res) => {
       }
     });
 
-    app.get("/api/affinity-tags/info", (req: any, res) => {
-      res.json({
-        totalTags: 25,
-        lastRefresh: new Date().toISOString(),
-        categories: ["Affiliation", "Interest", "Priority"]
-      });
+    app.get("/api/affinity-tags/info", async (req: any, res) => {
+      try {
+        const { storage } = await import("./storage");
+        const affinityTags = await storage.getAffinityTags();
+        const settings = await storage.getAffinityTagSettings();
+        
+        const categories = [...new Set(affinityTags.map(tag => tag.category))];
+        
+        res.json({
+          totalTags: affinityTags.length,
+          lastRefresh: settings?.lastRefresh || new Date().toISOString(),
+          categories: categories
+        });
+      } catch (error) {
+        console.error('Get affinity tags info error:', error);
+        res.status(500).json({ message: "Failed to load affinity tags info", error: (error as Error).message });
+      }
     });
 
     // User profile endpoints
@@ -775,8 +854,8 @@ app.get('/health', (req, res) => {
         let customPrompt = null;
         try {
           const { storage } = await import("./storage");
-          const aiPromptSettings = await storage.getAiPromptSettings("42195145");
-          customPrompt = aiPromptSettings?.customPrompt;
+          const aiPromptSettings = await storage.getAiPromptSettings("42195145", "interaction_synopsis");
+          customPrompt = aiPromptSettings?.promptTemplate;
         } catch (e) {
           console.warn("Could not load custom AI prompts, using default");
         }
