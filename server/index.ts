@@ -292,32 +292,94 @@ app.get('/health', (req, res) => {
           });
         }
 
-        // Mock successful analysis response - MUST match frontend expectations
-        const extractedInfo = {
-          summary: text.substring(0, 100) + "...",
-          category: "Meeting",
-          subcategory: "General Meeting",
-          contactLevel: "Initial Contact",
-          professionalInterests: ["Business", "Technology"],
-          personalInterests: ["Travel", "Sports"],
-          philanthropicPriorities: ["Education", "Healthcare"],
-          keyPoints: [text.substring(0, 50) + "..."],
-          suggestedAffinityTags: ["Alumni", "Technology"],
-          prospectName: prospectName || "Unknown Prospect",
-          qualityScore: 85,
-          qualityRecommendations: [
-            "Consider adding more specific details about the prospect's interests",
-            "Include actionable next steps for follow-up",
-            "Document any specific giving capacity indicators mentioned"
-          ]
+        // Use real OpenAI integration for analysis
+        const { extractInteractionInfo } = await import("./lib/openai");
+        let extractedInfo = await extractInteractionInfo(text);
+
+        // If prospect name was provided, use it to override extracted name
+        if (prospectName && prospectName.trim().length > 0) {
+          extractedInfo.prospectName = prospectName.trim();
+        }
+
+        // Clear any AI-suggested affinity tags and use our matcher instead
+        extractedInfo.suggestedAffinityTags = [];
+
+        // Try to load affinity matching (may not be available during startup)
+        try {
+          // Import storage dynamically
+          const { storage } = await import("./storage");
+          const affinityTags = await storage.getAffinityTags();
+          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+          
+          // Get matching threshold (with fallback)
+          let threshold = 0.25; // Default threshold
+          try {
+            const settings = await storage.getAffinityTagSettings();
+            threshold = settings?.matchingThreshold || 0.25;
+          } catch (e) {
+            console.warn("Could not load matching threshold, using default");
+          }
+          
+          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+
+          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+          let suggestedAffinityTags: string[] = [];
+          if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
+            const matchedTags = affinityMatcher.matchInterests(
+              professionalInterests,
+              personalInterests,
+              philanthropicPriorities
+            );
+            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+          }
+
+          extractedInfo.suggestedAffinityTags = suggestedAffinityTags;
+        } catch (affinityError) {
+          console.warn("Affinity matching not available during startup:", affinityError);
+        }
+
+        // Perform quality assessment
+        let qualityScore = 75;
+        let qualityRecommendations = ["AI quality assessment unavailable during startup"];
+        
+        try {
+          const { evaluateInteractionQuality } = await import("./lib/openai");
+          const qualityAssessment = await evaluateInteractionQuality(
+            text,
+            extractedInfo,
+            {
+              prospectName: extractedInfo.prospectName || prospectName || '',
+              firstName: '',
+              lastName: '',
+              contactLevel: '',
+              method: '',
+              actualDate: new Date().toISOString(),
+              comments: text,
+            }
+          );
+
+          qualityScore = (qualityAssessment as any).score || 75;
+          qualityRecommendations = qualityAssessment.recommendations || ["Quality assessment completed"];
+        } catch (qualityError) {
+          console.warn("Quality assessment failed, using defaults:", qualityError);
+        }
+
+        // Add quality info to extracted info
+        const finalExtractedInfo = {
+          ...extractedInfo,
+          qualityScore,
+          qualityRecommendations
         };
 
-        console.log("🤖 AI analysis completed for text:", { textLength: text.length });
+        console.log("🤖 Real AI analysis completed for text:", { textLength: text.length, prospectName: extractedInfo.prospectName });
         
         // Frontend expects { success: true, extractedInfo: {...} }
         res.json({
           success: true,
-          extractedInfo: extractedInfo
+          extractedInfo: finalExtractedInfo
         });
         
       } catch (error) {
@@ -699,16 +761,39 @@ app.get('/health', (req, res) => {
         const { transcript, extractedInfo, comments } = req.body;
         const inputText = transcript || comments || "";
         
-        // Enhanced comments response matching frontend expectations
-        const enhancedComments = inputText + "\n\n[AI-Enhanced Synopsis: Professional interaction with prospect showing strong interest in university initiatives.]";
+        if (!inputText || inputText.trim().length === 0) {
+          return res.status(400).json({ 
+            success: false,
+            message: "Text content is required for enhancement" 
+          });
+        }
+
+        // Use real OpenAI integration for comment enhancement
+        const { enhanceInteractionComments, generateInteractionSynopsis } = await import("./lib/openai");
         
-        console.log("🔍 Comments enhanced with AI");
+        // Get custom AI prompt settings (with fallback)
+        let customPrompt = null;
+        try {
+          const { storage } = await import("./storage");
+          const aiPromptSettings = await storage.getAiPromptSettings("42195145");
+          customPrompt = aiPromptSettings?.customPrompt;
+        } catch (e) {
+          console.warn("Could not load custom AI prompts, using default");
+        }
+
+        // Generate enhanced comments
+        const enhancedComments = await enhanceInteractionComments(inputText, extractedInfo);
+        
+        // Generate synopsis
+        const synopsis = await generateInteractionSynopsis(inputText, extractedInfo, customPrompt);
+        
+        console.log("🔍 Comments enhanced with real AI:", { inputLength: inputText.length });
         res.json({
           success: true,
           enhancedComments: enhancedComments,
           originalComments: inputText,
-          synopsis: "AI-generated synopsis based on interaction content",
-          qualityScore: 85
+          synopsis: synopsis,
+          qualityScore: extractedInfo?.qualityScore || 80
         });
         
       } catch (error) {
