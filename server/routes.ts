@@ -81,11 +81,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`  ${index + 1}. ${app.displayName} (sortOrder: ${app.sortOrder ?? 'undefined'})`);
       });
       
-      // Add cache-busting headers to ensure fresh data
+      // Add cache-busting headers to ensure fresh data and force 200 response
       res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'ETag': Date.now().toString() // Force fresh response by changing ETag
       });
       
       res.json(applications);

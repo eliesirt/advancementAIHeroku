@@ -10,7 +10,7 @@ export default function Launcher() {
   const { user } = useAuth() as { user: UserWithRoles | undefined };
 
   const { data: applications, isLoading } = useQuery<ApplicationWithPermissions[]>({
-    queryKey: ["/api/applications"],
+    queryKey: ["/api/applications", "v2"], // Force fresh cache
     enabled: !!user,
   });
 
@@ -117,9 +117,17 @@ export default function Launcher() {
 
         {/* Applications Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(applications || [])
-            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-            .map((app: ApplicationWithPermissions) => (
+          {(() => {
+            const sortedApps = (applications || [])
+              .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+            
+            // Debug logging for frontend sorting
+            console.log("🔍 Frontend sorting debug:");
+            console.log("Original apps:", applications?.map(a => ({ name: a.displayName, sortOrder: a.sortOrder })));
+            console.log("Sorted apps:", sortedApps.map(a => ({ name: a.displayName, sortOrder: a.sortOrder })));
+            
+            return sortedApps;
+          })().map((app: ApplicationWithPermissions) => (
             <Card key={app.id} className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-red-200 bg-white">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-4">
