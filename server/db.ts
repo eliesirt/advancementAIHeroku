@@ -9,10 +9,12 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Use postgres-js for Heroku Postgres compatibility
-// Parse the DATABASE_URL to handle SSL properly
+// Always use SSL for production databases (Heroku requires SSL)
 const databaseUrl = process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === 'production';
+
 const sql = postgres(databaseUrl, {
-  ssl: databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+  ssl: isProduction ? { rejectUnauthorized: false } : (databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false),
   max: 10,
   idle_timeout: 20,
   connect_timeout: 10
