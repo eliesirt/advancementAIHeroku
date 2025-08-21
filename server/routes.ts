@@ -225,15 +225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         try {
-          // Convert base64 audio to buffer and transcribe with OpenAI Whisper
-          const audioBuffer = Buffer.from(audioData, 'base64');
-          const transcriptionResult = await openai.audio.transcriptions.create({
-            file: new File([audioBuffer], 'recording.wav', { type: 'audio/wav' }),
-            model: 'whisper-1',
-            language: 'en'
-          });
+          // Use the transcribeAudio function from lib/openai which handles Node.js properly
+          const { transcribeAudio } = await import("./lib/openai");
+          finalTranscript = await transcribeAudio(audioData);
           
-          finalTranscript = transcriptionResult.text;
           console.log("OpenAI Whisper transcription completed:", { 
             transcriptLength: finalTranscript.length 
           });
