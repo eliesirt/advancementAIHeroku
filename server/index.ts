@@ -22,9 +22,14 @@ async function initializeModules() {
     ({ registerRoutes } = await import("./routes"));
     console.log("Routes module imported successfully");
     
-    console.log("Importing vite module...");
-    ({ setupVite, serveStatic, log } = await import("./vite"));
-    console.log("Vite module imported successfully");
+    // Skip Vite import in production to speed up startup
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Importing vite module...");
+      ({ setupVite, serveStatic, log } = await import("./vite"));
+      console.log("Vite module imported successfully");
+    } else {
+      console.log("Skipping Vite import in production for faster startup");
+    }
   } catch (error: any) {
     console.error("=== MODULE IMPORT FAILURE ===");
     console.error("Error message:", error?.message);
@@ -66,12 +71,12 @@ async function setupFallbacks() {
   }
 
   if (!setupVite || !serveStatic || !log) {
-    console.log("Setting up fallbacks for Vite functions");
+    console.log("Setting up production fallbacks for Vite functions");
     setupVite = async () => {
-      console.log("Vite setup using fallback");
+      console.log("Vite setup skipped (production mode)");
     };
     serveStatic = (app: express.Application) => {
-      // Serve static files from dist/public (build output)
+      // Serve static files from dist/public (Vite build output)
       app.use(express.static('dist/public'));
       
       // Fallback to serve index.html for SPA routes
@@ -89,7 +94,7 @@ async function setupFallbacks() {
       });
     };
     log = (message: string) => {
-      console.log(`[server] ${message}`);
+      console.log(`[production] ${message}`);
     };
   }
 }
