@@ -1,5 +1,5 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "../shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -8,6 +8,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use HTTP-based connection for better Heroku compatibility
-const sql = neon(process.env.DATABASE_URL);
+// Use postgres-js for Heroku Postgres compatibility
+// Parse the DATABASE_URL to handle SSL properly
+const databaseUrl = process.env.DATABASE_URL;
+const sql = postgres(databaseUrl, {
+  ssl: databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10
+});
+
 export const db = drizzle(sql, { schema });
