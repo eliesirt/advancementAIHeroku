@@ -202,13 +202,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Process voice recording directly without creating interaction draft first
   app.post("/api/voice-recordings/process-direct", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("🎙️ Voice recording processing started");
       const { transcript, audioData, duration } = req.body;
       
       console.log("Voice processing request data:", { 
         hasTranscript: !!transcript, 
         transcriptLength: transcript?.length || 0,
         hasAudioData: !!audioData,
-        duration 
+        audioDataLength: audioData?.length || 0,
+        duration,
+        userId: req.user?.claims?.sub
       });
       
       let finalTranscript = transcript;
@@ -249,10 +252,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate concise summary
+      console.log("📝 Generating concise summary...");
       const { generateConciseSummary } = await import("./lib/openai");
       const conciseSummary = await generateConciseSummary(finalTranscript);
+      console.log("✅ Concise summary generated");
 
       // Extract interaction information
+      console.log("🔍 Extracting interaction information...");
       const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(finalTranscript) || {
           summary: '',
           category: '',
@@ -286,6 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const enhancedComments = await enhanceInteractionComments(finalTranscript, extractedInfo, userId);
 
+      console.log("✅ Voice processing completed successfully");
       res.json({
         transcript: finalTranscript,
         extractedInfo: {
@@ -296,8 +303,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         enhancedComments
       });
     } catch (error) {
-      console.error("Direct voice processing error:", error);
-      res.status(500).json({ message: "Failed to process voice recording", error: (error as Error).message });
+      console.error("❌ Direct voice processing error:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      
+      // Check if it's a specific type of error
+      if (error instanceof Error) {
+        if (error.message.includes('OPENAI_API_KEY')) {
+          return res.status(500).json({ 
+            message: "OpenAI API configuration error", 
+            error: "OpenAI API key not properly configured" 
+          });
+        }
+        if (error.message.includes('audio') || error.message.includes('transcription')) {
+          return res.status(500).json({ 
+            message: "Audio transcription failed", 
+            error: error.message 
+          });
+        }
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to process voice recording", 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   });
 
