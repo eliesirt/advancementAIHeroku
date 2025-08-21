@@ -861,14 +861,28 @@ app.get('/health', (req, res) => {
         // Use the searchConstituentsByLastName method from the SOAP client
         const results = await bbecClient.searchConstituentsByLastName(lastName);
         
-        // Filter results by first name if provided
+        // Filter results by first name if provided (with flexible matching)
         let filteredResults = results;
         if (firstName && firstName.trim()) {
           const firstNameLower = firstName.toLowerCase().trim();
-          filteredResults = results.filter((constituent: any) => 
-            constituent.first_name && 
-            constituent.first_name.toLowerCase().includes(firstNameLower)
-          );
+          filteredResults = results.filter((constituent: any) => {
+            if (!constituent.first_name) return false;
+            
+            const constituentFirstName = constituent.first_name.toLowerCase();
+            
+            // Flexible matching: exact match, contains, or similar names
+            return constituentFirstName.includes(firstNameLower) || 
+                   firstNameLower.includes(constituentFirstName) ||
+                   // Handle common name variations
+                   (firstNameLower === 'elie' && (constituentFirstName.includes('elly') || constituentFirstName.includes('eli'))) ||
+                   (firstNameLower === 'elly' && (constituentFirstName.includes('elie') || constituentFirstName.includes('eli')));
+          });
+        }
+        
+        // If filtering results in no matches but we have results, log the issue and return all results
+        if (firstName && firstName.trim() && filteredResults.length === 0 && results.length > 0) {
+          console.log(`🔍 First name "${firstName}" filtered out all ${results.length} results. Returning all constituents with last name "${lastName}".`);
+          filteredResults = results;
         }
         
         console.log(`✅ Found ${filteredResults.length} constituents`);

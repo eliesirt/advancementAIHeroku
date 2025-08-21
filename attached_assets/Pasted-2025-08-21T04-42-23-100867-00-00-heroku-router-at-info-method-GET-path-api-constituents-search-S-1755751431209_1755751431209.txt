@@ -1,0 +1,124 @@
+2025-08-21T04:42:23.100867+00:00 heroku[router]: at=info method=GET path="/api/constituents/search/Sirotta?firstName=Elie" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=0e646897-dac9-e97e-14ef-0a92e47a848c fwd="73.253.249.113" dyno=web.1 connect=0ms service=9416ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T04:42:23.100083+00:00 app[web.1]: Constituent search response: <?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><AdHocQueryProcessReply RecordTypeID="29128316-b0c6-46eb-9a8e-8ff8cfbe4dc4" xmlns="Blackbaud.AppFx.WebService.API.1"><Sql>select  distinct     [V_QUERY_CONSTITUENT].[LOOKUPID] as [uid],
+2025-08-21T04:42:23.100100+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[NAME] as [name],
+2025-08-21T04:42:23.100101+00:00 app[web.1]: [V_QUERY_CONSTITUENT\DARWIN RATING].[capacitycode] as [c],
+2025-08-21T04:42:23.100101+00:00 app[web.1]: [V_QUERY_CONSTITUENT\DARWIN RATING].[inclinationcode] as [i],
+2025-08-21T04:42:23.100102+00:00 app[web.1]: [V_QUERY_CONSTITUENT\Constituent Schools and Parent Indicator Smart Field].[VALUE] as [sch_yr],
+2025-08-21T04:42:23.100102+00:00 app[web.1]: [V_QUERY_CONSTITUENT\ DAR\Business].[JobTitle] as [job_title],
+2025-08-21T04:42:23.100102+00:00 app[web.1]: [V_QUERY_CONSTITUENT\ DAR\Business].[BusinessName] as [company],
+2025-08-21T04:42:23.100103+00:00 app[web.1]: [V_QUERY_CONSTITUENT\ DAR\Phones].[PrimaryNumber] as [phone],
+2025-08-21T04:42:23.100103+00:00 app[web.1]: [V_QUERY_CONSTITUENT\ DAR\Email Addresses].[PrimaryEmail] as [email],
+2025-08-21T04:42:23.100103+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[FIRSTNAME] as [first_name],
+2025-08-21T04:42:23.100103+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[KEYNAME] as [last_name],
+2025-08-21T04:42:23.100103+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[ID] as [guid],
+2025-08-21T04:42:23.100104+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[ID] as [QUERYRECID]
+2025-08-21T04:42:23.100104+00:00 app[web.1]: from [dbo].[V_QUERY_CONSTITUENT] as [V_QUERY_CONSTITUENT]
+2025-08-21T04:42:23.100105+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_DARWIN_CUSTOM_RATING] as [V_QUERY_CONSTITUENT\DARWIN RATING] on [V_QUERY_CONSTITUENT].[ID] = [V_QUERY_CONSTITUENT\DARWIN RATING].[ID]
+2025-08-21T04:42:23.100106+00:00 app[web.1]: left outer join [dbo].[V_QUERY_SMARTFIELD7EC74E570F3243D88E7751DE3AA32926] as [V_QUERY_CONSTITUENT\Constituent Schools and Parent Indicator Smart Field] on [V_QUERY_CONSTITUENT].[ID] = [V_QUERY_CONSTITUENT\Constituent Schools and Parent Indicator Smart Field].[ID]
+2025-08-21T04:42:23.100106+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_DAR_NODE] as [V_QUERY_CONSTITUENT\ DAR] on [V_QUERY_CONSTITUENT].[ID] = [V_QUERY_CONSTITUENT\ DAR].[ID]
+2025-08-21T04:42:23.100106+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_BUSINESS_NODE] as [V_QUERY_CONSTITUENT\ DAR\Business] on [V_QUERY_CONSTITUENT\ DAR].[ID] = [V_QUERY_CONSTITUENT\ DAR\Business].[ID]
+2025-08-21T04:42:23.100106+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_PHONES_NODE] as [V_QUERY_CONSTITUENT\ DAR\Phones] on [V_QUERY_CONSTITUENT\ DAR].[ID] = [V_QUERY_CONSTITUENT\ DAR\Phones].[ID]
+2025-08-21T04:42:23.100107+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_EMAILS_NODE] as [V_QUERY_CONSTITUENT\ DAR\Email Addresses] on [V_QUERY_CONSTITUENT\ DAR].[ID] = [V_QUERY_CONSTITUENT\ DAR\Email Addresses].[ID]
+2025-08-21T04:42:23.100107+00:00 app[web.1]: where [V_QUERY_CONSTITUENT].[KEYNAME] = N'Sirotta'
+2025-08-21T04:42:23.100117+00:00 app[web.1]:
+2025-08-21T04:42:23.100128+00:00 app[web.1]: </Sql><Output RowCount="7" LastUpdated="0001-01-01T00:00:00"><Fields><f Name="uid" FieldID="LOOKUPID" UniqueName="V_QUERY_CONSTITUENT\LOOKUPID" /><f Name="name" FieldID="NAME" UniqueName="V_QUERY_CONSTITUENT\NAME" /><f Name="c" FieldID="capacitycode" UniqueName="V_QUERY_CONSTITUENT\DARWIN RATING\capacitycode" /><f Name="i" FieldID="inclinationcode" UniqueName="V_QUERY_CONSTITUENT\DARWIN RATING\inclinationcode" /><f Name="sch_yr" FieldID="VALUE" UniqueName="V_QUERY_CONSTITUENT\Constituent Schools and Parent Indicator Smart Field\VALUE" /><f Name="job_title" FieldID="JobTitle" UniqueName="V_QUERY_CONSTITUENT\ DAR\Business\JobTitle" /><f Name="company" FieldID="BusinessName" UniqueName="V_QUERY_CONSTITUENT\ DAR\Business\BusinessName" /><f Name="phone" FieldID="PrimaryNumber" UniqueName="V_QUERY_CONSTITUENT\ DAR\Phones\PrimaryNumber" /><f Name="email" DataType="EmailAddress" FieldID="PrimaryEmail" UniqueName="V_QUERY_CONSTITUENT\ DAR\Email Addresses\PrimaryEmail" /><f Name="first_name" FieldID="FIRSTNAME" UniqueName="V_QUERY_CONSTITUENT\FIRSTNAME" /><f Name="last_name" FieldID="KEYNAME" UniqueName="V_QUERY_CONSTITUENT\KEYNAME" /><f Name="guid" DataType="Guid" FieldID="ID" UniqueName="V_QUERY_CONSTITUENT\ID" /><f Name="QUERYRECID" DataType="Guid" IsPrimaryKey="true" FieldID="QUERYRECID" /></Fields><Rows><r><Values><v>8-11486371</v><v>Natalie A. Sirotta</v><v /><v /><v /><v /><v /><v /><v /><v>Natalie</v><v>Sirotta</v><v>1a43b672-494e-4735-ae62-c3c05011de4c</v><v>1a43b672-494e-4735-ae62-c3c05011de4c</v></Values></r><r><Values><v>8-11487203</v><v>Juliana I. Sirotta</v><v /><v /><v /><v /><v /><v /><v /><v>Juliana</v><v>Sirotta</v><v>051c770d-2a18-48cf-81c4-2ddd45c3dab7</v><v>051c770d-2a18-48cf-81c4-2ddd45c3dab7</v></Values></r><r><Values><v>8-11610535</v><v>Nika Sirotta</v><v /><v /><v /><v /><v /><v /><v /><v>Nika</v><v>Sirotta</v><v>2044e0d8-ca07-44d1-a631-c4447adba8ed</v><v>2044e0d8-ca07-44d1-a631-c4447adba8ed</v></Values></r><r><Values><v>U029480520</v><v>Elly A. Sirotta</v><v /><v /><v>ENG'01, Questrom'08</v><v>Director, DAR Applications</v><v>Boston University</v><v>(617) 694-1677</v><v>elsirt@gmail.com</v><v>Elly</v><v>Sirotta</v><v>34e0c896-76b2-4041-b035-6591356ca1ad</v><v>34e0c896-76b2-4041-b035-6591356ca1ad</v></Values></r><r><Values><v>U221713130</v><v>Stacey L. Sirotta</v><v>E</v><v /><v>SAR'01,'03,'08</v><v>Senior Physical Therapist</v><v>May Center School</v><v>(781) 806-0217</v><v>staceysirotta@gmail.com</v><v>Stacey</v><v>Sirotta</v><v>c9cf2fd4-a225-4883-b1af-d0ea08190780</v><v>c9cf2fd4-a225-4883-b1af-d0ea08190780</v></Values></r><r><Values><v>Z560180640</v><v>E. B. Sirotta</v><v /><v /><v /><v /><v /><v /><v /><v>E.</v><v>Sirotta</v><v>37e495e9-f967-4864-82fa-fc72647e5d55</v><v>37e495e9-f967-4864-82fa-fc72647e5d55</v></Values></r><r><Values><v>Z935603400</v><v>Janet Sirotta</v><v /><v /><v /><v /><v /><v>7182730339</v><v>msirt@worldnet.att.net</v><v>Janet</v><v>Sirotta</v><v>9ed0a7b2-9a07-402a-bafc-7dc40ca80fab</v><v>9ed0a7b2-9a07-402a-bafc-7dc40ca80fab</v></Values></r></Rows></Output><HasEncryptedFields>false</HasEncryptedFields><MartKey /><QueryWasCancelled>false</QueryWasCancelled></AdHocQueryProcessReply></soap:Body></soap:Envelope>
+2025-08-21T04:42:23.100128+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100128+00:00 app[web.1]: "uid": "8-11486371",
+2025-08-21T04:42:23.100129+00:00 app[web.1]: "name": "Natalie A. Sirotta",
+2025-08-21T04:42:23.100129+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "job_title": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "company": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "phone": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "email": "",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "first_name": "Natalie",
+2025-08-21T04:42:23.100130+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100131+00:00 app[web.1]: "guid": "1a43b672-494e-4735-ae62-c3c05011de4c"
+2025-08-21T04:42:23.100131+00:00 app[web.1]: }
+2025-08-21T04:42:23.100141+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100141+00:00 app[web.1]: "uid": "8-11487203",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "name": "Juliana I. Sirotta",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "job_title": "",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "company": "",
+2025-08-21T04:42:23.100142+00:00 app[web.1]: "phone": "",
+2025-08-21T04:42:23.100143+00:00 app[web.1]: "email": "",
+2025-08-21T04:42:23.100143+00:00 app[web.1]: "first_name": "Juliana",
+2025-08-21T04:42:23.100143+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100143+00:00 app[web.1]: "guid": "051c770d-2a18-48cf-81c4-2ddd45c3dab7"
+2025-08-21T04:42:23.100143+00:00 app[web.1]: }
+2025-08-21T04:42:23.100162+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100162+00:00 app[web.1]: "uid": "8-11610535",
+2025-08-21T04:42:23.100162+00:00 app[web.1]: "name": "Nika Sirotta",
+2025-08-21T04:42:23.100162+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "job_title": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "company": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "phone": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "email": "",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "first_name": "Nika",
+2025-08-21T04:42:23.100163+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100164+00:00 app[web.1]: "guid": "2044e0d8-ca07-44d1-a631-c4447adba8ed"
+2025-08-21T04:42:23.100164+00:00 app[web.1]: }
+2025-08-21T04:42:23.100188+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100188+00:00 app[web.1]: "uid": "U029480520",
+2025-08-21T04:42:23.100188+00:00 app[web.1]: "name": "Elly A. Sirotta",
+2025-08-21T04:42:23.100188+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "job_title": "ENG'01, Questrom'08",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "company": "Boston University",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "phone": "(617) 694-1677",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "email": "elsirt@gmail.com",
+2025-08-21T04:42:23.100189+00:00 app[web.1]: "first_name": "Elly",
+2025-08-21T04:42:23.100190+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100190+00:00 app[web.1]: "guid": "34e0c896-76b2-4041-b035-6591356ca1ad"
+2025-08-21T04:42:23.100190+00:00 app[web.1]: }
+2025-08-21T04:42:23.100211+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "uid": "U221713130",
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "name": "Stacey L. Sirotta",
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100211+00:00 app[web.1]: "job_title": "SAR'01,'03,'08",
+2025-08-21T04:42:23.100212+00:00 app[web.1]: "company": "May Center School",
+2025-08-21T04:42:23.100212+00:00 app[web.1]: "phone": "(781) 806-0217",
+2025-08-21T04:42:23.100212+00:00 app[web.1]: "email": "staceysirotta@gmail.com",
+2025-08-21T04:42:23.100212+00:00 app[web.1]: "first_name": "Stacey",
+2025-08-21T04:42:23.100213+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100213+00:00 app[web.1]: "guid": "c9cf2fd4-a225-4883-b1af-d0ea08190780"
+2025-08-21T04:42:23.100213+00:00 app[web.1]: }
+2025-08-21T04:42:23.100220+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100220+00:00 app[web.1]: "uid": "Z560180640",
+2025-08-21T04:42:23.100220+00:00 app[web.1]: "name": "E. B. Sirotta",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "job_title": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "company": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "phone": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "email": "",
+2025-08-21T04:42:23.100221+00:00 app[web.1]: "first_name": "E.",
+2025-08-21T04:42:23.100222+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100222+00:00 app[web.1]: "guid": "37e495e9-f967-4864-82fa-fc72647e5d55"
+2025-08-21T04:42:23.100222+00:00 app[web.1]: }
+2025-08-21T04:42:23.100237+00:00 app[web.1]: Mapped constituent: {
+2025-08-21T04:42:23.100237+00:00 app[web.1]: "uid": "Z935603400",
+2025-08-21T04:42:23.100237+00:00 app[web.1]: "name": "Janet Sirotta",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "c": "",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "i": "",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "sch_yr": "",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "job_title": "",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "company": "",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "phone": "7182730339",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "email": "msirt@worldnet.att.net",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "first_name": "Janet",
+2025-08-21T04:42:23.100238+00:00 app[web.1]: "last_name": "Sirotta",
+2025-08-21T04:42:23.100239+00:00 app[web.1]: "guid": "9ed0a7b2-9a07-402a-bafc-7dc40ca80fab"
+2025-08-21T04:42:23.100239+00:00 app[web.1]: }
+2025-08-21T04:42:23.100285+00:00 app[web.1]: ✅ Found 0 constituents
+2025-08-21T04:42:23.100771+00:00 app[web.1]: [production] GET /api/constituents/search/Sirotta 304 in 9414ms :: []
