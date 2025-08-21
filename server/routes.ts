@@ -69,41 +69,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fresh Applications endpoint (bypasses cache)
-  app.get('/api/applications-fresh', isAuthenticated, async (req: any, res) => {
+  // Applications endpoint
+  app.get('/api/applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       
-      // TEMPORARY: Fix production database sortOrder values using direct database update
-      if (process.env.NODE_ENV === 'production') {
-        console.log("🔧 Fixing production database sortOrder values...");
-        
-        // Import db directly for production fix
-        const { db } = await import("./db");
-        const { applications } = await import("../shared/schema");
-        const { eq } = await import("drizzle-orm");
-        
-        try {
-          // Update Settings (name='settings') from sortOrder 2 to 4
-          await db.update(applications)
-            .set({ sortOrder: 4 })
-            .where(eq(applications.name, 'settings'));
-          
-          // Update portfolioAI (name='portfolio-ai') from sortOrder 3 to 2
-          await db.update(applications)
-            .set({ sortOrder: 2 })
-            .where(eq(applications.name, 'portfolio-ai'));
-          
-          // Update itineraryAI (name='itinerary-ai') from sortOrder 4 to 3
-          await db.update(applications)
-            .set({ sortOrder: 3 })
-            .where(eq(applications.name, 'itinerary-ai'));
-          
-          console.log("✅ Production database sortOrder values fixed");
-        } catch (error) {
-          console.error("❌ Error fixing sortOrder values:", error);
-        }
-      }
+
       
       const applications = await storage.getUserApplications(userId);
       
