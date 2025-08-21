@@ -1,0 +1,102 @@
+2025-08-21T03:49:07.861997+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-08-21T03:49:08.616716+00:00 app[web.1]:
+2025-08-21T03:49:08.616733+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-08-21T03:49:08.616734+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-08-21T03:49:08.616734+00:00 app[web.1]:
+2025-08-21T03:49:08.652876+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-08-21T03:49:09.338655+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.4
+2025-08-21T03:49:10.803515+00:00 heroku[web.1]: State changed from starting to up
+2025-08-21T03:49:10.454852+00:00 app[web.1]: Starting application initialization...
+2025-08-21T03:49:10.454911+00:00 app[web.1]: NODE_ENV: production
+2025-08-21T03:49:10.454941+00:00 app[web.1]: Starting server on port 14457, NODE_ENV=production
+2025-08-21T03:49:10.454963+00:00 app[web.1]: 🚀 HEROKU: Using ultra-fast startup mode...
+2025-08-21T03:49:10.455153+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-08-21T03:49:10.455210+00:00 app[web.1]: Setting up production fallbacks for Vite functions
+2025-08-21T03:49:10.455854+00:00 app[web.1]: 🔐 Setting up immediate authentication routes...
+2025-08-21T03:49:10.456139+00:00 app[web.1]: Warning: connect.session() MemoryStore is not
+2025-08-21T03:49:10.456139+00:00 app[web.1]: designed for a production environment, as it will leak
+2025-08-21T03:49:10.456139+00:00 app[web.1]: memory, and will not scale past a single process.
+2025-08-21T03:49:10.456433+00:00 app[web.1]: 🤖 Setting up essential AI processing routes...
+2025-08-21T03:49:10.457254+00:00 app[web.1]: ✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately
+2025-08-21T03:49:10.457282+00:00 app[web.1]: 📁 Setting up static file serving with SPA routing...
+2025-08-21T03:49:10.457477+00:00 app[web.1]: ✅ Static file serving with SPA routing enabled immediately
+2025-08-21T03:49:10.461805+00:00 app[web.1]: 🚀 HEROKU: Server listening on port 14457 - IMMEDIATE SUCCESS!
+2025-08-21T03:49:11.463174+00:00 app[web.1]: 🔧 Starting full initialization (post-startup)...
+2025-08-21T03:49:11.463320+00:00 app[web.1]: Node.js version: v18.20.8
+2025-08-21T03:49:11.463337+00:00 app[web.1]: Working directory: /app
+2025-08-21T03:49:11.465184+00:00 app[web.1]: Available files in current directory: [
+2025-08-21T03:49:11.465184+00:00 app[web.1]: '.gitignore',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: '.heroku',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: '.herokuignore',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: '.npm',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: '.profile.d',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: '.replit',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: 'Procfile',
+2025-08-21T03:49:11.465185+00:00 app[web.1]: 'attached_assets',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'build.cjs',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'client',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'components.json',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'database_backup.dump',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'database_backup.sql.gz',
+2025-08-21T03:49:11.465186+00:00 app[web.1]: 'dist',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'drizzle.config.ts',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'heroku-build.sh',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'heroku-postbuild',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'heroku-postbuild.cjs',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'node_modules',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'package-lock.json',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'package.json',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'postcss.config.js',
+2025-08-21T03:49:11.465187+00:00 app[web.1]: 'replit.md',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'scripts',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'server',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'shared',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tailwind.config.ts',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'test_interaction.js',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tsconfig.backup.json',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tsconfig.build.json',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tsconfig.dev.json',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tsconfig.json',
+2025-08-21T03:49:11.465188+00:00 app[web.1]: 'tsconfig.production.json',
+2025-08-21T03:49:11.465189+00:00 app[web.1]: 'vite.config.ts'
+2025-08-21T03:49:11.465189+00:00 app[web.1]: ]
+2025-08-21T03:49:11.465350+00:00 app[web.1]: Available files in server directory: [
+2025-08-21T03:49:11.465351+00:00 app[web.1]: 'db.ts',
+2025-08-21T03:49:11.465351+00:00 app[web.1]: 'herokuAuth.ts',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'index.ts',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'lib',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'replitAuth.ts',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'routes.ts',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'seedData.ts',
+2025-08-21T03:49:11.465352+00:00 app[web.1]: 'storage.ts',
+2025-08-21T03:49:11.465353+00:00 app[web.1]: 'types',
+2025-08-21T03:49:11.465353+00:00 app[web.1]: 'vite.ts'
+2025-08-21T03:49:11.465353+00:00 app[web.1]: ]
+2025-08-21T03:49:11.465356+00:00 app[web.1]: Importing routes module...
+2025-08-21T03:49:12.023749+00:00 app[web.1]: Routes module imported successfully
+2025-08-21T03:49:12.023787+00:00 app[web.1]: Skipping Vite import in production for faster startup
+2025-08-21T03:49:19.999941+00:00 app[web.1]: file:///app/node_modules/@neondatabase/serverless/index.mjs:1384
+2025-08-21T03:49:19.999957+00:00 app[web.1]: connect",o),this._clients=this._clients.filter(u=>u!==t),s&&(o.message="Connect\
+2025-08-21T03:49:19.999958+00:00 app[web.1]: ^
+2025-08-21T03:49:19.999958+00:00 app[web.1]:
+2025-08-21T03:49:19.999958+00:00 app[web.1]: TypeError: Cannot set property message of #<ErrorEvent> which has only a getter
+2025-08-21T03:49:19.999959+00:00 app[web.1]: at An._connectionCallback (file:///app/node_modules/@neondatabase/serverless/index.mjs:1384:72)
+2025-08-21T03:49:19.999959+00:00 app[web.1]: at An._handleErrorWhileConnecting (file:///app/node_modules/@neondatabase/serverless/index.mjs:1290:38)
+2025-08-21T03:49:19.999959+00:00 app[web.1]: at An._handleErrorEvent (file:///app/node_modules/@neondatabase/serverless/index.mjs:1291:33)
+2025-08-21T03:49:19.999959+00:00 app[web.1]: at fn.emit (file:///app/node_modules/@neondatabase/serverless/index.mjs:397:12)
+2025-08-21T03:49:19.999959+00:00 app[web.1]: at v.reportStreamError (file:///app/node_modules/@neondatabase/serverless/index.mjs:1201:46)
+2025-08-21T03:49:19.999960+00:00 app[web.1]: at v.emit (file:///app/node_modules/@neondatabase/serverless/index.mjs:397:12)
+2025-08-21T03:49:19.999960+00:00 app[web.1]: at WebSocket.<anonymous> (file:///app/node_modules/@neondatabase/serverless/index.mjs:986:42)
+2025-08-21T03:49:19.999960+00:00 app[web.1]: at callListener (/app/node_modules/ws/lib/event-target.js:290:14)
+2025-08-21T03:49:19.999960+00:00 app[web.1]: at WebSocket.onError (/app/node_modules/ws/lib/event-target.js:230:9)
+2025-08-21T03:49:19.999961+00:00 app[web.1]: at WebSocket.emit (node:events:517:28)
+2025-08-21T03:49:19.999961+00:00 app[web.1]:
+2025-08-21T03:49:19.999961+00:00 app[web.1]: Node.js v18.20.8
+2025-08-21T03:49:20.020012+00:00 app[web.1]: ❌ Server exited with code 1
+2025-08-21T03:49:20.027235+00:00 app[web.1]: npm notice
+2025-08-21T03:49:20.027236+00:00 app[web.1]: npm notice New major version of npm available! 10.9.3 -> 11.5.2
+2025-08-21T03:49:20.027236+00:00 app[web.1]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+2025-08-21T03:49:20.027237+00:00 app[web.1]: npm notice To update run: npm install -g npm@11.5.2
+2025-08-21T03:49:20.027237+00:00 app[web.1]: npm notice
+2025-08-21T03:49:20.079460+00:00 heroku[web.1]: Process exited with status 1
+2025-08-21T03:49:20.104132+00:00 heroku[web.1]: State changed from up to crashed
