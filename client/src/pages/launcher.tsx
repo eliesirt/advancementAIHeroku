@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +11,8 @@ export default function Launcher() {
   const { user } = useAuth() as { user: UserWithRoles | undefined };
 
   const { data: applications, isLoading } = useQuery<ApplicationWithPermissions[]>({
-    queryKey: ["/api/applications", Date.now()], // Force fresh fetch every time
+    queryKey: ["/api/applications"],
     enabled: !!user,
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache
-    refetchOnMount: true, // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 
   const handleLogout = () => {
@@ -114,24 +111,20 @@ export default function Launcher() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-10">
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Your Applications</h3>
-          <p className="text-gray-600">Access your advancement tools and start making meaningful connections</p>
-        </div>
+        {(() => {
+          const sortedApps = (applications || [])
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+          
+          // Group applications
+          const applicationApps = sortedApps.filter(app => 
+            ['interaction-manager', 'portfolio-ai', 'itinerary-ai'].includes(app.name)
+          );
+          
+          const configurationApps = sortedApps.filter(app => 
+            ['settings', 'user-management'].includes(app.name)
+          );
 
-        {/* Applications Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(() => {
-            const sortedApps = (applications || [])
-              .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-            
-            // Debug logging for frontend sorting
-            console.log("🔍 Frontend sorting debug:");
-            console.log("Original apps:", applications?.map(a => ({ name: a.displayName, sortOrder: a.sortOrder })));
-            console.log("Sorted apps:", sortedApps.map(a => ({ name: a.displayName, sortOrder: a.sortOrder })));
-            
-            return sortedApps;
-          })().map((app: ApplicationWithPermissions) => (
+          const renderAppCard = (app: ApplicationWithPermissions) => (
             <Card key={app.id} className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-red-200 bg-white">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-4">
@@ -175,22 +168,52 @@ export default function Launcher() {
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          );
 
-        {(applications || []).length === 0 && (
-          <div className="text-center py-16">
-            <div className="mb-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center">
-                <Brain className="h-10 w-10" style={{ color: '#CC0000' }} />
+          return (
+            <>
+              {/* Applications Section */}
+              <div className="mb-12">
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Applications</h3>
+                  <p className="text-gray-600">AI-powered advancement tools for fundraising excellence</p>
+                </div>
+
+                {/* Applications Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {applicationApps.map(renderAppCard)}
+                </div>
               </div>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Available</h3>
-            <p className="text-lg text-gray-600 max-w-md mx-auto">
-              Contact your administrator to get access to AdvancementAI applications and start leveraging AI-powered advancement tools.
-            </p>
-          </div>
-        )}
+
+              {/* Configuration Section */}
+              <div className="mb-12">
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Configuration</h3>
+                  <p className="text-gray-600">System settings and user management tools</p>
+                </div>
+
+                {/* Configuration Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {configurationApps.map(renderAppCard)}
+                </div>
+              </div>
+
+              {(applications || []).length === 0 && (
+                <div className="text-center py-16">
+                  <div className="mb-6">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center">
+                      <Brain className="h-10 w-10" style={{ color: '#CC0000' }} />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Available</h3>
+                  <p className="text-lg text-gray-600 max-w-md mx-auto">
+                    Contact your administrator to get access to AdvancementAI applications and start leveraging AI-powered advancement tools.
+                  </p>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </main>
     </div>
   );
