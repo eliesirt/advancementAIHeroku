@@ -74,6 +74,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const applications = await storage.getUserApplications(userId);
+      
+      // Debug logging for Heroku deployment issue
+      console.log(`📱 Applications for user ${userId} (count: ${applications.length}):`);
+      applications.forEach((app, index) => {
+        console.log(`  ${index + 1}. ${app.displayName} (sortOrder: ${app.sortOrder ?? 'undefined'})`);
+      });
+      
       res.json(applications);
     } catch (error) {
       console.error("Error fetching applications:", error);

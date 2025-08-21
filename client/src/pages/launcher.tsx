@@ -117,7 +117,9 @@ export default function Launcher() {
 
         {/* Applications Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(applications || []).map((app: ApplicationWithPermissions) => (
+          {(applications || [])
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+            .map((app: ApplicationWithPermissions) => (
             <Card key={app.id} className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-red-200 bg-white">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between mb-4">
