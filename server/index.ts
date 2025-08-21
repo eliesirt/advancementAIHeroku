@@ -502,7 +502,11 @@ app.get('/health', (req, res) => {
           notes: req.body.notes || "",
           contactLevel: req.body.contactLevel || "Initial Contact",
           qualityScore: req.body.qualityScore || 75,
-          ...req.body
+          ...req.body,
+          // Ensure timestamp fields are proper Date objects
+          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
 
         const createdInteraction = await storage.createInteraction(interactionData);
@@ -695,7 +699,14 @@ app.get('/health', (req, res) => {
         const id = parseInt(req.params.id);
         const { storage } = await import("./storage");
         
-        const updatedInteraction = await storage.updateInteraction(id, req.body);
+        // Fix timestamp fields for database compatibility
+        const updateData = {
+          ...req.body,
+          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : req.body.actualDate,
+          updatedAt: new Date()
+        };
+        
+        const updatedInteraction = await storage.updateInteraction(id, updateData);
         
         console.log("📝 Interaction updated:", { id, changes: Object.keys(req.body) });
         res.json(updatedInteraction);
@@ -738,7 +749,14 @@ app.get('/health', (req, res) => {
           }
         }
         
-        const updatedInteraction = await storage.updateInteraction(id, req.body);
+        // Fix timestamp fields for database compatibility
+        const patchData = {
+          ...req.body,
+          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : req.body.actualDate,
+          updatedAt: new Date()
+        };
+        
+        const updatedInteraction = await storage.updateInteraction(id, patchData);
         
         console.log("🔧 Interaction patched:", { id, changes: Object.keys(req.body) });
         res.json(updatedInteraction);
@@ -779,10 +797,16 @@ app.get('/health', (req, res) => {
       try {
         const { storage } = await import("./storage");
         
+        // Fix timestamp field conversion for database compatibility
         const draftData = {
           userId: "42195145",
           isDraft: true,
-          ...req.body
+          ...req.body,
+          // Ensure actualDate is a proper Date object if provided
+          actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
+          // Ensure other timestamp fields are Date objects if provided
+          createdAt: req.body.createdAt ? new Date(req.body.createdAt) : new Date(),
+          updatedAt: new Date()
         };
 
         const createdDraft = await storage.createInteraction(draftData);
