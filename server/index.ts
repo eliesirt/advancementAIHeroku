@@ -280,115 +280,146 @@ app.get('/health', (req, res) => {
     // CRITICAL: Add interaction processing routes immediately
     console.log("🤖 Setting up essential AI processing routes...");
     
-    // Analyze text content for AI insights (handles "Analyze & Continue" button)
+    // Analyze text content for AI insights (handles "Analyze & Continue" button) - OPTIMIZED FOR HEROKU
     app.post("/api/interactions/analyze-text", async (req: any, res) => {
+      // Set response timeout to prevent Heroku H12 errors
+      const timeoutId = setTimeout(() => {
+        if (!res.headersSent) {
+          console.warn("⚠️ Text analysis timeout, sending fallback response");
+          res.status(500).json({ 
+            success: false, 
+            message: "Analysis timed out - please try again with shorter text" 
+          });
+        }
+      }, 25000); // 25 seconds (5 seconds before Heroku's 30s limit)
+
       try {
         const { text, prospectName } = req.body;
 
         if (!text || text.trim().length === 0) {
+          clearTimeout(timeoutId);
           return res.status(400).json({ 
             success: false, 
             message: "Text content is required for analysis" 
           });
         }
 
-        // Use real OpenAI integration for analysis
-        const { extractInteractionInfo } = await import("./lib/openai");
-        let extractedInfo = await extractInteractionInfo(text);
+        console.log("🚀 Starting optimized AI analysis:", { 
+          textLength: text.length, 
+          env: process.env.NODE_ENV 
+        });
 
-        // If prospect name was provided, use it to override extracted name
+        // Use real OpenAI integration with timeout protection
+        const { extractInteractionInfo } = await import("./lib/openai");
+        
+        // Wrap OpenAI call with timeout
+        const extractInfoPromise = extractInteractionInfo(text);
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('OpenAI extraction timeout')), 15000);
+        });
+        
+        let extractedInfo = await Promise.race([extractInfoPromise, timeoutPromise]) as any;
+
         if (prospectName && prospectName.trim().length > 0) {
           extractedInfo.prospectName = prospectName.trim();
         }
 
-        // Clear any AI-suggested affinity tags and use our matcher instead
         extractedInfo.suggestedAffinityTags = [];
 
-        // Try to load affinity matching (may not be available during startup)
-        try {
-          // Import storage dynamically
-          const { storage } = await import("./storage");
-          const affinityTags = await storage.getAffinityTags();
-          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
-          
-          // Get matching threshold (with fallback)
-          let threshold = 0.25; // Default threshold
-          try {
-            const settings = await storage.getAffinityTagSettings();
-            threshold = settings?.matchingThreshold || 0.25;
-          } catch (e) {
-            console.warn("Could not load matching threshold, using default");
-          }
-          
-          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+        // Run affinity matching and quality assessment in parallel with timeouts
+        const [affinityResult, qualityResult] = await Promise.allSettled([
+          // Affinity matching with timeout
+          Promise.race([
+            (async () => {
+              try {
+                const { storage } = await import("./storage");
+                const [affinityTags, settings] = await Promise.all([
+                  storage.getAffinityTags(),
+                  storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }))
+                ]);
+                
+                const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+                const affinityMatcher = await createAffinityMatcher(affinityTags, settings?.matchingThreshold || 0.25);
 
-          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+                const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+                const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+                const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
 
-          let suggestedAffinityTags: string[] = [];
-          if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
-            const matchedTags = affinityMatcher.matchInterests(
-              professionalInterests,
-              personalInterests,
-              philanthropicPriorities
-            );
-            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-          }
+                if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
+                  const matchedTags = affinityMatcher.matchInterests(
+                    professionalInterests, personalInterests, philanthropicPriorities
+                  );
+                  return matchedTags.map(match => match.tag.name);
+                }
+                return [];
+              } catch (e) {
+                console.warn("Affinity matching failed:", e);
+                return [];
+              }
+            })(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Affinity timeout')), 8000))
+          ]),
 
-          extractedInfo.suggestedAffinityTags = suggestedAffinityTags;
-        } catch (affinityError) {
-          console.warn("Affinity matching not available during startup:", affinityError);
-        }
+          // Quality assessment with timeout
+          Promise.race([
+            (async () => {
+              try {
+                const { evaluateInteractionQuality } = await import("./lib/openai");
+                const qualityAssessment = await evaluateInteractionQuality(text, extractedInfo, {
+                  prospectName: extractedInfo.prospectName || prospectName || '',
+                  firstName: '', lastName: '', contactLevel: '', method: '',
+                  actualDate: new Date().toISOString(), comments: text,
+                });
+                return {
+                  qualityScore: (qualityAssessment as any).score || 75,
+                  qualityRecommendations: qualityAssessment.recommendations || ["Quality assessment completed"]
+                };
+              } catch (e) {
+                console.warn("Quality assessment failed:", e);
+                return { qualityScore: 75, qualityRecommendations: ["Quality assessment unavailable"] };
+              }
+            })(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Quality timeout')), 8000))
+          ])
+        ]);
 
-        // Perform quality assessment
-        let qualityScore = 75;
-        let qualityRecommendations = ["AI quality assessment unavailable during startup"];
-        
-        try {
-          const { evaluateInteractionQuality } = await import("./lib/openai");
-          const qualityAssessment = await evaluateInteractionQuality(
-            text,
-            extractedInfo,
-            {
-              prospectName: extractedInfo.prospectName || prospectName || '',
-              firstName: '',
-              lastName: '',
-              contactLevel: '',
-              method: '',
-              actualDate: new Date().toISOString(),
-              comments: text,
-            }
-          );
+        // Process results
+        const suggestedAffinityTags = affinityResult.status === 'fulfilled' ? affinityResult.value : [];
+        const qualityData = qualityResult.status === 'fulfilled' ? qualityResult.value as any : 
+          { qualityScore: 75, qualityRecommendations: ["Quality assessment timed out"] };
 
-          qualityScore = (qualityAssessment as any).score || 75;
-          qualityRecommendations = qualityAssessment.recommendations || ["Quality assessment completed"];
-        } catch (qualityError) {
-          console.warn("Quality assessment failed, using defaults:", qualityError);
-        }
-
-        // Add quality info to extracted info
         const finalExtractedInfo = {
           ...extractedInfo,
-          qualityScore,
-          qualityRecommendations
+          suggestedAffinityTags,
+          qualityScore: qualityData?.qualityScore || 75,
+          qualityRecommendations: qualityData?.qualityRecommendations || ["Quality assessment unavailable"]
         };
 
-        console.log("🤖 Real AI analysis completed for text:", { textLength: text.length, prospectName: extractedInfo.prospectName });
-        
-        // Frontend expects { success: true, extractedInfo: {...} }
-        res.json({
-          success: true,
-          extractedInfo: finalExtractedInfo
+        console.log("✅ Optimized AI analysis completed:", { 
+          textLength: text.length, 
+          prospectName: extractedInfo.prospectName,
+          affinityStatus: affinityResult.status,
+          qualityStatus: qualityResult.status
         });
+        
+        clearTimeout(timeoutId);
+        if (!res.headersSent) {
+          res.json({
+            success: true,
+            extractedInfo: finalExtractedInfo
+          });
+        }
         
       } catch (error) {
-        console.error('Text analysis error:', error);
-        res.status(500).json({ 
-          success: false, 
-          message: "Failed to analyze text", 
-          error: (error as Error).message 
-        });
+        clearTimeout(timeoutId);
+        console.error('❌ Text analysis error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ 
+            success: false, 
+            message: "Failed to analyze text", 
+            error: (error as Error).message 
+          });
+        }
       }
     });
 
@@ -512,9 +543,21 @@ app.get('/health', (req, res) => {
     
     // Additional essential routes for dashboard functionality - using real database
     app.get("/api/stats", async (req: any, res) => {
+      const timeoutId = setTimeout(() => {
+        if (!res.headersSent) {
+          console.warn("⚠️ Stats timeout");
+          res.status(503).json({ message: "Stats loading timed out" });
+        }
+      }, 25000);
+
       try {
         const { storage } = await import("./storage");
-        const interactions = await storage.getInteractionsByUser("42195145");
+        const interactionsPromise = storage.getInteractionsByUser("42195145");
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('DB timeout')), 20000);
+        });
+        
+        const interactions = await Promise.race([interactionsPromise, timeoutPromise]) as any[];
         
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -539,34 +582,57 @@ app.get('/health', (req, res) => {
           .sort((a, b) => b.count - a.count)
           .slice(0, 3);
         
-        res.json({
-          todayInteractions,
-          thisWeekInteractions,
-          thisMonthInteractions,
-          totalInteractions: interactions.length,
-          averageQualityScore: Math.round(averageQualityScore * 10) / 10,
-          topCategories
-        });
+        clearTimeout(timeoutId);
+        if (!res.headersSent) {
+          res.json({
+            todayInteractions,
+            thisWeekInteractions,
+            thisMonthInteractions,
+            totalInteractions: interactions.length,
+            averageQualityScore: Math.round(averageQualityScore * 10) / 10,
+            topCategories
+          });
+        }
       } catch (error) {
-        console.error('Get stats error:', error);
-        res.status(500).json({ message: "Failed to load stats", error: (error as Error).message });
+        clearTimeout(timeoutId);
+        console.error('Stats error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Failed to load stats", error: (error as Error).message });
+        }
       }
     });
 
     app.get("/api/interactions/recent", async (req: any, res) => {
+      const timeoutId = setTimeout(() => {
+        if (!res.headersSent) {
+          console.warn("⚠️ Recent interactions timeout");
+          res.status(503).json({ message: "Recent interactions loading timed out" });
+        }
+      }, 25000);
+
       try {
         const { storage } = await import("./storage");
-        const interactions = await storage.getInteractionsByUser("42195145");
+        const interactionsPromise = storage.getInteractionsByUser("42195145");
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('DB timeout')), 20000);
+        });
         
-        // Get most recent 10 interactions, sorted by creation date
+        const interactions = await Promise.race([interactionsPromise, timeoutPromise]) as any[];
+        
         const recentInteractions = interactions
           .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 10);
           
-        res.json(recentInteractions);
+        clearTimeout(timeoutId);
+        if (!res.headersSent) {
+          res.json(recentInteractions);
+        }
       } catch (error) {
-        console.error('Get recent interactions error:', error);
-        res.status(500).json({ message: "Failed to load recent interactions", error: (error as Error).message });
+        clearTimeout(timeoutId);
+        console.error('Recent interactions error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Failed to load recent interactions", error: (error as Error).message });
+        }
       }
     });
 
@@ -864,7 +930,7 @@ app.get('/health', (req, res) => {
         const enhancedComments = await enhanceInteractionComments(inputText, extractedInfo);
         
         // Generate synopsis
-        const synopsis = await generateInteractionSynopsis(inputText, extractedInfo, customPrompt);
+        const synopsis = await generateInteractionSynopsis(inputText, extractedInfo, 42195145);
         
         console.log("🔍 Comments enhanced with real AI:", { inputLength: inputText.length });
         res.json({
