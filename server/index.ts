@@ -286,10 +286,13 @@ app.get('/health', (req, res) => {
         const { text, prospectName } = req.body;
 
         if (!text || text.trim().length === 0) {
-          return res.status(400).json({ message: "Text content is required for analysis" });
+          return res.status(400).json({ 
+            success: false, 
+            message: "Text content is required for analysis" 
+          });
         }
 
-        // Mock successful analysis response
+        // Mock successful analysis response - MUST match frontend expectations
         const extractedInfo = {
           summary: text.substring(0, 100) + "...",
           category: "Meeting",
@@ -310,11 +313,20 @@ app.get('/health', (req, res) => {
         };
 
         console.log("🤖 AI analysis completed for text:", { textLength: text.length });
-        res.json(extractedInfo);
+        
+        // Frontend expects { success: true, extractedInfo: {...} }
+        res.json({
+          success: true,
+          extractedInfo: extractedInfo
+        });
         
       } catch (error) {
         console.error('Text analysis error:', error);
-        res.status(500).json({ message: "Failed to analyze text", error: (error as Error).message });
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to analyze text", 
+          error: (error as Error).message 
+        });
       }
     });
 
@@ -684,21 +696,28 @@ app.get('/health', (req, res) => {
     // Additional interaction processing endpoints
     app.post("/api/interactions/enhance-comments", async (req: any, res) => {
       try {
-        const { comments, interactionData } = req.body;
+        const { transcript, extractedInfo, comments } = req.body;
+        const inputText = transcript || comments || "";
         
-        const enhancedComments = {
-          originalComments: comments,
-          enhancedComments: comments + " [AI Enhanced]",
+        // Enhanced comments response matching frontend expectations
+        const enhancedComments = inputText + "\n\n[AI-Enhanced Synopsis: Professional interaction with prospect showing strong interest in university initiatives.]";
+        
+        console.log("🔍 Comments enhanced with AI");
+        res.json({
+          success: true,
+          enhancedComments: enhancedComments,
+          originalComments: inputText,
           synopsis: "AI-generated synopsis based on interaction content",
           qualityScore: 85
-        };
-
-        console.log("🔍 Comments enhanced with AI");
-        res.json(enhancedComments);
+        });
         
       } catch (error) {
         console.error('Enhance comments error:', error);
-        res.status(500).json({ message: "Failed to enhance comments", error: (error as Error).message });
+        res.status(500).json({ 
+          success: false,
+          message: "Failed to enhance comments", 
+          error: (error as Error).message 
+        });
       }
     });
 
