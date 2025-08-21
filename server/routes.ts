@@ -235,25 +235,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         try {
-          // Use the transcribeAudio function from lib/openai which handles Node.js properly
+          console.log("🔄 Starting OpenAI Whisper transcription...");
           const { transcribeAudio } = await import("./lib/openai");
           finalTranscript = await transcribeAudio(audioData);
           
-          console.log("OpenAI Whisper transcription completed:", { 
-            transcriptLength: finalTranscript.length 
+          console.log("✅ OpenAI Whisper transcription completed:", { 
+            transcriptLength: finalTranscript.length,
+            transcriptPreview: finalTranscript.substring(0, 100)
           });
           
         } catch (whisperError) {
-          console.error("OpenAI Whisper transcription failed:", whisperError);
+          console.error("❌ OpenAI Whisper transcription failed:");
+          console.error("Error type:", typeof whisperError);
+          console.error("Error message:", (whisperError as Error).message);
+          console.error("Full error:", whisperError);
+          
+          // Check for specific OpenAI API errors
+          if (whisperError instanceof Error) {
+            if (whisperError.message.includes('401') || whisperError.message.includes('Unauthorized')) {
+              return res.status(500).json({ 
+                message: "OpenAI API authentication failed", 
+                error: "Invalid or missing OpenAI API key" 
+              });
+            }
+            if (whisperError.message.includes('rate limit') || whisperError.message.includes('429')) {
+              return res.status(500).json({ 
+                message: "OpenAI API rate limit exceeded", 
+                error: "Too many requests to OpenAI API" 
+              });
+            }
+            if (whisperError.message.includes('timeout')) {
+              return res.status(500).json({ 
+                message: "OpenAI API timeout", 
+                error: "Request to OpenAI timed out" 
+              });
+            }
+          }
+          
           return res.status(500).json({ 
-            message: "Failed to transcribe audio", 
-            error: (whisperError as Error).message 
+            message: "Audio transcription failed", 
+            error: (whisperError as Error).message,
+            errorType: typeof whisperError
           });
         }
       }
       
       if (!finalTranscript || finalTranscript.trim().length === 0) {
-        return res.status(400).json({ message: "No transcript could be generated from the recording" });
+        console.log("❌ No transcript generated from either browser or OpenAI Whisper");
+        return res.status(400).json({ 
+          message: "Unable to transcribe audio recording", 
+          details: "Both browser speech recognition and OpenAI Whisper transcription failed" 
+        });
       }
 
       // Generate concise summary
