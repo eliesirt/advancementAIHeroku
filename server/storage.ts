@@ -1129,7 +1129,8 @@ export class DatabaseStorage implements IStorage {
         roleIds.length > 0 ? 
           inArray(roleApplications.roleId, roleIds) :
           sql`false` // No roles, no applications
-      ));
+      ))
+      .orderBy(applications.sortOrder); // Ensure database returns results in correct order
 
     const permissionMap = new Map<number, Set<string>>();
 
