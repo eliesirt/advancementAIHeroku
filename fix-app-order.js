@@ -1,7 +1,7 @@
 // Fix production database sortOrder values for app launcher tiles
-const { drizzle } = require('drizzle-orm/postgres-js');
-const postgres = require('postgres');
-const { eq } = require('drizzle-orm');
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { eq } from 'drizzle-orm';
 
 // Define the applications table schema for the fix
 const applications = {
@@ -54,7 +54,15 @@ async function fixProductionAppOrder() {
   }
 }
 
-if (require.main === module) {
+// Check if this file is being run directly
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Run the fix if this file is executed directly
+if (process.argv[1] === __filename) {
   fixProductionAppOrder()
     .then(() => process.exit(0))
     .catch(error => {
@@ -63,4 +71,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { fixProductionAppOrder };
+export { fixProductionAppOrder };
