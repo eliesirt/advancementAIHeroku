@@ -1,0 +1,42 @@
+2025-08-21T04:23:41.193256+00:00 heroku[router]: at=info method=POST path="/api/interactions/draft" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=b9a94db7-46ea-8ac9-c818-c90fe59a9e00 fwd="73.253.249.113" dyno=web.1 connect=0ms service=18ms status=500 bytes=89 protocol=http1.1 tls=true tls_version=unknown
+2025-08-21T04:23:41.192355+00:00 app[web.1]: Create draft error: NeonDbError: Error connecting to database: fetch failed
+2025-08-21T04:23:41.192366+00:00 app[web.1]: at execute (file:///app/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+2025-08-21T04:23:41.192366+00:00 app[web.1]: at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-21T04:23:41.192367+00:00 app[web.1]: at NeonHttpPreparedQuery.execute (/app/node_modules/src/neon-http/session.ts:68:18)
+2025-08-21T04:23:41.192367+00:00 app[web.1]: at DatabaseStorage.createInteraction (/app/server/storage.ts:876:22)
+2025-08-21T04:23:41.192368+00:00 app[web.1]: at <anonymous> (/app/server/index.ts:840:30) {
+2025-08-21T04:23:41.192368+00:00 app[web.1]: severity: undefined,
+2025-08-21T04:23:41.192369+00:00 app[web.1]: code: undefined,
+2025-08-21T04:23:41.192369+00:00 app[web.1]: detail: undefined,
+2025-08-21T04:23:41.192369+00:00 app[web.1]: hint: undefined,
+2025-08-21T04:23:41.192369+00:00 app[web.1]: position: undefined,
+2025-08-21T04:23:41.192370+00:00 app[web.1]: internalPosition: undefined,
+2025-08-21T04:23:41.192370+00:00 app[web.1]: internalQuery: undefined,
+2025-08-21T04:23:41.192371+00:00 app[web.1]: where: undefined,
+2025-08-21T04:23:41.192371+00:00 app[web.1]: schema: undefined,
+2025-08-21T04:23:41.192371+00:00 app[web.1]: table: undefined,
+2025-08-21T04:23:41.192371+00:00 app[web.1]: column: undefined,
+2025-08-21T04:23:41.192371+00:00 app[web.1]: dataType: undefined,
+2025-08-21T04:23:41.192372+00:00 app[web.1]: constraint: undefined,
+2025-08-21T04:23:41.192372+00:00 app[web.1]: file: undefined,
+2025-08-21T04:23:41.192372+00:00 app[web.1]: line: undefined,
+2025-08-21T04:23:41.192372+00:00 app[web.1]: routine: undefined,
+2025-08-21T04:23:41.192374+00:00 app[web.1]: sourceError: TypeError: fetch failed
+2025-08-21T04:23:41.192374+00:00 app[web.1]: at node:internal/deps/undici/undici:12637:11
+2025-08-21T04:23:41.192374+00:00 app[web.1]: at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-21T04:23:41.192375+00:00 app[web.1]: at async execute (file:///app/node_modules/@neondatabase/serverless/index.mjs:1548:15)
+2025-08-21T04:23:41.192375+00:00 app[web.1]: at NeonHttpPreparedQuery.execute (/app/node_modules/src/neon-http/session.ts:68:18)
+2025-08-21T04:23:41.192375+00:00 app[web.1]: at DatabaseStorage.createInteraction (/app/server/storage.ts:876:22)
+2025-08-21T04:23:41.192375+00:00 app[web.1]: at <anonymous> (/app/server/index.ts:840:30) {
+2025-08-21T04:23:41.192376+00:00 app[web.1]: cause: Error: getaddrinfo ENOTFOUND api.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com
+2025-08-21T04:23:41.192376+00:00 app[web.1]: at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+2025-08-21T04:23:41.192376+00:00 app[web.1]: at __node_internal_ (node:internal/errors:715:10)
+2025-08-21T04:23:41.192376+00:00 app[web.1]: at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:107:26) {
+2025-08-21T04:23:41.192376+00:00 app[web.1]: errno: -3008,
+2025-08-21T04:23:41.192377+00:00 app[web.1]: code: 'ENOTFOUND',
+2025-08-21T04:23:41.192377+00:00 app[web.1]: syscall: 'getaddrinfo',
+2025-08-21T04:23:41.192377+00:00 app[web.1]: hostname: 'api.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com'
+2025-08-21T04:23:41.192377+00:00 app[web.1]: }
+2025-08-21T04:23:41.192378+00:00 app[web.1]: }
+2025-08-21T04:23:41.192378+00:00 app[web.1]: }
+2025-08-21T04:23:41.193268+00:00 app[web.1]: [production] POST /api/interactions/draft 500 in 18ms :: {"message":"Failed to create draft"…
