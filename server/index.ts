@@ -1138,6 +1138,21 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // Blackbaud CRM form metadata endpoint - for settings connection status
+    app.get("/api/bbec/form-metadata", async (req: any, res) => {
+      try {
+        console.log("📋 [PRODUCTION] Getting BBEC form metadata for connection status");
+        const { bbecClient } = await import("./lib/soap-client");
+        await bbecClient.initialize();
+        const metadata = await bbecClient.getInteractionFormMetadata();
+        console.log("✅ [PRODUCTION] BBEC form metadata retrieved successfully");
+        res.json(metadata);
+      } catch (error) {
+        console.error("❌ [PRODUCTION] BBEC form metadata failed:", error);
+        res.status(500).json({ message: "Failed to get form metadata", error: (error as Error).message });
+      }
+    });
+
     // Additional interaction processing endpoints - OPTIMIZED FOR HEROKU
     app.post("/api/interactions/enhance-comments", async (req: any, res) => {
       const timeoutId = setTimeout(() => {
