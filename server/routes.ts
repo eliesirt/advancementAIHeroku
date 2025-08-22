@@ -814,14 +814,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/interactions/:id", async (req, res) => {
     try {
       const interactionId = parseInt(req.params.id);
+      console.log(`🗑️ Attempting to delete interaction: ${interactionId}`);
+      
+      // Check if interaction exists first
+      const existingInteraction = await storage.getInteraction(interactionId);
+      if (!existingInteraction) {
+        console.log(`❌ Interaction ${interactionId} not found`);
+        return res.status(404).json({ success: false, message: "Interaction not found" });
+      }
+      
       const success = await storage.deleteInteraction(interactionId);
+      console.log(`✅ Interaction ${interactionId} deleted successfully`);
 
       if (success) {
         res.json({ success: true, message: "Interaction deleted successfully" });
       } else {
-        res.status(404).json({ success: false, message: "Interaction not found" });
+        console.log(`❌ Delete operation failed for interaction ${interactionId}`);
+        res.status(500).json({ success: false, message: "Delete operation failed" });
       }
     } catch (error) {
+      console.error(`❌ Delete interaction error for ID ${req.params.id}:`, error);
       res.status(500).json({ message: "Failed to delete interaction", error: (error as Error).message });
     }
   });

@@ -921,15 +921,25 @@ app.get('/health', (req, res) => {
     app.delete("/api/interactions/:id", async (req: any, res) => {
       try {
         const id = parseInt(req.params.id);
+        console.log(`🗑️ [PRODUCTION] Attempting to delete interaction: ${id}`);
+        
         const { storage } = await import("./storage");
+        
+        // Check if interaction exists first
+        const existingInteraction = await storage.getInteraction(id);
+        if (!existingInteraction) {
+          console.log(`❌ [PRODUCTION] Interaction ${id} not found`);
+          return res.status(404).json({ success: false, message: "Interaction not found" });
+        }
         
         const deleted = await storage.deleteInteraction(id);
         
         if (!deleted) {
-          return res.status(404).json({ message: "Interaction not found" });
+          console.log(`❌ [PRODUCTION] Delete operation failed for interaction ${id}`);
+          return res.status(500).json({ success: false, message: "Delete operation failed" });
         }
         
-        console.log(`🗑️ Single interaction deleted: ${id}`);
+        console.log(`✅ [PRODUCTION] Interaction ${id} deleted successfully`);
         res.json({ 
           success: true, 
           message: `Interaction ${id} deleted successfully`,
@@ -937,7 +947,7 @@ app.get('/health', (req, res) => {
         });
         
       } catch (error) {
-        console.error('Delete interaction error:', error);
+        console.error(`❌ [PRODUCTION] Delete interaction error for ID ${req.params.id}:`, error);
         res.status(500).json({ message: "Failed to delete interaction", error: (error as Error).message });
       }
     });

@@ -314,10 +314,14 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   // Delete interaction mutation
   const deleteInteraction = useMutation({
     mutationFn: async (id: number) => {
+      console.log(`🗑️ Frontend: Deleting interaction ${id}`);
       const response = await apiRequest("DELETE", `/api/interactions/${id}`);
-      return response.json();
+      const result = await response.json();
+      console.log(`✅ Frontend: Delete response for ${id}:`, result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data, id) => {
+      console.log(`✅ Frontend: Delete success for ${id}`, data);
       toast({
         title: "Deleted",
         description: "Interaction deleted successfully.",
@@ -325,7 +329,8 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       queryClient.invalidateQueries({ queryKey: ["/api/interactions/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
     },
-    onError: () => {
+    onError: (error, id) => {
+      console.error(`❌ Frontend: Delete error for ${id}:`, error);
       toast({
         title: "Delete Error",
         description: "Failed to delete interaction. Please try again.",
