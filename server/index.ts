@@ -426,35 +426,91 @@ app.get('/health', (req, res) => {
     // Voice recording processing endpoint  
     app.post("/api/voice-recordings/process-direct", async (req: any, res) => {
       try {
+        console.log("Voice recording processing started");
         const { transcript, audioData, duration } = req.body;
         
+        let finalTranscript = transcript;
+        
+        // If no transcript from speech recognition, use OpenAI Whisper to transcribe the audio
         if (!transcript || transcript.trim().length === 0) {
-          return res.status(400).json({ message: "No transcript available for processing" });
+          console.log("No browser transcript available, using OpenAI Whisper for transcription...");
+          
+          if (!audioData || audioData.length === 0) {
+            return res.status(400).json({ 
+              message: "Recording failed - no audio or transcript captured",
+              suggestion: "Please ensure microphone permissions are enabled and speak clearly during recording" 
+            });
+          }
+
+          try {
+            console.log("Starting OpenAI Whisper transcription...");
+            
+            // Import and use the transcribeAudio function
+            const openaiLib = await import("./lib/openai.js");
+            if (openaiLib && openaiLib.transcribeAudio) {
+              finalTranscript = await openaiLib.transcribeAudio(audioData);
+              console.log("OpenAI Whisper transcription completed:", { 
+                transcriptLength: finalTranscript.length
+              });
+            } else {
+              throw new Error("OpenAI transcription not available");
+            }
+          } catch (whisperError) {
+            console.error("OpenAI Whisper transcription failed:", whisperError);
+            return res.status(500).json({ 
+              message: "Voice transcription service temporarily unavailable", 
+              error: "Please try speaking more clearly or check your microphone settings",
+              technical: process.env.NODE_ENV === 'development' ? (whisperError as Error).message : undefined
+            });
+          }
         }
 
-        // Mock successful voice processing
-        const extractedInfo = {
-          summary: transcript.substring(0, 100) + "...", 
-          category: "Phone Call",
-          subcategory: "Discovery Call",
-          contactLevel: "Follow-up",
-          professionalInterests: ["Business Development"],
-          personalInterests: ["Family", "Community"],
-          philanthropicPriorities: ["Education"],
-          keyPoints: [transcript.substring(0, 80) + "..."],
-          suggestedAffinityTags: ["Alumni"],
-          prospectName: "Voice Interaction Prospect",
-          qualityScore: 78,
-          qualityRecommendations: [
-            "Voice recording processed successfully",
-            "Consider following up within 48 hours", 
-            "Document specific giving interests mentioned"
-          ]
-        };
+        if (!finalTranscript || finalTranscript.trim().length === 0) {
+          console.log("No transcript generated from either browser or OpenAI Whisper");
+          return res.status(400).json({ 
+            message: "Voice recording could not be processed", 
+            suggestion: "Please ensure you speak clearly and have a stable internet connection. Try recording again with better audio quality."
+          });
+        }
 
-        console.log("🎤 Voice processing completed:", { transcriptLength: transcript.length });
+        // Process the transcript with AI to extract information
+        let extractedInfo;
+        try {
+          console.log("Processing transcript with AI to extract information...");
+          
+          const openaiLib = await import("./lib/openai.js");
+          if (openaiLib && openaiLib.generateInteractionSynopsis) {
+            extractedInfo = await openaiLib.generateInteractionSynopsis(finalTranscript);
+            console.log("AI processing completed successfully");
+          } else {
+            throw new Error("AI processing not available");
+          }
+        } catch (aiError) {
+          console.error("AI processing failed, using fallback:", aiError);
+          
+          // Fallback to basic processing
+          extractedInfo = {
+            summary: finalTranscript.length > 100 ? finalTranscript.substring(0, 100) + "..." : finalTranscript,
+            category: "Phone Call",
+            subcategory: "General Inquiry",
+            contactLevel: "Follow-up",
+            professionalInterests: [],
+            personalInterests: [],
+            philanthropicPriorities: [],
+            keyPoints: [finalTranscript.length > 80 ? finalTranscript.substring(0, 80) + "..." : finalTranscript],
+            suggestedAffinityTags: [],
+            prospectName: "",
+            qualityScore: 65,
+            qualityRecommendations: [
+              "Voice recording processed with basic analysis",
+              "Manual review recommended for better categorization"
+            ]
+          };
+        }
+
+        console.log("Voice processing completed:", { transcriptLength: finalTranscript.length });
         res.json({
-          voiceRecording: { id: Date.now(), transcript, processed: true },
+          voiceRecording: { id: Date.now(), transcript: finalTranscript, processed: true },
           extractedInfo
         });
         
