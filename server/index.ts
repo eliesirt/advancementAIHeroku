@@ -1265,6 +1265,65 @@ app.get('/health', (req, res) => {
 
     console.log("✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately");
     
+    // CRITICAL: Add Google Places API routes immediately in production
+    console.log("🗺️ Adding Google Places API routes...");
+    
+    app.get('/api/places/autocomplete', (req: any, res) => {
+      const { input } = req.query;
+      if (!input || typeof input !== 'string') {
+        return res.status(400).json({ error: 'Input parameter is required' });
+      }
+
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Google Places API key not configured' });
+      }
+
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=establishment|geocode&components=country:us`;
+      
+      console.log('[PLACES API] Autocomplete request received:', { input });
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          console.log('[PLACES API] Google response received, predictions:', data.predictions?.length || 0);
+          res.json(data);
+        })
+        .catch(error => {
+          console.error('[PLACES API] Error with Google Places API:', error);
+          res.status(500).json({ error: 'Failed to fetch place suggestions' });
+        });
+    });
+
+    app.get('/api/places/details', (req: any, res) => {
+      const { place_id } = req.query;
+      if (!place_id || typeof place_id !== 'string') {
+        return res.status(400).json({ error: 'Place ID parameter is required' });
+      }
+
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Google Places API key not configured' });
+      }
+
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_address,address_components,geometry&key=${apiKey}`;
+      
+      console.log('[PLACES API] Details request received:', { place_id });
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          console.log('[PLACES API] Google details response received');
+          res.json(data);
+        })
+        .catch(error => {
+          console.error('[PLACES API] Error with Google Places Details API:', error);
+          res.status(500).json({ error: 'Failed to fetch place details' });
+        });
+    });
+    
+    console.log("✅ Google Places API routes added to production server");
+    
     // Set up static file serving IMMEDIATELY with SPA routing support
     console.log("📁 Setting up static file serving with SPA routing...");
     
