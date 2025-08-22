@@ -1509,6 +1509,329 @@ app.get('/health', (req, res) => {
     
     console.log("✅ Affinity tag identification route added to production server");
     
+    // CRITICAL: Add core interaction management routes for full functionality
+    console.log("📝 Adding interaction management routes...");
+    
+    // Recent interactions for home page
+    app.get("/api/interactions/recent", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Admin user
+        const storage = (await import("./storage.js")).storage;
+        const interactions = await storage.getRecentInteractions(userId, 10);
+        res.json(interactions);
+      } catch (error) {
+        console.error('Recent interactions error:', error);
+        res.status(500).json({ message: "Failed to get recent interactions", error: (error as Error).message });
+      }
+    });
+
+    // Create interaction
+    app.post("/api/interactions", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Admin user
+        const storage = (await import("./storage.js")).storage;
+        const { insertInteractionSchema } = await import("../shared/schema.js");
+        
+        const interactionData = insertInteractionSchema.parse({
+          ...req.body,
+          userId: userId
+        });
+        const interaction = await storage.createInteraction(interactionData);
+        console.log("💾 Interaction created:", interaction.id);
+        res.json(interaction);
+      } catch (error) {
+        console.error('Create interaction error:', error);
+        res.status(500).json({ message: "Failed to create interaction", error: (error as Error).message });
+      }
+    });
+
+    // Submit to BBEC
+    app.post("/api/interactions/:id/submit-bbec", async (req: any, res) => {
+      try {
+        const interactionId = parseInt(req.params.id);
+        const storage = (await import("./storage.js")).storage;
+        const interaction = await storage.getInteraction(interactionId);
+
+        if (!interaction) {
+          return res.status(404).json({ message: "Interaction not found" });
+        }
+
+        if (interaction.bbecSubmitted) {
+          return res.status(400).json({ message: "Interaction already submitted to BBEC" });
+        }
+
+        // Get user for BBEC GUID
+        const user = await storage.getUser(interaction.userId);
+        if (!user?.bbecGuid) {
+          return res.status(400).json({ 
+            message: `User missing BBEC GUID for interaction ${interaction.id}` 
+          });
+        }
+
+        // Submit to BBEC
+        try {
+          const { bbecClient } = await import("./lib/soap-client.js");
+          const bbecInteractionId = await bbecClient.submitInteraction({
+            constituentId: "",
+            interactionBbecGuid: interaction.bbecGuid || "",
+            prospectName: interaction.prospectName || "Unknown",
+            contactLevel: interaction.contactLevel,
+            method: interaction.method,
+            summary: interaction.summary,
+            category: interaction.category,
+            subcategory: interaction.subcategory,
+            status: interaction.status,
+            actualDate: interaction.actualDate.toISOString().split('T')[0],
+            owner: "sarah.thompson",
+            comments: interaction.comments || "",
+            affinityTags: interaction.affinityTags || [],
+            fundraiserGuid: user.bbecGuid
+          });
+
+          // Update interaction as submitted
+          const updatedInteraction = await storage.updateInteraction(interactionId, {
+            bbecSubmitted: true,
+            bbecInteractionId
+          });
+
+          console.log("🚀 Interaction submitted to BBEC:", bbecInteractionId);
+          res.json({ 
+            success: true, 
+            bbecInteractionId,
+            interaction: updatedInteraction 
+          });
+        } catch (bbecError) {
+          console.error('BBEC submission failed:', bbecError);
+          res.status(500).json({ message: "Failed to submit to BBEC", error: (bbecError as Error).message });
+        }
+      } catch (error) {
+        console.error('BBEC submission error:', error);
+        res.status(500).json({ message: "Failed to submit to BBEC", error: (error as Error).message });
+      }
+    });
+
+    // Save draft interaction
+    app.post("/api/interactions/draft", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Admin user
+        const storage = (await import("./storage.js")).storage;
+        const { insertInteractionSchema } = await import("../shared/schema.js");
+        
+        const interactionData = insertInteractionSchema.parse({
+          ...req.body,
+          userId: userId,
+          isDraft: true
+        });
+        const interaction = await storage.createInteraction(interactionData);
+        console.log("📄 Draft saved:", interaction.id);
+        res.json(interaction);
+      } catch (error) {
+        console.error('Save draft error:', error);
+        res.status(500).json({ message: "Failed to save draft", error: (error as Error).message });
+      }
+    });
+
+    // Update interaction
+    app.patch("/api/interactions/:id", async (req: any, res) => {
+      try {
+        const interactionId = parseInt(req.params.id);
+        const storage = (await import("./storage.js")).storage;
+        const { insertInteractionSchema } = await import("../shared/schema.js");
+        
+        const updates = insertInteractionSchema.partial().parse(req.body);
+        const interaction = await storage.updateInteraction(interactionId, updates);
+        console.log("✏️ Interaction updated:", interaction.id);
+        res.json(interaction);
+      } catch (error) {
+        console.error('Update interaction error:', error);
+        res.status(500).json({ message: "Failed to update interaction", error: (error as Error).message });
+      }
+    });
+
+    console.log("✅ Interaction management routes added to production server");
+
+    // CRITICAL: Add text analysis routes for typed interactions
+    console.log("🤖 Adding text analysis routes...");
+    
+    // Analyze text for typed interactions
+    app.post("/api/interactions/analyze-text", async (req: any, res) => {
+      try {
+        const { text, prospectName } = req.body;
+
+        if (!text || typeof text !== 'string' || text.trim().length === 0) {
+          return res.status(400).json({ message: "Text content is required" });
+        }
+
+        console.log("🔍 Analyzing text:", text.substring(0, 100) + "...");
+
+        // Extract information using OpenAI
+        let extractedInfo;
+        try {
+          const openaiLib = await import("./lib/openai.js");
+          if (openaiLib && openaiLib.extractInteractionInfo) {
+            extractedInfo = await openaiLib.extractInteractionInfo(text);
+            console.log("🤖 Text analysis completed");
+          } else {
+            throw new Error("OpenAI extraction not available");
+          }
+        } catch (aiError) {
+          console.error("Text analysis failed:", aiError);
+          return res.status(500).json({ 
+            message: "Failed to analyze text", 
+            error: (aiError as Error).message 
+          });
+        }
+
+        res.json({
+          success: true,
+          extractedInfo
+        });
+      } catch (error) {
+        console.error('Text analysis error:', error);
+        res.status(500).json({ message: "Failed to analyze text", error: (error as Error).message });
+      }
+    });
+
+    // Enhance comments with AI synopsis
+    app.post("/api/interactions/enhance-comments", async (req: any, res) => {
+      try {
+        const { transcript, extractedInfo } = req.body;
+
+        if (!transcript || !extractedInfo) {
+          return res.status(400).json({ message: "Transcript and extracted info are required" });
+        }
+
+        console.log("✨ Enhancing comments with AI synopsis...");
+
+        // Generate enhanced comments using AI
+        let enhancedComments = transcript;
+        try {
+          const openaiLib = await import("./lib/openai.js");
+          if (openaiLib && openaiLib.generateInteractionSynopsis) {
+            enhancedComments = await openaiLib.generateInteractionSynopsis(transcript, extractedInfo, 42195145);
+            console.log("✨ Comments enhanced successfully");
+          }
+        } catch (enhanceError) {
+          console.error("Comment enhancement failed:", enhanceError);
+          enhancedComments = `Interaction Summary:\n\n${extractedInfo.summary}\n\nTranscript: ${transcript}`;
+        }
+
+        res.json({
+          success: true,
+          enhancedComments
+        });
+      } catch (error) {
+        console.error('Comment enhancement error:', error);
+        res.status(500).json({ message: "Failed to enhance comments", error: (error as Error).message });
+      }
+    });
+
+    console.log("✅ Text analysis routes added to production server");
+
+    // CRITICAL: Add prospect and constituent search routes
+    console.log("👥 Adding prospect and constituent search routes...");
+    
+    // Search constituents by last name
+    app.get("/api/constituents/search/:lastName", async (req: any, res) => {
+      try {
+        const lastName = req.params.lastName;
+        console.log("🔍 Searching constituents by last name:", lastName);
+        
+        // Mock response for production - integrate with actual constituent data source
+        const mockResults = [
+          {
+            id: Date.now(),
+            firstName: "John",
+            lastName: lastName,
+            buid: "12345678",
+            bbecGuid: "mock-guid-" + Date.now(),
+            email: `john.${lastName.toLowerCase()}@example.com`
+          }
+        ];
+        
+        res.json({ success: true, constituents: mockResults });
+      } catch (error) {
+        console.error('Constituent search error:', error);
+        res.status(500).json({ message: "Failed to search constituents", error: (error as Error).message });
+      }
+    });
+
+    // Search users by BUID
+    app.get("/api/users/search/:buid", async (req: any, res) => {
+      try {
+        const buid = req.params.buid;
+        console.log("🔍 Searching users by BUID:", buid);
+        
+        const storage = (await import("./storage.js")).storage;
+        const user = await storage.getUserByBuid(buid);
+        
+        if (user) {
+          res.json({ success: true, user });
+        } else {
+          res.json({ success: true, user: null });
+        }
+      } catch (error) {
+        console.error('User search error:', error);
+        res.status(500).json({ message: "Failed to search users", error: (error as Error).message });
+      }
+    });
+
+    console.log("✅ Prospect and constituent search routes added to production server");
+
+    // CRITICAL: Add itinerary routes for itineraryAI functionality
+    console.log("🗺️ Adding itinerary management routes...");
+    
+    // Get itineraries
+    app.get("/api/itineraries", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Admin user
+        const storage = (await import("./storage.js")).storage;
+        const itineraries = await storage.getItineraries(userId);
+        console.log("📅 Fetched itineraries:", itineraries.length);
+        res.json(itineraries);
+      } catch (error) {
+        console.error('Get itineraries error:', error);
+        res.status(500).json({ message: "Failed to fetch itineraries", error: (error as Error).message });
+      }
+    });
+
+    // Create itinerary
+    app.post("/api/itineraries", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Admin user
+        const storage = (await import("./storage.js")).storage;
+        const { insertItinerarySchema } = await import("../shared/schema.js");
+        
+        const validatedData = insertItinerarySchema.parse({
+          ...req.body,
+          userId
+        });
+        
+        const newItinerary = await storage.createItinerary(validatedData);
+        console.log("📅 Itinerary created:", newItinerary.id);
+        res.json(newItinerary);
+      } catch (error) {
+        console.error('Create itinerary error:', error);
+        res.status(500).json({ message: "Failed to create itinerary", error: (error as Error).message });
+      }
+    });
+
+    // Get itinerary meetings
+    app.get("/api/itineraries/:id/meetings", async (req: any, res) => {
+      try {
+        const itineraryId = parseInt(req.params.id);
+        const storage = (await import("./storage.js")).storage;
+        const meetings = await storage.getItineraryMeetings(itineraryId);
+        console.log("📅 Fetched itinerary meetings:", meetings.length);
+        res.json(meetings);
+      } catch (error) {
+        console.error('Get itinerary meetings error:', error);
+        res.status(500).json({ message: "Failed to fetch itinerary meetings", error: (error as Error).message });
+      }
+    });
+
+    console.log("✅ Itinerary management routes added to production server");
+    
     // Set up static file serving IMMEDIATELY with SPA routing support
     console.log("📁 Setting up static file serving with SPA routing...");
     
