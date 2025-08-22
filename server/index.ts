@@ -1300,15 +1300,16 @@ app.get('/health', (req, res) => {
       console.log(`🚀 HEROKU: Server listening on port ${port} - IMMEDIATE SUCCESS!`);
       
       // Do heavy initialization AFTER successful port binding (optional)
-      setTimeout(async () => {
+      // Initialize routes immediately in production - no delay
+      (async () => {
         try {
-          console.log("🔧 Starting full initialization (post-startup)...");
+          console.log("🔧 Starting full initialization immediately...");
           
           await initializeModules();
           
           // Register all routes (this adds routes but keeps static serving)
-          await registerRoutes(app);
-          console.log("✅ Full routes registered");
+          const routeServer = await registerRoutes(app);
+          console.log("✅ Full routes registered successfully");
 
           app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
             const status = err.status || err.statusCode || 500;
@@ -1317,14 +1318,14 @@ app.get('/health', (req, res) => {
             console.error("Express error:", err);
           });
 
-          console.log("✅ Full server initialization complete - Application ready!");
+          console.log("✅ Full server initialization complete - All API routes available!");
           
         } catch (error) {
-          console.error("❌ Post-startup initialization failed:", error);
+          console.error("❌ Route initialization failed:", error);
           console.error("⚠️ Server continues to serve static files and basic endpoints");
           // Don't exit - keep basic server running with static files
         }
-      }, 1000); // Give more time for port binding to complete
+      })();
     });
     
     server.on('error', (error: any) => {
