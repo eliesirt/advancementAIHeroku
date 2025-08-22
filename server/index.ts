@@ -1106,13 +1106,59 @@ app.get('/health', (req, res) => {
         const categories = [...new Set(affinityTags.map(tag => tag.category))];
         
         res.json({
+          total: affinityTags.length,
           totalTags: affinityTags.length,
           lastRefresh: settings?.lastRefresh || new Date().toISOString(),
-          categories: categories
+          categories: categories,
+          autoRefresh: settings?.autoRefresh || false,
+          refreshInterval: settings?.refreshInterval || 'daily',
+          matchingThreshold: settings?.matchingThreshold || 25
         });
       } catch (error) {
         console.error('Get affinity tags info error:', error);
         res.status(500).json({ message: "Failed to load affinity tags info", error: (error as Error).message });
+      }
+    });
+
+    // Affinity tag settings update endpoint - for slider functionality
+    app.post("/api/affinity-tags/settings", async (req: any, res) => {
+      try {
+        console.log("🎛️ [PRODUCTION] Updating affinity tag settings:", req.body);
+        const { autoRefresh, refreshInterval, lastRefresh, totalTags, matchingThreshold } = req.body;
+
+        const settings = {
+          autoRefresh: Boolean(autoRefresh),
+          refreshInterval: refreshInterval || 'daily',
+          lastRefresh: lastRefresh ? new Date(lastRefresh) : null,
+          totalTags: totalTags || 0,
+          matchingThreshold: typeof matchingThreshold === 'number' ? Math.max(0, Math.min(100, matchingThreshold)) : 25,
+          nextRefresh: null
+        };
+
+        const { storage } = await import("./storage");
+        await storage.updateAffinityTagSettings(settings);
+
+        // Update scheduler if available
+        try {
+          const { affinityTagScheduler } = await import("./lib/affinity-scheduler");
+          await affinityTagScheduler.updateSchedule(
+            settings.autoRefresh, 
+            settings.refreshInterval as 'hourly' | 'daily' | 'weekly'
+          );
+          console.log("✅ [PRODUCTION] Affinity tag scheduler updated");
+        } catch (schedulerError) {
+          console.warn("⚠️ [PRODUCTION] Scheduler update failed:", schedulerError);
+        }
+
+        console.log("✅ [PRODUCTION] Affinity tag settings saved:", settings);
+        res.json({ 
+          success: true, 
+          settings,
+          message: "Affinity tag settings updated successfully" 
+        });
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Affinity tag settings update failed:", error);
+        res.status(500).json({ message: "Failed to update affinity tag settings", error: (error as Error).message });
       }
     });
 
