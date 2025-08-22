@@ -461,6 +461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transcript: req.body.transcript || null,
         affinityTags: req.body.affinityTags || [],
         extractedInfo: req.body.extractedInfo,
+        qualityScore: req.body.qualityScore || null,
+        qualityExplanation: req.body.qualityExplanation || null,
+        qualityRecommendations: req.body.qualityRecommendations || null,
         isDraft: true,
         bbecSubmitted: false
       };
