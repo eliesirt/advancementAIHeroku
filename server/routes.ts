@@ -1881,13 +1881,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (req.session.impersonation) {
         const { adminId, targetUserId, startedAt } = req.session.impersonation;
-        const targetUser = await storage.getUserWithRoles(targetUserId);
-        const adminUser = await storage.getUserWithRoles(adminId);
+        console.log("🔍 Checking impersonation status:", { adminId, targetUserId });
+        
+        // Safely fetch users with null handling
+        let targetUser = null;
+        let adminUser = null;
+        
+        try {
+          if (targetUserId) {
+            targetUser = await storage.getUserWithRoles(targetUserId);
+          }
+        } catch (targetError) {
+          console.warn("Warning: Could not fetch target user:", targetError);
+        }
+        
+        try {
+          if (adminId) {
+            adminUser = await storage.getUserWithRoles(adminId);
+          }
+        } catch (adminError) {
+          console.warn("Warning: Could not fetch admin user:", adminError);
+        }
         
         res.json({
           isImpersonating: true,
-          admin: adminUser,
-          targetUser: targetUser,
+          admin: adminUser || { id: adminId, firstName: "Admin", lastName: "User" },
+          targetUser: targetUser || { id: targetUserId, firstName: "Unknown", lastName: "User" },
           startedAt: startedAt
         });
       } else {

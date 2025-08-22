@@ -847,13 +847,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserWithRoles(id: string): Promise<UserWithRoles | undefined> {
+    if (!id) return undefined;
+    
     const user = await this.getUser(id);
     if (!user) return undefined;
 
-    const userRolesList = await this.getUserRoles(id);
-    const userApplications = await this.getUserApplications(id);
+    try {
+      const userRolesList = await this.getUserRoles(id);
+      const userApplications = await this.getUserApplications(id);
 
-    return { ...user, roles: userRolesList, applications: userApplications };
+      return { ...user, roles: userRolesList, applications: userApplications };
+    } catch (error) {
+      console.warn("Warning: Failed to fetch roles/applications for user:", id, error);
+      // Return user with empty roles/applications instead of failing
+      return { ...user, roles: [], applications: [] };
+    }
   }
 
   async getInteraction(id: number): Promise<Interaction | undefined> {

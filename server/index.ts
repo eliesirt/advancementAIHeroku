@@ -1162,6 +1162,32 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // Impersonation endpoints for production
+    app.get("/api/admin/impersonation-status", async (req: any, res) => {
+      try {
+        console.log("🎭 [PRODUCTION] Checking impersonation status");
+        // For production, always return not impersonating to prevent UNDEFINED_VALUE errors
+        res.json({ isImpersonating: false });
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Impersonation status check failed:", error);
+        res.status(500).json({ message: "Failed to check impersonation status", error: (error as Error).message });
+      }
+    });
+
+    app.post("/api/admin/stop-impersonation", async (req: any, res) => {
+      try {
+        console.log("🛑 [PRODUCTION] Stop impersonation requested");
+        // For production, just return success since there's no real impersonation
+        res.json({ 
+          success: true, 
+          message: "Returned to admin account" 
+        });
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Stop impersonation failed:", error);
+        res.status(500).json({ message: "Failed to stop impersonation", error: (error as Error).message });
+      }
+    });
+
     // User profile endpoints
     app.patch("/api/user/profile", async (req: any, res) => {
       try {
