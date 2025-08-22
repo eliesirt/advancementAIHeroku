@@ -577,6 +577,8 @@ export interface ExtractedInteractionInfo {
   keyPoints: string[];
   suggestedAffinityTags: string[];
   prospectName: string;
+  qualityScore?: number;
+  qualityRecommendations?: string[];
 }
 
 // Extended prospect types for UI

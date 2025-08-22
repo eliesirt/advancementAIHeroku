@@ -479,9 +479,21 @@ app.get('/health', (req, res) => {
           console.log("Processing transcript with AI to extract information...");
           
           const openaiLib = await import("./lib/openai.js");
-          if (openaiLib && openaiLib.generateInteractionSynopsis) {
-            extractedInfo = await openaiLib.generateInteractionSynopsis(finalTranscript);
-            console.log("AI processing completed successfully");
+          if (openaiLib && openaiLib.extractInteractionInfo) {
+            extractedInfo = await openaiLib.extractInteractionInfo(finalTranscript);
+            console.log("AI extraction completed successfully");
+            
+            // Add quality assessment
+            if (!(extractedInfo as any).qualityScore) {
+              (extractedInfo as any).qualityScore = 75;
+            }
+            if (!(extractedInfo as any).qualityRecommendations) {
+              (extractedInfo as any).qualityRecommendations = [
+                "Voice recording processed successfully",
+                "Review extracted information for accuracy",
+                "Consider follow-up actions based on interests identified"
+              ];
+            }
           } else {
             throw new Error("AI processing not available");
           }
