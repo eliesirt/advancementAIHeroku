@@ -1298,6 +1298,7 @@ app.get('/health', (req, res) => {
     const server = createServer(app);
     server.listen(port, "0.0.0.0", () => {
       console.log(`🚀 HEROKU: Server listening on port ${port} - IMMEDIATE SUCCESS!`);
+    console.log(`🔧 PRODUCTION ROUTE FIX: About to initialize routes immediately...`);
       
       // Do heavy initialization AFTER successful port binding (optional)
       // Initialize routes immediately in production - no delay
