@@ -1,0 +1,105 @@
+-----> Building on the Heroku-24 stack
+-----> Using buildpack: heroku/nodejs
+-----> Node.js app detected
+       
+-----> Creating runtime environment
+       
+       NPM_CONFIG_LOGLEVEL=error
+       NODE_VERBOSE=false
+       NODE_ENV=production
+       NODE_MODULES_CACHE=true
+       
+-----> Installing binaries
+       engines.node (package.json):   18.x
+       engines.npm (package.json):    >=9.0.0
+       
+       Resolving node version 18.x...
+       Downloading and installing node 18.20.8...
+       Validating checksum
+       Bootstrapping npm >=9.0.0 (replacing 10.8.2)...
+       npm 10.9.3 installed
+       
+-----> Restoring cache
+       - npm cache
+       
+-----> Installing dependencies
+       Installing node modules
+       
+       added 557 packages, and audited 558 packages in 6s
+       
+       76 packages are looking for funding
+         run `npm fund` for details
+       
+       10 vulnerabilities (3 low, 7 moderate)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       
+-----> Build
+       Detected both "build" and "heroku-postbuild" scripts
+       Running heroku-postbuild
+       
+       > rest-express@1.0.0 heroku-postbuild
+       > node heroku-postbuild.cjs
+       
+       🚀 Heroku build with full real database and API integration...
+       🎨 Building frontend...
+       vite v5.4.14 building for production...
+       transforming...
+       Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+         npx update-browserslist-db@latest
+         Why you should do it regularly: https://github.com/browserslist/update-db#readme
+       ✓ 1754 modules transformed.
+       rendering chunks...
+       computing gzip size...
+       ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+       ../dist/public/assets/index-BUFvF7RG.css   98.43 kB │ gzip:  16.12 kB
+       ../dist/public/assets/index-DszneCfq.js   602.66 kB │ gzip: 172.42 kB
+       
+       (!) Some chunks are larger than 500 kB after minification. Consider:
+       - Using dynamic import() to code-split the application
+       - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+       - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+       ✓ built in 3.72s
+       🔧 Creating server files...
+       📦 Creating entry point...
+       ✅ Build complete!
+       
+-----> Caching build
+       - npm cache
+       
+-----> Pruning devDependencies
+       
+       up to date, audited 462 packages in 1s
+       
+       68 packages are looking for funding
+         run `npm fund` for details
+       
+       5 vulnerabilities (3 low, 2 moderate)
+       
+       To address issues that do not require attention, run:
+         npm audit fix
+       
+       To address all issues (including breaking changes), run:
+         npm audit fix --force
+       
+       Run `npm audit` for details.
+       npm notice
+       npm notice New major version of npm available! 10.9.3 -> 11.5.2
+       npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+       npm notice To update run: npm install -g npm@11.5.2
+       npm notice
+       
+-----> Build succeeded!
+-----> Discovering process types
+       Procfile declares types -> web
+-----> Compressing...
+       Done: 110M
+-----> Launching...
+       Released v76
+       https://advancement-ai-b8abf01faf28.herokuapp.com/ deployed to Heroku
