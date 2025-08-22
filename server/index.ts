@@ -1426,28 +1426,22 @@ app.get('/health', (req, res) => {
         // Extract interests from the text using OpenAI
         let extractedInfo;
         try {
-          const openaiLib = await import("./lib/openai.js");
-          if (openaiLib && openaiLib.extractInteractionInfo) {
-            extractedInfo = await openaiLib.extractInteractionInfo(text);
-            console.log("🤖 Interests extracted:", {
-              professional: extractedInfo.professionalInterests?.length || 0,
-              personal: extractedInfo.personalInterests?.length || 0,
-              philanthropic: extractedInfo.philanthropicPriorities?.length || 0
-            });
-          } else {
-            throw new Error("OpenAI extraction not available");
-          }
+          // Use direct OpenAI import since we're in server context
+          const { extractInteractionInfo } = await import("./lib/openai");
+          extractedInfo = await extractInteractionInfo(text);
+          console.log("🤖 Interests extracted:", {
+            professional: extractedInfo.professionalInterests?.length || 0,
+            personal: extractedInfo.personalInterests?.length || 0,
+            philanthropic: extractedInfo.philanthropicPriorities?.length || 0
+          });
         } catch (aiError) {
           console.error("AI extraction failed for affinity tags:", aiError);
-          return res.json({
-            success: true,
-            suggestedTags: [],
-            interests: {
-              professionalInterests: [],
-              personalInterests: [],
-              philanthropicPriorities: []
-            }
-          });
+          // Don't return early - continue without AI extraction
+          extractedInfo = {
+            professionalInterests: [],
+            personalInterests: [],
+            philanthropicPriorities: []
+          };
         }
 
         // Get affinity tags from database and match
@@ -1458,35 +1452,34 @@ app.get('/health', (req, res) => {
           console.log("📊 Available affinity tags:", affinityTags.length);
 
           // Import and use affinity matcher
-          const affinityLib = await import("./lib/affinity-matcher.js");
+          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
           
           // Get matching threshold setting
           let threshold = 0.25; // Default threshold
           try {
             const affinitySettings = await storage.getAffinityTagSettings("42195145");
             if (affinitySettings?.matchingThreshold) {
-              threshold = affinitySettings.matchingThreshold;
+              threshold = affinitySettings.matchingThreshold / 100; // Convert percentage to decimal
             }
           } catch (thresholdError) {
             console.log("Using default threshold:", threshold);
           }
 
-          if (affinityLib && affinityLib.createAffinityMatcher) {
-            const affinityMatcher = await affinityLib.createAffinityMatcher(affinityTags, threshold);
-            
-            const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-            const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-            const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
 
-            const matchedTags = affinityMatcher.matchInterests(
-              professionalInterests,
-              personalInterests,
-              philanthropicPriorities
-            );
-            suggestedTags = matchedTags.map(match => match.tag.name);
-            
-            console.log("🎯 Affinity tags matched:", suggestedTags.length);
-          }
+          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+          const matchedTags = affinityMatcher.matchInterests(
+            professionalInterests,
+            personalInterests,
+            philanthropicPriorities
+          );
+          suggestedTags = matchedTags.map(match => match.tag.name);
+          
+          console.log("🎯 Affinity tags matched:", suggestedTags.length);
+          console.log("🎯 Matched tags:", suggestedTags);
         } catch (matchError) {
           console.error("Affinity matching failed:", matchError);
         }
@@ -1494,7 +1487,7 @@ app.get('/health', (req, res) => {
         console.log("🏷️ Affinity tags identified");
         res.json({
           success: true,
-          suggestedTags,
+          affinityTags: suggestedTags,
           interests: {
             professionalInterests: extractedInfo.professionalInterests || [],
             personalInterests: extractedInfo.personalInterests || [],
