@@ -66,6 +66,11 @@ interface InteractionFormProps {
   existingInteraction?: any; // For editing existing interactions
   transcript?: string;
   enhancedComments?: string;
+  currentQualityData?: {
+    qualityScore: number;
+    qualityExplanation: string;
+    qualityRecommendations: string[];
+  } | null;
   onSubmit: (data: FormData & { affinityTags: string[] }) => void;
   onSaveDraft: (data: FormData & { affinityTags: string[] }) => void;
   onClose: () => void;
@@ -78,6 +83,7 @@ export function InteractionForm({
   existingInteraction,
   transcript,
   enhancedComments,
+  currentQualityData: propQualityData,
   onSubmit,
   onSaveDraft,
   onClose,
@@ -90,9 +96,14 @@ export function InteractionForm({
     qualityScore: number;
     qualityExplanation: string;
     qualityRecommendations: string[];
-  } | null>(null);
+  } | null>(propQualityData || null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+
+  // Update currentQualityData when prop changes
+  useEffect(() => {
+    setCurrentQualityData(propQualityData || null);
+  }, [propQualityData]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

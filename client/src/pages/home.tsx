@@ -80,6 +80,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const [enhancedComments, setEnhancedComments] = useState("");
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null);
   const [expandedQualityTips, setExpandedQualityTips] = useState<Set<number>>(new Set());
+  const [currentQualityData, setCurrentQualityData] = useState<{
+    qualityScore: number;
+    qualityExplanation: string;
+    qualityRecommendations: string[];
+  } | null>(null);
   const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
   const [showProcessing, setShowProcessing] = useState(false);
 
@@ -124,6 +129,16 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       setCurrentTranscript(data.voiceRecording?.transcript || '');
       setExtractedInfo(data.extractedInfo);
       setEnhancedComments(data.extractedInfo?.aiSynopsis || data.extractedInfo?.summary || '');
+      
+      // Set quality assessment data if available from voice processing
+      if (data.qualityAssessment) {
+        setCurrentQualityData({
+          qualityScore: data.qualityAssessment.qualityScore,
+          qualityExplanation: data.qualityAssessment.qualityExplanation,
+          qualityRecommendations: data.qualityAssessment.recommendations
+        });
+      }
+      
       setEditingInteraction(null);
       setShowInteractionForm(true);
 
@@ -872,6 +887,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         existingInteraction={editingInteraction}
         transcript={currentTranscript}
         enhancedComments={enhancedComments}
+        currentQualityData={currentQualityData}
         onSubmit={handleInteractionSubmit}
         onSaveDraft={handleSaveDraft}
         onClose={() => {
@@ -880,6 +896,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           setExtractedInfo(null);
           setCurrentTranscript("");
           setEnhancedComments("");
+          setCurrentQualityData(null);
         }}
         isSubmitting={createInteraction.isPending || updateInteraction.isPending || submitToBBEC.isPending}
       />
