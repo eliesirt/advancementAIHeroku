@@ -557,14 +557,27 @@ app.get('/health', (req, res) => {
           aiSynopsis = `Voice Interaction Analysis:\n\nTranscript: ${finalTranscript}\n\nSummary: ${extractedInfo.summary}`;
         }
 
-        console.log("Voice processing completed:", { transcriptLength: finalTranscript.length });
+        // Format quality assessment for frontend compatibility
+        const qualityAssessment = (extractedInfo as any).qualityScore ? {
+          qualityScore: (extractedInfo as any).qualityScore,
+          qualityExplanation: (extractedInfo as any).qualityExplanation || '',
+          recommendations: (extractedInfo as any).qualityRecommendations || []
+        } : null;
+
+        console.log("Voice processing completed:", { 
+          transcriptLength: finalTranscript.length,
+          hasQualityAssessment: !!qualityAssessment,
+          qualityScore: qualityAssessment?.qualityScore
+        });
+        
         res.json({
           voiceRecording: { id: Date.now(), transcript: finalTranscript, processed: true },
           extractedInfo: {
             ...extractedInfo,
             aiSynopsis,
             originalTranscript: finalTranscript
-          }
+          },
+          qualityAssessment
         });
         
       } catch (error) {
@@ -939,6 +952,10 @@ app.get('/health', (req, res) => {
           userId: "42195145",
           isDraft: true,
           ...req.body,
+          // Include quality assessment data if available
+          qualityScore: req.body.qualityScore || null,
+          qualityExplanation: req.body.qualityExplanation || null,
+          qualityRecommendations: req.body.qualityRecommendations || null,
           // Ensure actualDate is a proper Date object if provided
           actualDate: req.body.actualDate ? new Date(req.body.actualDate) : new Date(),
           // Ensure other timestamp fields are Date objects if provided
