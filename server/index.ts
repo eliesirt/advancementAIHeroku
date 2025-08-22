@@ -483,15 +483,38 @@ app.get('/health', (req, res) => {
             extractedInfo = await openaiLib.extractInteractionInfo(finalTranscript);
             console.log("AI extraction completed successfully");
             
-            // Add quality assessment
-            if (!(extractedInfo as any).qualityScore) {
-              (extractedInfo as any).qualityScore = 75;
-            }
-            if (!(extractedInfo as any).qualityRecommendations) {
+            // Perform real quality assessment
+            try {
+              console.log("📊 [PRODUCTION] Evaluating interaction quality...");
+              if (openaiLib.evaluateInteractionQuality) {
+                const qualityAssessment = await openaiLib.evaluateInteractionQuality(
+                  finalTranscript,
+                  extractedInfo,
+                  {
+                    prospectName: extractedInfo.prospectName || '',
+                    firstName: '',
+                    lastName: '',
+                    contactLevel: extractedInfo.contactLevel || '',
+                    method: 'Voice Recording',
+                    actualDate: new Date().toISOString(),
+                    comments: finalTranscript,
+                    summary: extractedInfo.summary || '',
+                    category: extractedInfo.category || '',
+                    subcategory: extractedInfo.subcategory || ''
+                  }
+                );
+                console.log("✅ [PRODUCTION] Quality assessment completed - Score:", qualityAssessment.qualityScore + "/25");
+                (extractedInfo as any).qualityScore = qualityAssessment.qualityScore;
+                (extractedInfo as any).qualityExplanation = qualityAssessment.qualityExplanation;
+                (extractedInfo as any).qualityRecommendations = qualityAssessment.recommendations;
+              }
+            } catch (qualityError) {
+              console.error("Quality assessment failed, using fallback:", qualityError);
+              (extractedInfo as any).qualityScore = 18; // Default proficient score
               (extractedInfo as any).qualityRecommendations = [
                 "Voice recording processed successfully",
-                "Review extracted information for accuracy",
-                "Consider follow-up actions based on interests identified"
+                "Manual quality review recommended",
+                "Consider adding more specific details for better assessment"
               ];
             }
           } else {

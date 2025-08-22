@@ -299,6 +299,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const enhancedComments = await enhanceInteractionComments(finalTranscript, extractedInfo, userId);
 
+      // Perform quality assessment
+      console.log("📊 Evaluating interaction quality...");
+      let qualityAssessment = null;
+      try {
+        const { evaluateInteractionQuality } = await import("./lib/openai");
+        qualityAssessment = await evaluateInteractionQuality(
+          finalTranscript,
+          extractedInfo,
+          {
+            prospectName: extractedInfo.prospectName || '',
+            firstName: '',
+            lastName: '',
+            contactLevel: extractedInfo.contactLevel || '',
+            method: 'Voice Recording',
+            actualDate: new Date().toISOString(),
+            comments: enhancedComments,
+            summary: extractedInfo.summary || conciseSummary,
+            category: extractedInfo.category || '',
+            subcategory: extractedInfo.subcategory || ''
+          }
+        );
+        console.log("✅ Quality assessment completed - Score:", qualityAssessment.qualityScore + "/25");
+      } catch (qualityError) {
+        console.error("Quality assessment failed:", qualityError);
+        // Don't fail the entire process if quality assessment fails
+      }
+
       console.log("✅ Voice processing completed successfully");
       res.json({
         transcript: finalTranscript,
@@ -307,7 +334,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           suggestedAffinityTags
         },
         conciseSummary,
-        enhancedComments
+        enhancedComments,
+        qualityAssessment
       });
     } catch (error) {
       console.error("❌ Direct voice processing error:", error);
