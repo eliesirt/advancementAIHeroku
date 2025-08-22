@@ -1410,6 +1410,105 @@ app.get('/health', (req, res) => {
     
     console.log("✅ Google Places API routes added to production server");
     
+    // CRITICAL: Add affinity tag identification route immediately in production
+    console.log("🏷️ Adding affinity tag identification route...");
+    
+    app.post("/api/interactions/identify-affinity-tags", async (req: any, res) => {
+      try {
+        const { text, prospectName } = req.body;
+
+        if (!text || typeof text !== 'string' || text.trim().length === 0) {
+          return res.status(400).json({ message: "Text content is required" });
+        }
+
+        console.log("🏷️ Processing affinity tag identification for text:", text.substring(0, 100) + "...");
+
+        // Extract interests from the text using OpenAI
+        let extractedInfo;
+        try {
+          const openaiLib = await import("./lib/openai.js");
+          if (openaiLib && openaiLib.extractInteractionInfo) {
+            extractedInfo = await openaiLib.extractInteractionInfo(text);
+            console.log("🤖 Interests extracted:", {
+              professional: extractedInfo.professionalInterests?.length || 0,
+              personal: extractedInfo.personalInterests?.length || 0,
+              philanthropic: extractedInfo.philanthropicPriorities?.length || 0
+            });
+          } else {
+            throw new Error("OpenAI extraction not available");
+          }
+        } catch (aiError) {
+          console.error("AI extraction failed for affinity tags:", aiError);
+          return res.json({
+            success: true,
+            suggestedTags: [],
+            interests: {
+              professionalInterests: [],
+              personalInterests: [],
+              philanthropicPriorities: []
+            }
+          });
+        }
+
+        // Get affinity tags from database and match
+        let suggestedTags = [];
+        try {
+          const storage = (await import("./storage.js")).storage;
+          const affinityTags = await storage.getAffinityTags();
+          console.log("📊 Available affinity tags:", affinityTags.length);
+
+          // Import and use affinity matcher
+          const affinityLib = await import("./lib/affinity-matcher.js");
+          
+          // Get matching threshold setting
+          let threshold = 0.25; // Default threshold
+          try {
+            const affinitySettings = await storage.getAffinityTagSettings("42195145");
+            if (affinitySettings?.matchingThreshold) {
+              threshold = affinitySettings.matchingThreshold;
+            }
+          } catch (thresholdError) {
+            console.log("Using default threshold:", threshold);
+          }
+
+          if (affinityLib && affinityLib.createAffinityMatcher) {
+            const affinityMatcher = await affinityLib.createAffinityMatcher(affinityTags, threshold);
+            
+            const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+            const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+            const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+            const matchedTags = affinityMatcher.matchInterests(
+              professionalInterests,
+              personalInterests,
+              philanthropicPriorities
+            );
+            suggestedTags = matchedTags.map(match => match.tag.name);
+            
+            console.log("🎯 Affinity tags matched:", suggestedTags.length);
+          }
+        } catch (matchError) {
+          console.error("Affinity matching failed:", matchError);
+        }
+
+        console.log("🏷️ Affinity tags identified");
+        res.json({
+          success: true,
+          suggestedTags,
+          interests: {
+            professionalInterests: extractedInfo.professionalInterests || [],
+            personalInterests: extractedInfo.personalInterests || [],
+            philanthropicPriorities: extractedInfo.philanthropicPriorities || []
+          }
+        });
+      } catch (error) {
+        console.error('Affinity tag identification error:', error);
+        res.status(500).json({ message: "Failed to identify affinity tags", error: (error as Error).message });
+      }
+    });
+    
+    console.log("✅ Affinity tag identification route added to production server");
+    
     // Set up static file serving IMMEDIATELY with SPA routing support
     console.log("📁 Setting up static file serving with SPA routing...");
     
