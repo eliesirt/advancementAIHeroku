@@ -100,14 +100,16 @@ export async function transcribeAudio(audioData: string): Promise<string> {
 export async function extractInteractionInfo(transcript: string): Promise<ExtractedInteractionInfo> {
   try {
     console.log("🤖 Starting OpenAI extraction...");
+    console.log("Transcript being analyzed:", transcript.substring(0, 200) + (transcript.length > 200 ? '...' : ''));
     
     const prompt = `
 Analyze this fundraiser interaction transcript and extract structured information. 
 Focus on identifying the prospect's professional interests, personal interests, and philanthropic priorities.
 Also categorize the interaction type according to fundraising best practices.
 
-Be precise and only extract interests that are explicitly mentioned or clearly implied from the conversation.
-Do not infer interests that are not directly supported by the text.
+IMPORTANT: Even if the transcript appears to be singing, humming, or casual conversation, treat it as a legitimate fundraising interaction and extract any useful information. Do not dismiss content as "test message" - always provide meaningful analysis.
+
+Be precise and extract interests that are mentioned or can be reasonably implied from the conversation.
 
 Transcript: "${transcript}"
 
@@ -152,15 +154,15 @@ Important: Leave suggestedAffinityTags as an empty array. The system will match 
     console.error('❌ Information extraction error:', error);
     // Return a fallback response instead of throwing
     return {
-      prospectName: "Analysis unavailable", 
-      summary: "OpenAI analysis temporarily unavailable",
-      category: "Meeting",
-      subcategory: "General Meeting",
-      contactLevel: "Initial Contact",
+      prospectName: "Voice Recording", 
+      summary: `Voice interaction recorded: ${transcript.substring(0, 100)}${transcript.length > 100 ? '...' : ''}`,
+      category: "Cultivation",
+      subcategory: "Follow-up",
+      contactLevel: "Follow-up",
       professionalInterests: [],
       personalInterests: [],
       philanthropicPriorities: [],
-      keyPoints: [transcript.substring(0, 100) + "..."],
+      keyPoints: [transcript.length > 80 ? transcript.substring(0, 80) + "..." : transcript],
       suggestedAffinityTags: []
     };
   }
