@@ -2149,48 +2149,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Google Places API routes
   app.get('/api/places/autocomplete', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('[PLACES API] Autocomplete request received:', { input: req.query.input, user: req.user?.claims?.sub });
+      
       const { input } = req.query;
       if (!input || typeof input !== 'string') {
+        console.log('[PLACES API] Invalid input parameter');
         return res.status(400).json({ error: 'Input parameter is required' });
       }
 
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       if (!apiKey) {
+        console.log('[PLACES API] Google Places API key not configured');
         return res.status(500).json({ error: 'Google Places API key not configured' });
       }
 
       const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=establishment|geocode&components=country:us`;
+      console.log('[PLACES API] Making request to Google Places API');
       
       const response = await fetch(url);
       const data = await response.json();
       
+      console.log('[PLACES API] Received response from Google, predictions:', data.predictions?.length || 0);
       res.json(data);
     } catch (error) {
-      console.error('Error with Places Autocomplete API:', error);
+      console.error('[PLACES API] Error with Places Autocomplete API:', error);
       res.status(500).json({ error: 'Failed to fetch place suggestions' });
     }
   });
 
   app.get('/api/places/details', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('[PLACES API] Details request received:', { place_id: req.query.place_id, user: req.user?.claims?.sub });
+      
       const { place_id } = req.query;
       if (!place_id || typeof place_id !== 'string') {
+        console.log('[PLACES API] Invalid place_id parameter');
         return res.status(400).json({ error: 'Place ID parameter is required' });
       }
 
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       if (!apiKey) {
+        console.log('[PLACES API] Google Places API key not configured');
         return res.status(500).json({ error: 'Google Places API key not configured' });
       }
 
       const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_address,address_components,geometry&key=${apiKey}`;
+      console.log('[PLACES API] Making request to Google Places Details API');
       
       const response = await fetch(url);
       const data = await response.json();
       
+      console.log('[PLACES API] Received details response from Google');
       res.json(data);
     } catch (error) {
-      console.error('Error with Places Details API:', error);
+      console.error('[PLACES API] Error with Places Details API:', error);
       res.status(500).json({ error: 'Failed to fetch place details' });
     }
   });
