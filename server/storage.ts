@@ -891,7 +891,29 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInteraction(id: number): Promise<boolean> {
     const result = await db.delete(interactions).where(eq(interactions.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    console.log(`🔍 Database delete result for ${id}:`, result);
+    
+    // Check multiple possible ways the result indicates success
+    if (result.rowCount !== undefined) {
+      return result.rowCount > 0;
+    }
+    
+    // For some database drivers, the result might be different
+    if (typeof result === 'object' && result !== null) {
+      // Check if result has changes property (some ORM variations)
+      if ('changes' in result) {
+        return (result as any).changes > 0;
+      }
+      
+      // Check if result has affectedRows property (some drivers)
+      if ('affectedRows' in result) {
+        return (result as any).affectedRows > 0;
+      }
+    }
+    
+    // Fallback: assume success if no error was thrown
+    // Since we check if the record exists before deleting, this should be safe
+    return true;
   }
 
   async getDraftInteractions(userId: string): Promise<Interaction[]> {

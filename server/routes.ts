@@ -824,9 +824,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const success = await storage.deleteInteraction(interactionId);
-      console.log(`✅ Interaction ${interactionId} deleted successfully`);
+      console.log(`🔍 Delete operation result for ${interactionId}:`, success, typeof success);
 
       if (success) {
+        console.log(`✅ Interaction ${interactionId} deleted successfully`);
         res.json({ success: true, message: "Interaction deleted successfully" });
       } else {
         console.log(`❌ Delete operation failed for interaction ${interactionId}`);
