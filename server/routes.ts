@@ -2147,7 +2147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Places API routes
-  app.get('/api/places/autocomplete', async (req, res) => {
+  app.get('/api/places/autocomplete', isAuthenticated, async (req: any, res) => {
     try {
       const { input } = req.query;
       if (!input || typeof input !== 'string') {
@@ -2171,7 +2171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/places/details', async (req, res) => {
+  app.get('/api/places/details', isAuthenticated, async (req: any, res) => {
     try {
       const { place_id } = req.query;
       if (!place_id || typeof place_id !== 'string') {
