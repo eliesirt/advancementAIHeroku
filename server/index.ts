@@ -1184,6 +1184,54 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // Admin user management endpoints for User Management app
+    app.post("/api/admin/users", async (req: any, res) => {
+      try {
+        console.log("🎭 [PRODUCTION] Creating user with data:", req.body);
+        const userData = req.body;
+        
+        const { storage } = await import("./storage");
+        
+        // Check if user with this email already exists
+        const existingUser = await storage.getUserByUsername(userData.email);
+        if (existingUser) {
+          return res.status(400).json({ 
+            message: "Email already exists", 
+            error: `A user with email "${userData.email}" already exists. Please use a different email address.`
+          });
+        }
+        
+        const user = await storage.createUser(userData);
+        console.log("✅ [PRODUCTION] Successfully created user:", user.id);
+        res.json(user);
+      } catch (error: any) {
+        console.error("❌ [PRODUCTION] Error creating user:", error);
+        
+        // Handle duplicate email constraint violation
+        if (error.code === '23505' && error.constraint_name === 'users_email_unique') {
+          return res.status(400).json({ 
+            message: "Email already exists", 
+            error: "A user with this email address already exists. Please use a different email address."
+          });
+        }
+        
+        res.status(500).json({ message: "Failed to create user", error: error.message });
+      }
+    });
+
+    app.get("/api/admin/users", async (req: any, res) => {
+      try {
+        console.log("👥 [PRODUCTION] Getting all users with roles");
+        const { storage } = await import("./storage");
+        const users = await storage.getUsersWithRoles();
+        console.log("✅ [PRODUCTION] Successfully retrieved users:", users.length);
+        res.json(users);
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Error getting users:", error);
+        res.status(500).json({ message: "Failed to get users", error: (error as Error).message });
+      }
+    });
+
     // Blackbaud CRM form metadata endpoint - for settings connection status
     app.get("/api/bbec/form-metadata", async (req: any, res) => {
       try {

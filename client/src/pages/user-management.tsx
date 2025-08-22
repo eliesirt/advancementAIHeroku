@@ -116,6 +116,10 @@ export default function UserManagementPage() {
   const createUserMutation = useMutation({
     mutationFn: async (userData: UserFormData) => {
       const response = await apiRequest("POST", "/api/admin/users", userData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to create user');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -124,14 +128,23 @@ export default function UserManagementPage() {
       setIsUserDialogOpen(false);
       setEditingUser(null);
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to create user.", variant: "destructive" });
+    onError: (error: Error) => {
+      const errorMessage = error.message || "Failed to create user.";
+      toast({ 
+        title: "Create User Error", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
     },
   });
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, userData }: { id: string; userData: Partial<UserFormData> }) => {
       const response = await apiRequest("PATCH", `/api/admin/users/${id}`, userData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to update user');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -140,8 +153,13 @@ export default function UserManagementPage() {
       setIsUserDialogOpen(false);
       setEditingUser(null);
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update user.", variant: "destructive" });
+    onError: (error: Error) => {
+      const errorMessage = error.message || "Failed to update user.";
+      toast({ 
+        title: "Update User Error", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
     },
   });
 
