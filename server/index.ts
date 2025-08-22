@@ -1188,6 +1188,55 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // Admin role management endpoints for production
+    app.get("/api/admin/roles", async (req: any, res) => {
+      try {
+        console.log("🔑 [PRODUCTION] Getting all roles");
+        const { storage } = await import("./storage");
+        const roles = await storage.getRoles();
+        console.log("✅ [PRODUCTION] Successfully retrieved roles:", roles.length);
+        res.json(roles);
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Error getting roles:", error);
+        res.status(500).json({ message: "Failed to get roles", error: (error as Error).message });
+      }
+    });
+
+    app.get("/api/admin/applications", async (req: any, res) => {
+      try {
+        console.log("📱 [PRODUCTION] Getting all applications");
+        const { storage } = await import("./storage");
+        const applications = await storage.getAllApplications();
+        console.log("✅ [PRODUCTION] Successfully retrieved applications:", applications.length);
+        res.json(applications);
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Error getting applications:", error);
+        res.status(500).json({ message: "Failed to get applications", error: (error as Error).message });
+      }
+    });
+
+    app.get("/api/admin/role-applications", async (req: any, res) => {
+      try {
+        console.log("🔗 [PRODUCTION] Getting role-applications mapping");
+        const { storage } = await import("./storage");
+        const roles = await storage.getRoles();
+        const applications = await storage.getAllApplications();
+        
+        // Return roles with their applications
+        const roleApplications = roles.map(role => ({
+          ...role,
+          applications: role.name === 'Administrator' ? applications : 
+            applications.filter(app => app.name === 'interaction-manager')
+        }));
+        
+        console.log("✅ [PRODUCTION] Successfully retrieved role-applications");
+        res.json(roleApplications);
+      } catch (error) {
+        console.error("❌ [PRODUCTION] Error getting role-applications:", error);
+        res.status(500).json({ message: "Failed to get role-applications", error: (error as Error).message });
+      }
+    });
+
     // User profile endpoints
     app.patch("/api/user/profile", async (req: any, res) => {
       try {
@@ -1249,7 +1298,7 @@ app.get('/health', (req, res) => {
       try {
         console.log("👥 [PRODUCTION] Getting all users with roles");
         const { storage } = await import("./storage");
-        const users = await storage.getUsersWithRoles();
+        const users = await storage.getAllUsersWithRoles();
         console.log("✅ [PRODUCTION] Successfully retrieved users:", users.length);
         res.json(users);
       } catch (error) {
