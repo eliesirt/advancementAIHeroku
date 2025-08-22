@@ -52,19 +52,37 @@ export function LocationAutocomplete({
   const searchPlaces = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+      console.log('Searching places for:', query);
+      const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`, {
+        credentials: 'include'
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setSuggestions(data.predictions || []);
-        setShowSuggestions(true);
+        console.log('Places API response:', data);
+        
+        if (data.predictions && data.predictions.length > 0) {
+          setSuggestions(data.predictions);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        console.error('Places API error:', response.status, await response.text());
+        setSuggestions([]);
+        setShowSuggestions(false);
       }
     } catch (error) {
       console.error('Error fetching places:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
     } finally {
       setIsLoading(false);
     }
@@ -73,9 +91,13 @@ export function LocationAutocomplete({
   // Get place details
   const getPlaceDetails = async (placeId: string): Promise<LocationDetails> => {
     try {
-      const response = await fetch(`/api/places/details?place_id=${placeId}`);
+      console.log('Getting place details for:', placeId);
+      const response = await fetch(`/api/places/details?place_id=${placeId}`, {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
+        console.log('Place details response:', data);
         const result = data.result;
         
         const location: LocationDetails = {
