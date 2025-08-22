@@ -58,14 +58,12 @@ export function LocationAutocomplete({
 
     setIsLoading(true);
     try {
-      console.log('Searching places for:', query);
       const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`, {
         credentials: 'include'
       });
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Places API response:', data);
         
         if (data.predictions && data.predictions.length > 0) {
           setSuggestions(data.predictions);
@@ -75,7 +73,6 @@ export function LocationAutocomplete({
           setShowSuggestions(false);
         }
       } else {
-        console.error('Places API error:', response.status, await response.text());
         setSuggestions([]);
         setShowSuggestions(false);
       }
@@ -91,13 +88,11 @@ export function LocationAutocomplete({
   // Get place details
   const getPlaceDetails = async (placeId: string): Promise<LocationDetails> => {
     try {
-      console.log('Getting place details for:', placeId);
       const response = await fetch(`/api/places/details?place_id=${placeId}`, {
         credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Place details response:', data);
         const result = data.result;
         
         const location: LocationDetails = {
