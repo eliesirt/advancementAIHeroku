@@ -1192,27 +1192,7 @@ app.get('/health', (req, res) => {
       }
     });
 
-    app.post("/api/interactions/identify-affinity-tags", async (req: any, res) => {
-      try {
-        const { text } = req.body;
-        
-        const identifiedTags = {
-          suggestedTags: ["Alumni", "Technology", "Healthcare"],
-          confidence: 0.85,
-          matches: [
-            { tag: "Alumni", confidence: 0.9, reason: "University affiliation mentioned" },
-            { tag: "Technology", confidence: 0.8, reason: "Tech industry discussion" }
-          ]
-        };
 
-        console.log("🏷️ Affinity tags identified");
-        res.json(identifiedTags);
-        
-      } catch (error) {
-        console.error('Identify affinity tags error:', error);
-        res.status(500).json({ message: "Failed to identify affinity tags", error: (error as Error).message });
-      }
-    });
 
     app.post("/api/interactions/bulk-process", async (req: any, res) => {
       try {
@@ -1421,7 +1401,7 @@ app.get('/health', (req, res) => {
           return res.status(400).json({ message: "Text content is required" });
         }
 
-        console.log("🏷️ Processing affinity tag identification for text:", text.substring(0, 100) + "...");
+        console.log("🏷️ [PRODUCTION ROUTE] Processing affinity tag identification for text:", text.substring(0, 100) + "...");
 
         // Extract interests from the text using OpenAI
         let extractedInfo;
@@ -1484,7 +1464,7 @@ app.get('/health', (req, res) => {
           console.error("Affinity matching failed:", matchError);
         }
 
-        console.log("🏷️ Affinity tags identified");
+        console.log("🏷️ [PRODUCTION ROUTE] Affinity tags identified - returning affinityTags field");
         res.json({
           success: true,
           affinityTags: suggestedTags,
