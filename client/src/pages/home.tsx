@@ -121,9 +121,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     },
     onSuccess: (data) => {
       // Set the processed data and show the interaction form for review
-      setCurrentTranscript(data.transcript);
+      setCurrentTranscript(data.voiceRecording?.transcript || '');
       setExtractedInfo(data.extractedInfo);
-      setEnhancedComments(data.extractedInfo?.summary || '');
+      setEnhancedComments(data.extractedInfo?.aiSynopsis || data.extractedInfo?.summary || '');
       setEditingInteraction(null);
       setShowInteractionForm(true);
 
@@ -347,7 +347,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
 
-    // First save voice recording
+    // Process voice recording with AI analysis
     createVoiceRecording.mutate({
       audioData,
       transcript,

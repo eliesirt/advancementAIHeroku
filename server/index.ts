@@ -520,10 +520,28 @@ app.get('/health', (req, res) => {
           };
         }
 
+        // Generate detailed AI synopsis using custom prompts
+        let aiSynopsis = "";
+        try {
+          console.log("Generating detailed AI synopsis with custom prompts...");
+          const openaiLib = await import("./lib/openai.js");
+          if (openaiLib && openaiLib.generateInteractionSynopsis) {
+            aiSynopsis = await openaiLib.generateInteractionSynopsis(finalTranscript, extractedInfo, 42195145);
+            console.log("AI synopsis generated successfully");
+          }
+        } catch (synopsisError) {
+          console.error("AI synopsis generation failed:", synopsisError);
+          aiSynopsis = `Voice Interaction Analysis:\n\nTranscript: ${finalTranscript}\n\nSummary: ${extractedInfo.summary}`;
+        }
+
         console.log("Voice processing completed:", { transcriptLength: finalTranscript.length });
         res.json({
           voiceRecording: { id: Date.now(), transcript: finalTranscript, processed: true },
-          extractedInfo
+          extractedInfo: {
+            ...extractedInfo,
+            aiSynopsis,
+            originalTranscript: finalTranscript
+          }
         });
         
       } catch (error) {

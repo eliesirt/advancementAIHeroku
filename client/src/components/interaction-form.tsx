@@ -199,7 +199,7 @@ export function InteractionForm({
         method: 'In-person meeting',
         status: 'Complete',
         actualDate: new Date().toISOString().slice(0, 16),
-        comments: enhancedComments || transcript || '',
+        comments: enhancedComments || (extractedInfo as any)?.aiSynopsis || transcript || '',
       });
       setSelectedAffinityTags(extractedInfo.suggestedAffinityTags || []);
     } else {
