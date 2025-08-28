@@ -1773,6 +1773,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/python-scripts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const script = await storage.getPythonScript(parseInt(id));
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      res.json(script);
+    } catch (error: any) {
+      console.error('Error fetching Python script:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/python-scripts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const script = await storage.updatePythonScript(parseInt(id), req.body);
+      res.json(script);
+    } catch (error: any) {
+      console.error('Error updating Python script:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/python-scripts/:id/execute", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
