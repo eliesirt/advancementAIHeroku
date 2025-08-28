@@ -121,7 +121,7 @@ export default function Launcher() {
           );
           
           const administrationApps = sortedApps.filter(app => 
-            ['python-ai', 'settings', 'user-management'].includes(app.name)
+            ['pythonai', 'settings', 'user-management'].includes(app.name)
           );
 
           const renderAppCard = (app: ApplicationWithPermissions) => (
@@ -134,7 +134,7 @@ export default function Launcher() {
                       {app.icon === 'settings' && <Settings className="h-6 w-6" />}
                       {app.icon === 'briefcase' && <Briefcase className="h-6 w-6" />}
                       {app.icon === 'map' && <Map className="h-6 w-6" />}
-                      {app.icon === 'code' && <Code className="h-6 w-6" />}
+                      {app.icon === 'Code' && <Code className="h-6 w-6" />}
                       {!app.icon && <Brain className="h-6 w-6" />}
                     </div>
                   </div>
