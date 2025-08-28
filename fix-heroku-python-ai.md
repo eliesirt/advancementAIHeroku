@@ -18,14 +18,14 @@ Run this command in Heroku CLI to update the database schema:
 heroku apps
 
 # Push database schema to production (replace 'your-app-name' with actual app name)
-heroku run npm run db:push --app your-app-name
+heroku run --app your-app-name npm run db:push
 
 # Alternative: Run drizzle push directly
-heroku run npx drizzle-kit push --app your-app-name
+heroku run --app your-app-name npx drizzle-kit push
 
 # Example if your app is named 'advancement-ai':
-heroku run npm run db:push --app advancement-ai
-heroku run npx drizzle-kit push --app advancement-ai
+heroku run --app advancement-ai npm run db:push
+heroku run --app advancement-ai npx drizzle-kit push
 ```
 
 ### Solution 2: Verify Database Tables Exist
