@@ -1,8 +1,6 @@
-# Blackbaud CRM Voice Interaction System
-
 ## Overview
 
-This is a full-stack React application with Express backend designed for voice-enabled interaction management with Blackbaud CRM. The system allows users to record voice interactions, process them with AI to extract key information, and submit them to the Blackbaud CRM system via SOAP API integration.
+This is a full-stack React application with an Express backend designed for voice-enabled interaction management with Blackbaud CRM. The system allows users to record voice interactions, process them with AI to extract key information, and submit them to the Blackbaud CRM system via SOAP API integration. It aims to provide a mobile-first, voice-enabled, and responsive solution for efficient data entry and management within the Blackbaud ecosystem, branded as "AdvancementAI - Boston University Advancement Technology Suite." The system has evolved into a multi-application suite, including Python script management capabilities, focusing on enhancing fundraising and advancement operations.
 
 ## User Preferences
 
@@ -12,197 +10,50 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Framework**: React with TypeScript
-- **Build Tool**: Vite for development and production builds
-- **UI Framework**: Radix UI components with Tailwind CSS styling
-- **State Management**: React Query (@tanstack/react-query) for server state
-- **Routing**: Wouter for client-side routing
+- **Build Tool**: Vite
+- **UI Framework**: Radix UI with Tailwind CSS
+- **State Management**: React Query
+- **Routing**: Wouter
 - **Form Management**: React Hook Form with Zod validation
+- **Design Philosophy**: Mobile-first, responsive UI with touch-friendly controls and bottom navigation. PWA considerations for offline capability.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
-- **Database**: PostgreSQL with Drizzle ORM
-- **Database Provider**: Neon Database (@neondatabase/serverless)
-- **Authentication**: Session-based with connect-pg-simple
-- **API Style**: REST endpoints with JSON responses
+- **Database**: PostgreSQL with Drizzle ORM (Neon Database provider)
+- **Authentication**: Session-based with `connect-pg-simple` and Replit Auth with OpenID Connect.
+- **API Style**: REST endpoints with JSON responses.
+- **Access Control**: Role-Based Access Control (RBAC) with roles (Administrator, User) and dynamic application permissions. Includes admin impersonation functionality with security safeguards.
 
-## Key Components
+### Key Features & Technical Implementations
+- **Voice Recording System**: Utilizes WebRTC MediaRecorder for audio capture, WebKit Speech Recognition for real-time transcription, and OpenAI Whisper API for audio transcription.
+- **AI Processing Pipeline**: Integrates OpenAI Whisper for transcription and GPT-4 for structured data extraction, content enhancement, and summarization. Includes AI-powered quality assessment and customizable AI prompts for synopsis generation.
+- **Affinity Matching**: Employs a fuzzy matching system (Fuse.js) for tag suggestions, with configurable matching thresholds and improved preprocessing logic for better accuracy.
+- **CRM Integration**: Achieved via SOAP API with Blackbaud CRM, including basic authentication, structured data mapping to BBEC format, and real-time constituent lookup.
+- **Data Flow**: Voice input -> Real-time Transcription -> AI Processing (Whisper, GPT-4) -> Data Extraction -> Affinity Matching -> Form Population -> Validation -> CRM Submission.
+- **PythonAI Application**: Full-featured system for managing Python scripts, including database schema for script management (versions, executions, schedules, QC results) and full CRUD operations.
+- **Application Suite & Launcher**: Transformed into a multi-application suite with an "AdvancementAI" launcher page, featuring organized groupings for primary AI tools and system configuration.
 
-### Voice Recording System
-- **Browser APIs**: WebRTC MediaRecorder for audio capture
-- **Speech Recognition**: WebKit Speech Recognition for real-time transcription
-- **Audio Processing**: Base64 encoding for audio data transmission
-- **AI Integration**: OpenAI Whisper API for audio transcription
-
-### AI Processing Pipeline
-- **Transcription**: OpenAI Whisper for audio-to-text conversion
-- **Information Extraction**: GPT-4 for structured data extraction from transcripts
-- **Affinity Matching**: Fuzzy matching system using Fuse.js for tag suggestions
-- **Content Enhancement**: AI-powered comment enhancement and summarization
-
-### CRM Integration
-- **Protocol**: SOAP API integration with Blackbaud CRM
-- **Authentication**: Basic Auth with environment-stored credentials
-- **Data Mapping**: Structured interaction data mapping to BBEC format
-- **Constituent Search**: Real-time constituent lookup by name or BUID
-
-### Mobile-First Design
-- **Responsive UI**: Mobile-optimized interface with touch-friendly controls
-- **Progressive Web App**: Offline capability considerations
-- **Navigation**: Bottom navigation bar for mobile UX
-- **Driving Mode**: Hands-free voice-controlled interface
-
-## Data Flow
-
-1. **Voice Input**: User records voice interaction through browser MediaRecorder
-2. **Real-time Transcription**: Speech Recognition API provides live transcript
-3. **AI Processing**: Recorded audio sent to OpenAI for transcription and analysis
-4. **Data Extraction**: GPT-4 extracts structured information (names, categories, interests)
-5. **Affinity Matching**: System matches extracted interests to predefined affinity tags
-6. **Form Population**: Extracted data populates interaction form
-7. **Validation**: SOP compliance validation before submission
-8. **CRM Submission**: Data formatted and submitted to Blackbaud via SOAP API
-9. **Status Tracking**: Interaction status tracked in local database
+### Data Model Highlights
+- **Users**: Profiles with BUID and BBEC GUID mapping, roles.
+- **Interactions**: Core interaction data with AI-extracted information, quality assessments, and voice recordings.
+- **Affinity Tags**: Configurable interest/preference tags with matching settings.
+- **AI Prompt Settings**: User-specific customizable prompt templates for AI analysis.
+- **Python Scripts**: Tables for scripts, versions, executions, schedules, QC results, git repositories, and permissions.
 
 ## External Dependencies
 
-### Core Services
-- **OpenAI API**: Audio transcription and text processing
-- **Blackbaud CRM**: Target system for interaction data
-- **Neon Database**: PostgreSQL hosting service
-
-### Key Libraries
-- **Database**: Drizzle ORM with PostgreSQL driver
-- **AI Integration**: OpenAI SDK
-- **SOAP Client**: Custom SOAP client for Blackbaud API
-- **Voice Processing**: Browser Web APIs (MediaRecorder, Speech Recognition)
-- **Fuzzy Matching**: Fuse.js for affinity tag matching
-- **Form Validation**: Zod schema validation
-
-### UI Components
-- **Radix UI**: Accessible component primitives
-- **Tailwind CSS**: Utility-first CSS framework
-- **Lucide React**: Icon library
-- **React Hook Form**: Form state management
-
-## Deployment Strategy
-
-### Development
-- **Dev Server**: Vite development server with HMR
-- **Database**: Neon database connection
-- **Environment**: Local development with environment variables
-
-### Production Build
-- **Frontend**: Vite build output to `dist/public`
-- **Backend**: esbuild compilation to `dist/index.js`
-- **Static Assets**: Served from build directory
-- **Database**: Production PostgreSQL connection
-
-### Environment Configuration
-- **Database**: `DATABASE_URL` for Neon connection
-- **OpenAI**: `OPENAI_API_KEY` for AI services
-- **Blackbaud**: `BLACKBAUD_API_AUTHENTICATION` for CRM integration
-- **Session**: Secure session configuration for authentication
-
-### Database Schema
-- **Users**: User profiles with BUID and BBEC GUID mapping
-- **Interactions**: Core interaction data with AI-extracted information
-- **Affinity Tags**: Configurable interest/preference tags
-- **Voice Recordings**: Audio data storage with transcripts
-- **Settings**: User and system configuration options
-
-The system follows a mobile-first, voice-enabled design philosophy with strong integration to Blackbaud CRM while maintaining local data persistence and offline capabilities.
-
-## Recent Changes
-
-### August 22, 2025 - Delete Operation & CRM Connection Status Fixes
-- **Fixed Delete Operation Bug**: Resolved critical issue where interaction delete showed error message but still deleted records
-- **Root Cause**: Database delete result checking logic failed when `result.rowCount` was undefined from Drizzle ORM
-- **Enhanced Delete Logic**: Added comprehensive fallback checking for multiple result properties (`rowCount`, `changes`, `affectedRows`)
-- **Improved Error Handling**: Added detailed logging and pre-deletion existence checks for better debugging
-- **Production CRM Status Fix**: Added `/api/bbec/form-metadata` endpoint to Heroku production fast startup mode
-- **Settings Connection Display**: Fixed Blackbaud CRM showing "Disconnected/Offline" in production by ensuring form metadata endpoint availability
-- **Enhanced Production Logging**: Added comprehensive [PRODUCTION] tagged logs for CRM integration debugging
-
-### August 28, 2025 - pythonAI Application Implementation & Production Deployment
-- **Complete pythonAI Application**: Implemented comprehensive Python script management system with full-featured React interface
-- **Database Schema Enhancement**: Added complete schema for Python script management (python_scripts, script_versions, script_executions, script_schedules, script_qc_results, git_repositories, script_permissions tables)
-- **Production Heroku Integration**: Added pythonAI application to Heroku fast startup mode with all necessary API routes for production compatibility
-- **Administration Section Restructuring**: Changed launcher section from "Configuration" to "Administration" and properly organized pythonAI alongside Settings and User Management
-- **React Concurrent Rendering**: Implemented proper startTransition handling to prevent component suspension errors during lazy loading
-- **API Route Implementation**: Added comprehensive Python script CRUD operations, execution endpoints, and mock execution responses for production environment
-- **Database Migration**: Successfully pushed Python schema to production database and added missing columns for full functionality
-- **UI/UX Enhancement**: Built rich interface with tabs for Scripts, Run History, Schedules, and Settings with comprehensive filtering, searching, and management capabilities
-
-### August 21, 2025 - Application Launcher Groupings & Voice Recording Fix
-- **Implemented Application Groupings**: Added organized sections to the launcher page for better user experience
-- **Applications Section**: Groups primary AI tools (interactionAI, portfolioAI, itineraryAI) under "Applications" with description "AI-powered advancement tools for fundraising excellence"
-- **Configuration Section**: Groups system tools (Settings, User Management) under "Configuration" with description "System settings and user management tools"
-- **Fixed Production Database**: Resolved sortOrder inconsistencies between development and production databases using direct SQL updates
-- **Enhanced User Interface**: Improved launcher layout with clear section headers and better visual organization
-- **Voice Recording Bug Fix**: Resolved critical Node.js compatibility issue where browser File API was causing transcription failures in production
-- **Enhanced Error Handling**: Added comprehensive error messages and fallback handling for voice recording transcription issues
-- **OpenAI Integration Fix**: Corrected audio transcription pipeline to use proper Node.js-compatible functions instead of browser APIs
-- **Google Maps API Fix**: Added authentication requirement to Google Places API endpoints for production deployment compatibility
-- **Enhanced Places API Debugging**: Added comprehensive logging to track Google Places API requests, responses, and authentication in production environment
-- **Production Route Loading Fix**: Resolved critical issue where ALL API routes returned 404 in production by fixing async route initialization timing
-- **Direct Google Places API Integration**: Added Google Places autocomplete and details routes directly to production server fast startup mode for immediate availability
-- **Google Maps Autocomplete Resolution**: Successfully resolved address autocomplete functionality - now working in both development and production environments
-- **Voice Recording Production Fix**: Resolved critical white screen crash by fixing AI processing pipeline to use extractInteractionInfo before generateInteractionSynopsis
-- **OpenAI Integration Complete**: Voice recording now uses real OpenAI Whisper transcription and GPT-4 analysis instead of mock data in production
-- **Affinity Tag Matching Fix**: Added real AI-powered affinity tag identification algorithm directly to production server fast startup mode for proper interest-to-tag matching
-- **Complete Production Route Coverage**: Added all critical routes to fast startup mode including interaction management, text analysis, prospect search, and itinerary functionality for full app compatibility
-- **Interaction Quality Assessment Restored**: Re-implemented full quality assessment functionality using OpenAI GPT-4 evaluation across both development and production environments
-- **Quality Assessment Frontend Integration**: Fixed frontend state management to properly capture and display quality scores from voice processing in both interaction forms and recent interactions list
-- **Production Quality Assessment Fix**: Updated Heroku production server fast startup mode to include quality assessment data in voice processing responses and draft creation, ensuring feature parity with development environment
-
-### August 11, 2025 - Admin User Impersonation System
-- **Complete Impersonation Framework**: Built comprehensive admin impersonation system allowing administrators to run as any non-admin user
-- **Security Safeguards**: Admins cannot impersonate other administrators; only non-admin users can be impersonated
-- **Impersonation Banner**: Added system-wide banner that appears on all pages during impersonation, showing both admin and target user
-- **Easy Exit Mechanism**: Administrators can instantly return to admin account from any page during impersonation
-- **Session Management**: Secure session-based impersonation tracking with proper cleanup and restoration
-- **Cache Invalidation Fix**: Resolved permission caching issue where application permissions weren't updating in real-time during impersonation
-- **Database Query Optimization**: Improved getUserApplications filtering to properly respect role-based permissions
-
-### August 8, 2025 - Application Suite Transformation & AdvancementAI Branding
-- **Transformed to Multi-App Suite**: Converted single application into comprehensive application suite with launcher
-- **Implemented Authentication System**: Added Replit Auth with OpenID Connect for secure user management
-- **Role-Based Access Control**: Created roles (Administrator, User) with dynamic application permissions
-- **Application Launcher**: New branded "AdvancementAI" launcher page with BU-inspired design (white/#CC0000 color scheme)
-- **Database Schema Updates**: Added roles, applications, userRoles, and roleApplications tables for RBAC
-- **Navigation System**: Added "Back to Apps" buttons to all applications for seamless navigation
-- **Administrator Privileges**: Granted elsirt@gmail.com full administrator access to manage the application suite
-- **Branding Update**: Changed from "Application Suite" to "AdvancementAI - Boston University Advancement Technology Suite"
-
-## Recent Changes
-
-### July 30, 2025 - Added Configurable Affinity Tag Matching
-- **Added matching threshold slider**: Configurable confidence threshold (5%-95%) in Settings tab
-- **Database schema enhancement**: Added matchingThreshold field to affinityTagSettings table
-- **Updated affinity matcher**: Modified AffinityMatcher class to accept configurable threshold parameter
-- **Backend integration**: Updated all createAffinityMatcher calls to use stored threshold setting
-- **User-friendly interface**: Added slider with helpful labels and usage tips for adjusting matching strictness
-
-### July 30, 2025 - Removed History Tab
-- **Removed History tab**: Completely removed History tab from bottom navigation as requested
-- **Updated navigation layout**: Changed from 3-column to 2-column grid (Home and Settings only)
-- **Cleaned up routing**: Removed history route and related handlers from App.tsx
-- **Updated voice commands**: Removed "show history" voice commands from driving mode
-- **Simplified navigation**: Streamlined user interface to focus on core interaction functionality
-
-### August 6, 2025 - AI Prompt Customization System
-- **Added customizable AI prompts**: Users can now customize the "Advancement Office Synopsis" generation prompts in Settings
-- **Database schema enhancement**: New aiPromptSettings table with user-specific prompt templates and versioning
-- **Full-stack implementation**: Complete CRUD operations with GET/POST API endpoints for prompt management
-- **Updated OpenAI integration**: Modified generateInteractionSynopsis to use custom prompts with template variable substitution
-- **Comprehensive UI interface**: Added "AI Prompt Customization" section in Settings with template editor, variable reference, and reset functionality
-- **Template variable system**: Supports {{transcript}}, {{summary}}, {{category}}, and other dynamic content substitution
-- **User-personalized AI analysis**: Each user can now tailor AI analysis criteria to their specific needs and preferences
-
-### July 16, 2025 - Enhanced Affinity Tag Matching
-- **Fixed critical affinity matching issue**: "Friends of BU Men's Ice Hockey" now correctly matches "Men's Hockey" affinity tag
-- **Improved fuzzy matching algorithm**: Lowered threshold from 0.4 to 0.25 for better coverage
-- **Added preprocessing logic**: Handles common prefixes like "Friends of", "Support for", "BU", "Boston University"
-- **Enhanced sport-specific matching**: "ice hockey" variations now properly match hockey-related affinity tags
-- **Added comprehensive quality assessment**: AI now provides 3+ specific improvement recommendations
-- **Database schema enhancement**: Added qualityRecommendations field to store actionable suggestions
+- **OpenAI API**: Used for audio transcription (Whisper) and text processing/information extraction (GPT-4).
+- **Blackbaud CRM**: The target system for interaction data submission via SOAP API.
+- **Neon Database**: PostgreSQL hosting service.
+- **Replit Auth**: For OpenID Connect based authentication.
+- **Google Places API**: For address autocomplete and details.
+- **Drizzle ORM**: For PostgreSQL database interaction.
+- **OpenAI SDK**: For integrating with OpenAI services.
+- **Custom SOAP client**: Developed for Blackbaud API integration.
+- **Browser Web APIs**: MediaRecorder and Speech Recognition for voice processing.
+- **Fuse.js**: For fuzzy matching affinity tags.
+- **Radix UI**: For accessible UI component primitives.
+- **Tailwind CSS**: For utility-first CSS styling.
+- **Lucide React**: Icon library.
+- **React Hook Form**: For form state management.
+- **Zod**: For schema validation.
