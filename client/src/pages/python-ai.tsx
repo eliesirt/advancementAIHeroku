@@ -95,6 +95,7 @@ export default function PythonAI() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExecuteDialogOpen, setIsExecuteDialogOpen] = useState(false);
+  const [executionResult, setExecutionResult] = useState<any>(null);
   const [isReady, setIsReady] = useState(false);
 
   const queryClient = useQueryClient();
@@ -177,12 +178,13 @@ export default function PythonAI() {
       if (!response.ok) throw new Error('Failed to execute script');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       startTransition(() => {
         queryClient.invalidateQueries({ queryKey: ['/api/script-executions'] });
-        setIsExecuteDialogOpen(false);
+        setExecutionResult(result);
+        // Don't close dialog immediately, show results first
       });
-      toast({ title: 'Success', description: 'Script execution started' });
+      toast({ title: 'Success', description: 'Script executed successfully' });
     },
     onError: (error: any) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -403,22 +405,107 @@ export default function PythonAI() {
       </Dialog>
 
       {/* Execute Script Dialog */}
-      <Dialog open={isExecuteDialogOpen} onOpenChange={setIsExecuteDialogOpen}>
-        <DialogContent>
+      <Dialog open={isExecuteDialogOpen} onOpenChange={(open) => {
+        setIsExecuteDialogOpen(open);
+        if (!open) {
+          setExecutionResult(null); // Clear results when dialog closes
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Execute Script</DialogTitle>
             <DialogDescription>
               Run {selectedScript?.name} with optional parameters.
             </DialogDescription>
           </DialogHeader>
-          <ExecuteScriptForm
-            script={selectedScript}
-            onSubmit={(inputs) => {
-              if (selectedScript) {
-                executeScriptMutation.mutate({ scriptId: selectedScript.id, inputs });
-              }
-            }}
-          />
+          
+          {!executionResult ? (
+            <ExecuteScriptForm
+              script={selectedScript}
+              onSubmit={(inputs) => {
+                if (selectedScript) {
+                  executeScriptMutation.mutate({ scriptId: selectedScript.id, inputs });
+                }
+              }}
+            />
+          ) : (
+            <div className="space-y-4">
+              {/* Execution Results */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Execution Results</h4>
+                  <div className="flex items-center space-x-2">
+                    {executionResult.status === 'completed' ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <Badge variant={executionResult.status === 'completed' ? 'default' : 'destructive'}>
+                      {executionResult.status}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                  <div>
+                    <span className="font-medium">Duration:</span> {executionResult.duration}ms
+                  </div>
+                  <div>
+                    <span className="font-medium">Exit Code:</span> {executionResult.exitCode}
+                  </div>
+                  <div>
+                    <span className="font-medium">Started:</span> {new Date(executionResult.startedAt).toLocaleString()}
+                  </div>
+                  <div>
+                    <span className="font-medium">Completed:</span> {new Date(executionResult.completedAt).toLocaleString()}
+                  </div>
+                </div>
+
+                {/* Standard Output */}
+                {executionResult.stdout && (
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium mb-2 block">Standard Output</Label>
+                    <div className="bg-black text-green-400 p-3 rounded font-mono text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      {executionResult.stdout}
+                    </div>
+                  </div>
+                )}
+
+                {/* Standard Error */}
+                {executionResult.stderr && (
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium mb-2 block">Standard Error</Label>
+                    <div className="bg-black text-red-400 p-3 rounded font-mono text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      {executionResult.stderr}
+                    </div>
+                  </div>
+                )}
+
+                {/* Input Parameters */}
+                {executionResult.inputs && Object.keys(executionResult.inputs).length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Input Parameters</Label>
+                    <div className="bg-white p-3 rounded border font-mono text-sm">
+                      <pre>{JSON.stringify(executionResult.inputs, null, 2)}</pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setExecutionResult(null)}
+                >
+                  Run Again
+                </Button>
+                <Button onClick={() => setIsExecuteDialogOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
