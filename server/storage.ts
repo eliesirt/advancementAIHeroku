@@ -53,7 +53,28 @@ import {
   type ItineraryMeeting,
   type InsertItineraryMeeting,
   type ItineraryTravelSegment,
-  type InsertItineraryTravelSegment
+  type InsertItineraryTravelSegment,
+  pythonScripts,
+  scriptVersions,
+  scriptExecutions,
+  scriptSchedules,
+  scriptQcResults,
+  gitRepositories,
+  scriptPermissions,
+  type PythonScript,
+  type InsertPythonScript,
+  type ScriptVersion,
+  type InsertScriptVersion,
+  type ScriptExecution,
+  type InsertScriptExecution,
+  type ScriptSchedule,
+  type InsertScriptSchedule,
+  type ScriptQcResult,
+  type InsertScriptQcResult,
+  type GitRepository,
+  type InsertGitRepository,
+  type ScriptPermission,
+  type InsertScriptPermission
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
@@ -171,6 +192,44 @@ export interface IStorage {
   // Admin methods
   getAllUsersWithRoles(): Promise<UserWithRoles[]>;
   getAllApplications(): Promise<Application[]>;
+
+  // Python AI - Script management
+  getPythonScripts(ownerId?: string): Promise<PythonScript[]>;
+  getPythonScript(id: number): Promise<PythonScript | undefined>;
+  createPythonScript(scriptData: InsertPythonScript): Promise<PythonScript>;
+  updatePythonScript(id: number, updates: Partial<InsertPythonScript>): Promise<PythonScript>;
+  deletePythonScript(id: number): Promise<boolean>;
+  
+  // Script versions
+  getScriptVersions(scriptId: number): Promise<ScriptVersion[]>;
+  createScriptVersion(versionData: InsertScriptVersion): Promise<ScriptVersion>;
+  getScriptVersion(scriptId: number, version: number): Promise<ScriptVersion | undefined>;
+  
+  // Script execution
+  getScriptExecutions(scriptId?: number, userId?: string): Promise<ScriptExecution[]>;
+  createScriptExecution(executionData: InsertScriptExecution): Promise<ScriptExecution>;
+  updateScriptExecution(id: number, updates: Partial<InsertScriptExecution>): Promise<ScriptExecution>;
+  getScriptExecution(id: number): Promise<ScriptExecution | undefined>;
+  
+  // Script scheduling
+  getScriptSchedules(scriptId?: number): Promise<ScriptSchedule[]>;
+  createScriptSchedule(scheduleData: InsertScriptSchedule): Promise<ScriptSchedule>;
+  updateScriptSchedule(id: number, updates: Partial<InsertScriptSchedule>): Promise<ScriptSchedule>;
+  deleteScriptSchedule(id: number): Promise<boolean>;
+  
+  // AI QC results
+  getScriptQcResults(scriptId: number): Promise<ScriptQcResult[]>;
+  createScriptQcResult(qcData: InsertScriptQcResult): Promise<ScriptQcResult>;
+  
+  // Git repositories
+  getGitRepositories(): Promise<GitRepository[]>;
+  createGitRepository(repoData: InsertGitRepository): Promise<GitRepository>;
+  updateGitRepository(id: number, updates: Partial<InsertGitRepository>): Promise<GitRepository>;
+  
+  // Script permissions
+  getScriptPermissions(scriptId: number): Promise<ScriptPermission[]>;
+  createScriptPermission(permissionData: InsertScriptPermission): Promise<ScriptPermission>;
+  deleteScriptPermission(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements Partial<IStorage> {

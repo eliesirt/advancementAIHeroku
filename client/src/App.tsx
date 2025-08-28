@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -46,6 +46,7 @@ function AppContent() {
             <Route path="/apps/itinerary" component={ItineraryPage} />
             <Route path="/apps/settings" component={SettingsPage} />
             <Route path="/apps/user-management" component={UserManagementPage} />
+            <Route path="/apps/python-ai" component={lazy(() => import('./pages/python-ai'))} />
             <Route path="/apps" component={Launcher} />
           </>
         )}

@@ -146,6 +146,124 @@ export const aiPromptSettings = pgTable("ai_prompt_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Python Scripts table for pythonAI application
+export const pythonScripts = pgTable("python_scripts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  tags: text("tags").array().default([]),
+  ownerId: varchar("owner_id").notNull().references(() => users.id),
+  content: text("content").notNull(), // Full Python script content
+  metadata: jsonb("metadata"), // YAML front-matter parsed as JSON
+  requirements: text("requirements").array().default([]), // pip requirements
+  version: integer("version").default(1),
+  isActive: boolean("is_active").default(true),
+  lastRunAt: timestamp("last_run_at"),
+  status: text("status").default("draft"), // draft, active, deprecated
+  gitHash: text("git_hash"), // Git commit hash for version control
+  gitBranch: text("git_branch").default("main"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Script versions for version control
+export const scriptVersions = pgTable("script_versions", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => pythonScripts.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  content: text("content").notNull(),
+  changeDescription: text("change_description"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  gitHash: text("git_hash"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueScriptVersion: index("unique_script_version_idx").on(table.scriptId, table.version),
+}));
+
+// Script execution history
+export const scriptExecutions = pgTable("script_executions", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => pythonScripts.id, { onDelete: "cascade" }),
+  scheduleId: integer("schedule_id"),
+  triggeredBy: varchar("triggered_by").notNull().references(() => users.id),
+  status: text("status").notNull().default("queued"), // queued, running, completed, failed, timeout
+  inputs: jsonb("inputs"), // Input parameters passed to script
+  stdout: text("stdout"),
+  stderr: text("stderr"),
+  exitCode: integer("exit_code"),
+  duration: integer("duration"), // milliseconds
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  environmentSnapshot: jsonb("environment_snapshot"), // Packages and versions used
+  artifacts: jsonb("artifacts"), // Output files, results, etc.
+  resourceUsage: jsonb("resource_usage"), // CPU, memory, network stats
+  isScheduled: boolean("is_scheduled").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Script scheduling
+export const scriptSchedules = pgTable("script_schedules", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => pythonScripts.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  cronExpression: text("cron_expression").notNull(),
+  timezone: text("timezone").default("UTC"),
+  isActive: boolean("is_active").default(true),
+  inputs: jsonb("inputs"), // Default inputs for scheduled runs
+  maxConcurrentRuns: integer("max_concurrent_runs").default(1),
+  timeoutSeconds: integer("timeout_seconds").default(300), // 5 minutes default
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  lastRunAt: timestamp("last_run_at"),
+  nextRunAt: timestamp("next_run_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// AI QC results for scripts
+export const scriptQcResults = pgTable("script_qc_results", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => pythonScripts.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  lintingResults: jsonb("linting_results"), // PEP8, style issues
+  securityIssues: jsonb("security_issues"), // Security vulnerabilities
+  suggestions: jsonb("suggestions"), // Improvement recommendations
+  generatedTests: text("generated_tests"), // pytest test code
+  generatedDocstrings: text("generated_docstrings"), // Enhanced docstrings
+  qualityScore: integer("quality_score"), // 0-100 overall quality
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Git repository configuration for version control
+export const gitRepositories = pgTable("git_repositories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  provider: text("provider").notNull(), // github, gitlab, azure
+  repositoryUrl: text("repository_url").notNull(),
+  branch: text("branch").default("main"),
+  scriptPath: text("script_path").default("scripts/"), // Path within repo for scripts
+  webhookSecret: text("webhook_secret"), // For webhook validation
+  isActive: boolean("is_active").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Script permissions for RBAC
+export const scriptPermissions = pgTable("script_permissions", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => pythonScripts.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  roleId: integer("role_id").references(() => roles.id, { onDelete: "cascade" }),
+  permissions: text("permissions").array().notNull(), // read, execute, edit, schedule, admin
+  grantedBy: varchar("granted_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  // Either user or role must be specified, but not both
+  userOrRoleCheck: index("user_or_role_check_idx").on(table.scriptId),
+}));
+
 // Prospects table for portfolio management
 export const prospects = pgTable("prospects", {
   id: serial("id").primaryKey(),
@@ -474,6 +592,52 @@ export const insertAiPromptSettingsSchema = createInsertSchema(aiPromptSettings)
   updatedAt: true,
 });
 
+// Python AI schemas
+export const insertPythonScriptSchema = createInsertSchema(pythonScripts).omit({
+  id: true,
+  version: true,
+  lastRunAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptVersionSchema = createInsertSchema(scriptVersions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertScriptExecutionSchema = createInsertSchema(scriptExecutions).omit({
+  id: true,
+  startedAt: true,
+  completedAt: true,
+  createdAt: true,
+});
+
+export const insertScriptScheduleSchema = createInsertSchema(scriptSchedules).omit({
+  id: true,
+  lastRunAt: true,
+  nextRunAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptQcResultSchema = createInsertSchema(scriptQcResults).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGitRepositorySchema = createInsertSchema(gitRepositories).omit({
+  id: true,
+  lastSyncAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptPermissionSchema = createInsertSchema(scriptPermissions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertProspectSchema = createInsertSchema(prospects).omit({
   id: true,
   createdAt: true,
@@ -537,6 +701,38 @@ export type AffinityTagSettings = typeof affinityTagSettings.$inferSelect;
 export type InsertAffinityTagSettings = z.infer<typeof insertAffinityTagSettingsSchema>;
 export type AiPromptSettings = typeof aiPromptSettings.$inferSelect;
 export type InsertAiPromptSettings = z.infer<typeof insertAiPromptSettingsSchema>;
+
+// Python AI types
+export type InsertPythonScript = z.infer<typeof insertPythonScriptSchema>;
+export type PythonScript = typeof pythonScripts.$inferSelect;
+export type InsertScriptVersion = z.infer<typeof insertScriptVersionSchema>;
+export type ScriptVersion = typeof scriptVersions.$inferSelect;
+export type InsertScriptExecution = z.infer<typeof insertScriptExecutionSchema>;
+export type ScriptExecution = typeof scriptExecutions.$inferSelect;
+export type InsertScriptSchedule = z.infer<typeof insertScriptScheduleSchema>;
+export type ScriptSchedule = typeof scriptSchedules.$inferSelect;
+export type InsertScriptQcResult = z.infer<typeof insertScriptQcResultSchema>;
+export type ScriptQcResult = typeof scriptQcResults.$inferSelect;
+export type InsertGitRepository = z.infer<typeof insertGitRepositorySchema>;
+export type GitRepository = typeof gitRepositories.$inferSelect;
+export type InsertScriptPermission = z.infer<typeof insertScriptPermissionSchema>;
+export type ScriptPermission = typeof scriptPermissions.$inferSelect;
+
+// Extended types with relations for Python AI
+export type PythonScriptWithVersions = PythonScript & {
+  versions: ScriptVersion[];
+  executions: ScriptExecution[];
+  schedules: ScriptSchedule[];
+  permissions: ScriptPermission[];
+  owner: User;
+};
+
+export type ScriptExecutionWithScript = ScriptExecution & {
+  script: PythonScript;
+  schedule?: ScriptSchedule;
+  triggeredByUser: User;
+};
+
 export type Prospect = typeof prospects.$inferSelect;
 export type InsertProspect = z.infer<typeof insertProspectSchema>;
 export type ProspectRelationship = typeof prospectRelationships.$inferSelect;

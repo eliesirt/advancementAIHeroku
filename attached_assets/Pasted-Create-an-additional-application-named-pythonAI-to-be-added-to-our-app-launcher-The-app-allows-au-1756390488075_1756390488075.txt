@@ -1,0 +1,48 @@
+Create an additional application named "pythonAI" to be added to our app launcher. The app allows authenticated users to upload, manage, edit, execute, and schedule Python scripts in a controlled manner. It provides sortable/filterable lists of scripts and run history, and optionally integrates with OpenAI to QC (lint & security check), generate unit tests, and add structured comments/docstrings to scripts.
+
+High-Level Requirements:
+
+Scripts Management:
+Upload .py files or create new scripts from the UI.
+Each script has metadata: name, description, tags, owner, created_at, updated_at, last_run_at, status, version.
+Sort and filter by name, tag(s), owner, last run date, status.
+Rich editor (Monaco or CodeMirror) with Python syntax highlighting, linting, and save/versioning.
+Optional YAML front‑matter block for script metadata and runtime config (example further below).
+
+Execution:
+Run ad hoc with a “Run” button from Script Detail.
+Pass optional inputs/arguments defined in front‑matter (UI renders inputs form).
+Sandboxed runner (separate process), timeouts, memory/CPU caps, optional network egress control (allowlist/blocked).
+Ephemeral virtual environment per run (or cached by script hash), pip install requirements from front‑matter.
+Capture stdout, stderr, exit code, duration, and environment snapshot.
+
+Scheduling:
+Users can define and enable/disable schedules.
+Persist schedules and ensure no duplicate concurrent runs for same schedule (lock).
+Use APScheduler (or Celery+Redis if you choose a worker architecture) with job persistence.
+Run History
+
+Dedicated page for filterable/sortable run history: by script, status, user, started time, duration, scheduled/ad‑hoc.
+Drill into run details: logs, parameters, artifacts (if any), exit code, environment snapshot.
+Allow download of logs.
+
+Editing:
+Edit scripts in UI, view versions, diff, and restore prior versions.
+Optional “branch & PR” workflow can be simulated via “proposed changes & approval”, but not required for MVP.
+AI QC + Unit Tests + Comments (Optional Feature)
+
+Button “AI Review & Tests”.
+Calls OpenAI with a prompt to: lint for style (PEP8), detect security issues, propose improvements, generate pytest tests, and add docstrings (Google‑style) and inline comments.
+Show a diff preview; allow apply all/some changes. Run tests in sandbox, display results.
+
+Security & Compliance:
+RBAC: View/Run vs Edit/Upload vs Schedule permissions.
+Resource limits per run; secrets redaction in logs; no secrets passed to OpenAI.
+Optional network egress control: deny by default; allowlist domains per script metadata.
+Audit logging: who did what and when.
+Input validation and file scanning (only .py; guard against oversized files).
+
+Git Integration (Version Control, Branch/PR Workflow, and Sync):
+Integrate pythonAI with a Git repository so every script edit and version is tracked as a commit. The database remains the index and metadata layer, while Git is the canonical content store for scripts and tests.
+Supported Providers should be GitHub, GitLab, Azure Repos (provider‑agnostic via a thin abstraction).
+Use HTTPS URLs with token in credential helper; forbid storing tokens in DB (env only).
