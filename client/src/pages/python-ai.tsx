@@ -93,6 +93,7 @@ export default function PythonAI() {
   const [tagFilter, setTagFilter] = useState('all');
   const [selectedScript, setSelectedScript] = useState<PythonScript | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExecuteDialogOpen, setIsExecuteDialogOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
@@ -136,6 +137,29 @@ export default function PythonAI() {
         setIsCreateDialogOpen(false);
       });
       toast({ title: 'Success', description: 'Script created successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Update script mutation
+  const updateScriptMutation = useMutation({
+    mutationFn: async (data: { id: number; scriptData: any }) => {
+      const response = await fetch(`/api/python-scripts/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.scriptData),
+      });
+      if (!response.ok) throw new Error('Failed to update script');
+      return response.json();
+    },
+    onSuccess: () => {
+      startTransition(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/python-scripts'] });
+        setIsEditDialogOpen(false);
+      });
+      toast({ title: 'Success', description: 'Script updated successfully' });
     },
     onError: (error: any) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -324,8 +348,8 @@ export default function PythonAI() {
                       setIsExecuteDialogOpen(true);
                     }}
                     onEdit={(script) => {
-                      // Navigate to script editor
-                      window.location.href = `/apps/python-ai/scripts/${script.id}/edit`;
+                      setSelectedScript(script);
+                      setIsEditDialogOpen(true);
                     }}
                   />
                 ))
@@ -359,6 +383,24 @@ export default function PythonAI() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Edit Script Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Python Script</DialogTitle>
+            <DialogDescription>
+              Modify your Python script details and code.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedScript && (
+            <EditScriptForm 
+              script={selectedScript}
+              onSubmit={(data) => updateScriptMutation.mutate({ id: selectedScript.id, scriptData: data })} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Execute Script Dialog */}
       <Dialog open={isExecuteDialogOpen} onOpenChange={setIsExecuteDialogOpen}>
@@ -819,5 +861,166 @@ function SettingsPanel() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Edit Script Form Component
+function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: (data: any) => void }) {
+  const [formData, setFormData] = useState({
+    name: script.name || '',
+    description: script.description || '',
+    content: script.content || '',
+    tags: script.tags || [],
+    requirements: script.requirements || [],
+    status: script.status || 'draft',
+    gitBranch: script.gitBranch || 'main'
+  });
+
+  const [tagInput, setTagInput] = useState('');
+  const [reqInput, setReqInput] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()]
+      }));
+      setTagInput('');
+    }
+  };
+
+  const addRequirement = () => {
+    if (reqInput.trim() && !formData.requirements.includes(reqInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        requirements: [...prev.requirements, reqInput.trim()]
+      }));
+      setReqInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
+  };
+
+  const removeRequirement = (req: string) => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: prev.requirements.filter(r => r !== req)
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Script Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="my_script.py"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Input
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Brief description of what this script does"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="status">Status</Label>
+        <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="deprecated">Deprecated</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="content">Python Code</Label>
+        <Textarea
+          id="content"
+          value={formData.content}
+          onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+          placeholder="Enter your Python code here..."
+          className="font-mono text-sm min-h-[200px]"
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Tags</Label>
+        <div className="flex items-center space-x-2 mb-2">
+          <Input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="automation, data-processing"
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+          />
+          <Button type="button" size="sm" onClick={addTag}>Add</Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.tags.map(tag => (
+            <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
+              {tag} ×
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label>Requirements</Label>
+        <div className="flex items-center space-x-2 mb-2">
+          <Input
+            value={reqInput}
+            onChange={(e) => setReqInput(e.target.value)}
+            placeholder="requests==2.28.1"
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
+          />
+          <Button type="button" size="sm" onClick={addRequirement}>Add</Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.requirements.map(req => (
+            <Badge key={req} variant="outline" className="cursor-pointer" onClick={() => removeRequirement(req)}>
+              {req} ×
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="gitBranch">Git Branch</Label>
+        <Input
+          id="gitBranch"
+          value={formData.gitBranch}
+          onChange={(e) => setFormData(prev => ({ ...prev, gitBranch: e.target.value }))}
+          placeholder="main"
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline">Cancel</Button>
+        <Button type="submit">Update Script</Button>
+      </div>
+    </form>
   );
 }
