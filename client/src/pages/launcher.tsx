@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, LogOut, User, Settings, Brain, Zap, Users, Database, Briefcase, Map } from "lucide-react";
+import { Loader2, LogOut, User, Settings, Brain, Zap, Users, Database, Briefcase, Map, Code } from "lucide-react";
 import type { ApplicationWithPermissions, UserWithRoles } from "@shared/schema";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 
@@ -134,6 +134,7 @@ export default function Launcher() {
                       {app.icon === 'settings' && <Settings className="h-6 w-6" />}
                       {app.icon === 'briefcase' && <Briefcase className="h-6 w-6" />}
                       {app.icon === 'map' && <Map className="h-6 w-6" />}
+                      {app.icon === 'code' && <Code className="h-6 w-6" />}
                       {!app.icon && <Brain className="h-6 w-6" />}
                     </div>
                   </div>
@@ -185,16 +186,16 @@ export default function Launcher() {
                 </div>
               </div>
 
-              {/* Configuration Section */}
+              {/* Administration Section */}
               <div className="mb-12">
                 <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Configuration</h3>
-                  <p className="text-gray-600">System settings and user management tools</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Administration</h3>
+                  <p className="text-gray-600">System settings, user management, and development tools</p>
                 </div>
 
-                {/* Configuration Grid */}
+                {/* Administration Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {configurationApps.map(renderAppCard)}
+                  {administrationApps.map(renderAppCard)}
                 </div>
               </div>
 
