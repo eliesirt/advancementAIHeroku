@@ -267,18 +267,18 @@ app.get('/health', (req, res) => {
           color: "red",
           route: "/apps/user-management", 
           isActive: true,
-          sortOrder: 6
+          sortOrder: 5
         },
         {
           id: 6,
-          name: "python-ai",
+          name: "pythonai",
           displayName: "pythonAI",
-          description: "Upload, manage, edit, execute, and schedule Python scripts with AI-powered QC, testing, and Git integration",
-          icon: "code",
-          color: "#3776ab",
+          description: "AI-enhanced Python script management, execution, and scheduling",
+          icon: "Code",
+          color: "bg-yellow-500",
           route: "/apps/python-ai",
           isActive: true,
-          sortOrder: 5
+          sortOrder: 6
         }
       ]);
     });
