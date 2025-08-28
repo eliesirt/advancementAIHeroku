@@ -12,7 +12,7 @@ import { z } from "zod";
 async function getAuthModule() {
   const isHerokuDeployment = process.env.NODE_ENV === 'production' && 
     (process.env.HEROKU_APP_NAME || !process.env.REPLIT_DOMAINS || !process.env.REPL_ID);
-  
+
   if (isHerokuDeployment) {
     return await import("./herokuAuth");
   } else {
@@ -43,7 +43,23 @@ async function getMatchingThreshold(): Promise<number> {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get auth module based on environment
   const { setupAuth, isAuthenticated } = await getAuthModule();
-  
+  // Helper for admin check - assuming 'isAdmin' is defined elsewhere or this is a placeholder
+  // In a real scenario, isAdmin would be a middleware checking user roles.
+  // For this context, we'll define a placeholder.
+  const isAdmin = async (req: any, res: any, next: any) => {
+    // Placeholder for actual admin check
+    // In a real app, this would verify if req.user has admin privileges
+    const userId = req.user?.claims?.sub;
+    if (userId) {
+      const user = await storage.getUserWithRoles(userId);
+      if (user?.roles?.some(role => role.name === "Administrator")) {
+        return next();
+      }
+    }
+    res.status(403).json({ message: "Admin access required" });
+  };
+
+
   // Auth middleware
   await setupAuth(app);
 
@@ -73,17 +89,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/applications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
 
-      
+
+
       const applications = await storage.getUserApplications(userId);
-      
+
       // Debug logging for Heroku deployment issue
       console.log(`📱 Applications for user ${userId} (count: ${applications.length}):`);
       applications.forEach((app, index) => {
         console.log(`  ${index + 1}. ${app.displayName} (sortOrder: ${app.sortOrder ?? 'undefined'})`);
       });
-      
+
       // Add cache-busting headers to ensure fresh data and force 200 response
       res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -91,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Expires': '0',
         'ETag': Date.now().toString() // Force fresh response by changing ETag
       });
-      
+
       res.json(applications);
     } catch (error) {
       console.error("Error fetching applications:", error);
@@ -204,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🎙️ Voice recording processing started");
       const { transcript, audioData, duration } = req.body;
-      
+
       console.log("Voice processing request data:", { 
         hasTranscript: !!transcript, 
         transcriptLength: transcript?.length || 0,
@@ -217,29 +233,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bodyKeys: Object.keys(req.body || {}),
         contentType: req.headers['content-type']
       });
-      
+
       let finalTranscript = transcript;
-      
+
       // If no transcript from speech recognition, use OpenAI Whisper to transcribe the audio
       if (!transcript || transcript.trim().length === 0) {
         console.log("No browser transcript available, using OpenAI Whisper for transcription...");
-        
+
         if (!audioData || audioData.length === 0) {
           return res.status(400).json({ 
             message: "Recording failed - no audio or transcript captured",
             suggestion: "Please ensure microphone permissions are enabled and speak clearly during recording" 
           });
         }
-        
+
         try {
           console.log("Starting OpenAI Whisper transcription...");
           const { transcribeAudio } = await import("./lib/openai");
           finalTranscript = await transcribeAudio(audioData);
-          
+
           console.log("OpenAI Whisper transcription completed:", { 
             transcriptLength: finalTranscript.length
           });
-          
+
         } catch (whisperError) {
           console.error("OpenAI Whisper transcription failed:", whisperError);
           return res.status(500).json({ 
@@ -249,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       if (!finalTranscript || finalTranscript.trim().length === 0) {
         console.log("No transcript generated from either browser or OpenAI Whisper");
         return res.status(400).json({ 
@@ -340,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Direct voice processing error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-      
+
       // Check if it's a specific type of error
       if (error instanceof Error) {
         if (error.message.includes('OPENAI_API_KEY')) {
@@ -356,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       res.status(500).json({ 
         message: "Failed to process voice recording", 
         error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -815,14 +831,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const interactionId = parseInt(req.params.id);
       console.log(`🗑️ Attempting to delete interaction: ${interactionId}`);
-      
+
       // Check if interaction exists first
       const existingInteraction = await storage.getInteraction(interactionId);
       if (!existingInteraction) {
         console.log(`❌ Interaction ${interactionId} not found`);
         return res.status(404).json({ success: false, message: "Interaction not found" });
       }
-      
+
       const success = await storage.deleteInteraction(interactionId);
       console.log(`🔍 Delete operation result for ${interactionId}:`, success, typeof success);
 
@@ -1661,7 +1677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/bootstrap', async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
@@ -1683,7 +1699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get admin role
       const roles = await storage.getRoles();
       const adminRole = roles.find(r => r.name === "Administrator");
-      
+
       if (!adminRole) {
         return res.status(500).json({ message: "Administrator role not found" });
       }
@@ -1691,14 +1707,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already has admin role
       const userRoles = await storage.getUserRoles(user.id);
       const hasAdminRole = userRoles.some(role => role.id === adminRole.id);
-      
+
       if (hasAdminRole) {
         return res.json({ success: true, message: "User already has Administrator role" });
       }
 
       // Assign admin role
       await storage.assignUserRole(user.id, adminRole.id, "bootstrap");
-      
+
       res.json({ 
         success: true, 
         message: `Administrator role assigned to ${user.email || user.id}` 
@@ -1718,19 +1734,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUserWithRoles(userId);
-      
+
       if (!user || !user.roles?.some(role => role.name === "Administrator")) {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       next();
     } catch (error) {
       res.status(500).json({ message: "Failed to verify admin access" });
     }
   };
 
-  // Get all users (admin only)
-  app.get('/api/admin/users', isAuthenticated, requireAdmin, async (req: any, res) => {
+  // Python AI endpoints
+  app.get("/api/python-scripts", isAuthenticated, async (req: any, res) => {
+    try {
+      const scripts = await storage.getPythonScripts();
+      res.json(scripts);
+    } catch (error: any) {
+      console.error('Error fetching Python scripts:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/python-scripts", isAuthenticated, async (req: any, res) => {
+    try {
+      // Assuming req.session.user exists and contains user info after authentication
+      // If using a different auth mechanism, adjust how userId is retrieved.
+      const userId = req.user?.claims?.sub; 
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+      const scriptData = { ...req.body, ownerId: userId };
+      const script = await storage.createPythonScript(scriptData);
+      res.json(script);
+    } catch (error: any) {
+      console.error('Error creating Python script:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/python-scripts/:id/execute", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { inputs } = req.body;
+
+      // Mock execution response as Python runtime is not available on Heroku
+      // In a production Heroku environment with Python runtime, this would invoke the actual script execution.
+      const execution = {
+        id: Date.now(), // Simple unique ID for mock execution
+        scriptId: parseInt(id),
+        status: 'completed', // Mock status
+        inputs,
+        stdout: 'Mock execution output: Python runtime not available in this environment.', // Mock stdout
+        stderr: null, // Mock stderr
+        exitCode: 0, // Mock exit code
+        duration: 100, // Mock duration in ms
+        startedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+        isScheduled: false, // Mock flag
+        createdAt: new Date().toISOString() // Mock creation timestamp
+      };
+
+      res.json(execution);
+    } catch (error: any) {
+      console.error('Error executing Python script:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/script-executions", isAuthenticated, async (req: any, res) => {
+    try {
+      // Placeholder: In a real implementation, this would fetch script execution records from a database.
+      // For now, return an empty array as the 'script_executions' table is not defined or populated.
+      res.json([]);
+    } catch (error: any) {
+      console.error('Error fetching script executions:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+
+  // Admin endpoints
+  app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req: any, res) => {
     try {
       console.log("Getting all users with roles...");
       const users = await storage.getAllUsersWithRoles();
@@ -1747,7 +1832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Creating user with data:", req.body);
       const userData = req.body;
-      
+
       // Check if user with this email already exists
       const existingUser = await storage.getUserByUsername(userData.email);
       if (existingUser) {
@@ -1756,13 +1841,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: `A user with email "${userData.email}" already exists. Please use a different email address.`
         });
       }
-      
+
       const user = await storage.createUser(userData);
       console.log("Successfully created user:", user);
       res.json(user);
     } catch (error: any) {
       console.error("Error creating user:", error);
-      
+
       // Handle duplicate email constraint violation
       if (error.code === '23505' && error.constraint_name === 'users_email_unique') {
         return res.status(400).json({ 
@@ -1770,7 +1855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: "A user with this email address already exists. Please use a different email address."
         });
       }
-      
+
       res.status(500).json({ message: "Failed to create user", error: error.message });
     }
   });
@@ -1793,7 +1878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { roleId } = req.body;
       const adminId = req.user.claims.sub;
-      
+
       const userRole = await storage.assignUserRole(id, roleId, adminId);
       res.json(userRole);
     } catch (error) {
@@ -1817,7 +1902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
       const adminId = req.user?.id;
-      
+
       // Verify the target user exists and is not an admin
       const targetUser = await storage.getUserWithRoles(userId);
       if (!targetUser) {
@@ -1839,7 +1924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update user claims to target user
       req.user.claims.sub = userId;
-      
+
       res.json({ 
         success: true, 
         message: `Now impersonating ${targetUser.firstName} ${targetUser.lastName}`,
@@ -1859,13 +1944,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { adminId } = req.session.impersonation;
-      
+
       // Restore admin user claims
       req.user.claims.sub = adminId;
-      
+
       // Clear impersonation from session
       delete req.session.impersonation;
-      
+
       res.json({ 
         success: true, 
         message: "Impersonation ended, returned to admin account" 
@@ -1882,11 +1967,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.session.impersonation) {
         const { adminId, targetUserId, startedAt } = req.session.impersonation;
         console.log("🔍 Checking impersonation status:", { adminId, targetUserId });
-        
+
         // Safely fetch users with null handling
         let targetUser = null;
         let adminUser = null;
-        
+
         try {
           if (targetUserId) {
             targetUser = await storage.getUserWithRoles(targetUserId);
@@ -1894,7 +1979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (targetError) {
           console.warn("Warning: Could not fetch target user:", targetError);
         }
-        
+
         try {
           if (adminId) {
             adminUser = await storage.getUserWithRoles(adminId);
@@ -1902,7 +1987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (adminError) {
           console.warn("Warning: Could not fetch admin user:", adminError);
         }
-        
+
         res.json({
           isImpersonating: true,
           admin: adminUser || { id: adminId, firstName: "Admin", lastName: "User" },
@@ -1996,13 +2081,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { roleId } = req.params;
       const { applicationId, permissions } = req.body;
-      
+
       console.log('Assigning role permissions:', { roleId, applicationId, permissions });
-      
+
       if (!applicationId || !Array.isArray(permissions)) {
         return res.status(400).json({ message: "applicationId and permissions array are required" });
       }
-      
+
       const roleApp = await storage.assignRoleApplication(parseInt(roleId), parseInt(applicationId), permissions);
       res.json(roleApp);
     } catch (error) {
@@ -2012,7 +2097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Prospect Management API Routes
-  
+
   // Get prospects for the logged-in manager
   app.get('/api/prospects', isAuthenticated, async (req: any, res) => {
     try {
@@ -2030,9 +2115,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const prospect = await storage.getProspect(parseInt(id));
-      
+
       if (!prospect) {
         return res.status(404).json({ message: "Prospect not found" });
       }
@@ -2054,7 +2139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       await storage.refreshAllProspectData(userId);
-      
+
       // Return updated prospects
       const prospects = await storage.getProspectsByManager(userId);
       res.json({ message: "All prospect data refreshed successfully", prospects });
@@ -2069,9 +2154,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const prospect = await storage.getProspect(parseInt(id));
-      
+
       if (!prospect) {
         return res.status(404).json({ message: "Prospect not found" });
       }
@@ -2105,21 +2190,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary) {
         return res.status(404).json({ message: "Itinerary not found" });
       }
-      
+
       // Check if user owns this itinerary
       if (itinerary.userId !== userId) {
         return res.status(403).json({ message: "Access denied to this itinerary" });
       }
-      
+
       // Get meetings and travel segments
       const meetings = await storage.getItineraryMeetings(parseInt(id));
       const travelSegments = await storage.getItineraryTravelSegments(parseInt(id));
-      
+
       res.json({ ...itinerary, meetings, travelSegments });
     } catch (error) {
       console.error("Error fetching itinerary:", error);
@@ -2130,13 +2215,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/itineraries', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Validate and parse the request body
       const validatedData = insertItinerarySchema.parse({
         ...req.body,
         userId
       });
-      
+
       const newItinerary = await storage.createItinerary(validatedData);
       res.json(newItinerary);
     } catch (error) {
@@ -2149,12 +2234,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary || itinerary.userId !== userId) {
         return res.status(404).json({ message: "Itinerary not found or access denied" });
       }
-      
+
       const updatedItinerary = await storage.updateItinerary(parseInt(id), req.body);
       res.json(updatedItinerary);
     } catch (error) {
@@ -2167,12 +2252,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary || itinerary.userId !== userId) {
         return res.status(404).json({ message: "Itinerary not found or access denied" });
       }
-      
+
       await storage.deleteItinerary(parseInt(id));
       res.json({ success: true, message: "Itinerary deleted successfully" });
     } catch (error) {
@@ -2186,18 +2271,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       const itinerary = await storage.getItinerary(parseInt(id));
       if (!itinerary || itinerary.userId !== userId) {
         return res.status(404).json({ message: "Itinerary not found or access denied" });
       }
-      
+
       // Validate and parse the request body
       const validatedData = insertItineraryMeetingSchema.parse({
         ...req.body,
         itineraryId: parseInt(id)
       });
-      
+
       const newMeeting = await storage.createItineraryMeeting(validatedData);
       res.json(newMeeting);
     } catch (error) {
@@ -2232,7 +2317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/places/autocomplete', isAuthenticated, async (req: any, res) => {
     try {
       console.log('[PLACES API] Autocomplete request received:', { input: req.query.input, user: req.user?.claims?.sub });
-      
+
       const { input } = req.query;
       if (!input || typeof input !== 'string') {
         console.log('[PLACES API] Invalid input parameter');
@@ -2247,10 +2332,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=establishment|geocode&components=country:us`;
       console.log('[PLACES API] Making request to Google Places API');
-      
+
       const response = await fetch(url);
       const data = await response.json();
-      
+
       console.log('[PLACES API] Received response from Google, predictions:', data.predictions?.length || 0);
       res.json(data);
     } catch (error) {
@@ -2262,7 +2347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/places/details', isAuthenticated, async (req: any, res) => {
     try {
       console.log('[PLACES API] Details request received:', { place_id: req.query.place_id, user: req.user?.claims?.sub });
-      
+
       const { place_id } = req.query;
       if (!place_id || typeof place_id !== 'string') {
         console.log('[PLACES API] Invalid place_id parameter');
@@ -2277,10 +2362,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_address,address_components,geometry&key=${apiKey}`;
       console.log('[PLACES API] Making request to Google Places Details API');
-      
+
       const response = await fetch(url);
       const data = await response.json();
-      
+
       console.log('[PLACES API] Received details response from Google');
       res.json(data);
     } catch (error) {

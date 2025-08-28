@@ -199,33 +199,33 @@ export interface IStorage {
   createPythonScript(scriptData: InsertPythonScript): Promise<PythonScript>;
   updatePythonScript(id: number, updates: Partial<InsertPythonScript>): Promise<PythonScript>;
   deletePythonScript(id: number): Promise<boolean>;
-  
+
   // Script versions
   getScriptVersions(scriptId: number): Promise<ScriptVersion[]>;
   createScriptVersion(versionData: InsertScriptVersion): Promise<ScriptVersion>;
   getScriptVersion(scriptId: number, version: number): Promise<ScriptVersion | undefined>;
-  
+
   // Script execution
   getScriptExecutions(scriptId?: number, userId?: string): Promise<ScriptExecution[]>;
   createScriptExecution(executionData: InsertScriptExecution): Promise<ScriptExecution>;
   updateScriptExecution(id: number, updates: Partial<InsertScriptExecution>): Promise<ScriptExecution>;
   getScriptExecution(id: number): Promise<ScriptExecution | undefined>;
-  
+
   // Script scheduling
   getScriptSchedules(scriptId?: number): Promise<ScriptSchedule[]>;
   createScriptSchedule(scheduleData: InsertScriptSchedule): Promise<ScriptSchedule>;
   updateScriptSchedule(id: number, updates: Partial<InsertScriptSchedule>): Promise<ScriptSchedule>;
   deleteScriptSchedule(id: number): Promise<boolean>;
-  
+
   // AI QC results
   getScriptQcResults(scriptId: number): Promise<ScriptQcResult[]>;
   createScriptQcResult(qcData: InsertScriptQcResult): Promise<ScriptQcResult>;
-  
+
   // Git repositories
   getGitRepositories(): Promise<GitRepository[]>;
   createGitRepository(repoData: InsertGitRepository): Promise<GitRepository>;
   updateGitRepository(id: number, updates: Partial<InsertGitRepository>): Promise<GitRepository>;
-  
+
   // Script permissions
   getScriptPermissions(scriptId: number): Promise<ScriptPermission[]>;
   createScriptPermission(permissionData: InsertScriptPermission): Promise<ScriptPermission>;
@@ -907,7 +907,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserWithRoles(id: string): Promise<UserWithRoles | undefined> {
     if (!id) return undefined;
-    
+
     const user = await this.getUser(id);
     if (!user) return undefined;
 
@@ -959,25 +959,25 @@ export class DatabaseStorage implements IStorage {
   async deleteInteraction(id: number): Promise<boolean> {
     const result = await db.delete(interactions).where(eq(interactions.id, id));
     console.log(`🔍 Database delete result for ${id}:`, result);
-    
+
     // Check multiple possible ways the result indicates success
     if (result.rowCount !== undefined) {
       return result.rowCount > 0;
     }
-    
+
     // For some database drivers, the result might be different
     if (typeof result === 'object' && result !== null) {
       // Check if result has changes property (some ORM variations)
       if ('changes' in result) {
         return (result as any).changes > 0;
       }
-      
+
       // Check if result has affectedRows property (some drivers)
       if ('affectedRows' in result) {
         return (result as any).affectedRows > 0;
       }
     }
-    
+
     // Fallback: assume success if no error was thrown
     // Since we check if the record exists before deleting, this should be safe
     return true;
@@ -1215,7 +1215,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(applications.isActive, true),
         // Only include role applications for the user's roles
-        roleIds.length > 0 ? 
+        roleIds.length > 0 ?
           inArray(roleApplications.roleId, roleIds) :
           sql`false` // No roles, no applications
       ))
@@ -1223,7 +1223,7 @@ export class DatabaseStorage implements IStorage {
 
     // Group by application ID while preserving database sort order
     const appMap = new Map<number, {application: any, permissions: Set<string>}>();
-    
+
     // Process in the order returned by database (already sorted by sortOrder)
     roleApplicationsList.forEach(ra => {
       if (!appMap.has(ra.applicationId)) {
@@ -1238,10 +1238,10 @@ export class DatabaseStorage implements IStorage {
 
     // Convert to result array in the same order as database returned (preserving sortOrder)
     const result: ApplicationWithPermissions[] = [];
-    
+
     // Create a set to track which apps we've already added
     const addedApps = new Set<number>();
-    
+
     // Iterate through the original query results to maintain sortOrder
     roleApplicationsList.forEach(ra => {
       if (!addedApps.has(ra.applicationId)) {
@@ -1289,7 +1289,7 @@ export class DatabaseStorage implements IStorage {
   // Role application methods
   async assignRoleApplication(roleId: number, applicationId: number, permissions: string[]): Promise<RoleApplication> {
     console.log('Storage: Assigning role application:', { roleId, applicationId, permissions });
-    
+
     // First try to find existing record
     const existing = await db
       .select()
@@ -1352,13 +1352,13 @@ export class DatabaseStorage implements IStorage {
   // Prospect management methods
   async getProspects(prospectManagerId?: string): Promise<ProspectWithDetails[]> {
     let query = db.select().from(prospects);
-    
+
     if (prospectManagerId) {
       (query as any) = (query as any).where(eq(prospects.prospectManagerId, prospectManagerId));
     }
-    
+
     const prospectsData = await query.orderBy(desc(prospects.updatedAt));
-    
+
     return Promise.all(prospectsData.map(async (prospect) => {
       const [prospectManager, relationships, events, badges] = await Promise.all([
         prospect.prospectManagerId ? this.getUser(prospect.prospectManagerId) : undefined,
@@ -1383,7 +1383,7 @@ export class DatabaseStorage implements IStorage {
 
   async getProspect(id: number): Promise<ProspectWithDetails | undefined> {
     const [prospect] = await db.select().from(prospects).where(eq(prospects.id, id));
-    
+
     if (!prospect) return undefined;
 
     const [prospectManager, relationships, events, badges] = await Promise.all([
@@ -1611,7 +1611,48 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount ? result.rowCount > 0 : false;
   }
 
-  // Duplicate methods removed - already implemented above
+  // Python Scripts methods
+  async getPythonScripts(): Promise<PythonScript[]> {
+    return await this.db.select({
+      id: pythonScripts.id,
+      name: pythonScripts.name,
+      description: pythonScripts.description,
+      tags: pythonScripts.tags,
+      ownerId: pythonScripts.ownerId,
+      content: pythonScripts.content,
+      metadata: pythonScripts.metadata,
+      requirements: pythonScripts.requirements,
+      version: pythonScripts.version,
+      isActive: pythonScripts.isActive,
+      lastRunAt: pythonScripts.lastRunAt,
+      status: pythonScripts.status,
+      gitHash: pythonScripts.gitHash,
+      gitBranch: pythonScripts.gitBranch,
+      createdAt: pythonScripts.createdAt,
+      updatedAt: pythonScripts.updatedAt,
+      owner: {
+        firstName: users.firstName,
+        lastName: users.lastName
+      }
+    })
+      .from(pythonScripts)
+      .leftJoin(users, eq(pythonScripts.ownerId, users.id))
+      .orderBy(desc(pythonScripts.createdAt));
+  }
+
+  async createPythonScript(scriptData: any): Promise<PythonScript> {
+    const [script] = await this.db.insert(pythonScripts).values({
+      name: scriptData.name,
+      description: scriptData.description,
+      tags: scriptData.tags || [],
+      ownerId: scriptData.ownerId,
+      content: scriptData.content,
+      requirements: scriptData.requirements || [],
+      status: 'draft'
+    }).returning();
+
+    return script;
+  }
 }
 
 export const storage = new DatabaseStorage();
