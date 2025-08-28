@@ -1256,14 +1256,28 @@ app.get('/health', (req, res) => {
 
     app.post("/api/python-scripts", async (req: any, res) => {
       try {
+        console.log("🐍 [HEROKU] Creating Python script:", { body: req.body });
         const userId = req.session?.user?.id || "42195145"; // Fallback to admin user
         const scriptData = { ...req.body, ownerId: userId };
+        console.log("🐍 [HEROKU] Script data prepared:", { scriptData, userId });
+        
         const { storage } = await import("./storage");
+        console.log("🐍 [HEROKU] Storage imported successfully");
+        
         const script = await storage.createPythonScript(scriptData);
+        console.log("🐍 [HEROKU] Script created successfully:", { id: script?.id, name: script?.name });
         res.json(script);
       } catch (error: any) {
-        console.error('Error creating Python script:', error);
-        res.status(500).json({ error: error.message });
+        console.error('🚨 [HEROKU] Error creating Python script:', {
+          message: error.message,
+          stack: error.stack,
+          body: req.body,
+          userId: req.session?.user?.id
+        });
+        res.status(500).json({ 
+          error: error.message,
+          details: process.env.NODE_ENV === 'production' ? 'Check server logs for more details' : error.stack
+        });
       }
     });
 
