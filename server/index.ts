@@ -1227,6 +1227,33 @@ app.get('/health', (req, res) => {
       }
     });
 
+    app.get("/api/python-scripts/:id", async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { storage } = await import("./storage");
+        const script = await storage.getPythonScript(parseInt(id));
+        if (!script) {
+          return res.status(404).json({ error: 'Script not found' });
+        }
+        res.json(script);
+      } catch (error: any) {
+        console.error('Error fetching Python script:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    app.put("/api/python-scripts/:id", async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const { storage } = await import("./storage");
+        const script = await storage.updatePythonScript(parseInt(id), req.body);
+        res.json(script);
+      } catch (error: any) {
+        console.error('Error updating Python script:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     app.post("/api/python-scripts", async (req: any, res) => {
       try {
         const userId = req.session?.user?.id || "42195145"; // Fallback to admin user

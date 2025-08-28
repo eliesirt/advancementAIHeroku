@@ -16,6 +16,7 @@ import Launcher from "@/pages/launcher";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import PythonAI from "@/pages/python-ai";
+import PythonScriptEditor from "./pages/python-script-editor";
 
 // Hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ function AppContent() {
             <Route path="/apps/settings" component={SettingsPage} />
             <Route path="/apps/user-management" component={UserManagementPage} />
             <Route path="/apps/python-ai" component={PythonAI} />
+            <Route path="/apps/python-ai/scripts/:id/edit" component={PythonScriptEditor} />
             <Route path="/apps" component={Launcher} />
           </>
         )}

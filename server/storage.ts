@@ -1653,6 +1653,58 @@ export class DatabaseStorage implements IStorage {
 
     return script;
   }
+
+  async getPythonScript(id: number): Promise<PythonScript | undefined> {
+    const [script] = await db.select({
+      id: pythonScripts.id,
+      name: pythonScripts.name,
+      description: pythonScripts.description,
+      tags: pythonScripts.tags,
+      ownerId: pythonScripts.ownerId,
+      content: pythonScripts.content,
+      metadata: pythonScripts.metadata,
+      requirements: pythonScripts.requirements,
+      version: pythonScripts.version,
+      isActive: pythonScripts.isActive,
+      lastRunAt: pythonScripts.lastRunAt,
+      status: pythonScripts.status,
+      gitHash: pythonScripts.gitHash,
+      gitBranch: pythonScripts.gitBranch,
+      createdAt: pythonScripts.createdAt,
+      updatedAt: pythonScripts.updatedAt,
+      owner: {
+        firstName: users.firstName,
+        lastName: users.lastName
+      }
+    })
+      .from(pythonScripts)
+      .leftJoin(users, eq(pythonScripts.ownerId, users.id))
+      .where(eq(pythonScripts.id, id));
+
+    return script || undefined;
+  }
+
+  async updatePythonScript(id: number, updates: any): Promise<PythonScript> {
+    const [updated] = await db.update(pythonScripts)
+      .set({
+        name: updates.name,
+        description: updates.description,
+        content: updates.content,
+        tags: updates.tags,
+        requirements: updates.requirements,
+        status: updates.status,
+        gitBranch: updates.gitBranch,
+        updatedAt: new Date()
+      })
+      .where(eq(pythonScripts.id, id))
+      .returning();
+
+    if (!updated) {
+      throw new Error(`Python script with id ${id} not found`);
+    }
+
+    return updated;
+  }
 }
 
 export const storage = new DatabaseStorage();
