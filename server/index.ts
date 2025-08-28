@@ -1316,6 +1316,21 @@ app.get('/health', (req, res) => {
         fs.writeFileSync(scriptPath, scriptContent);
 
         try {
+          // Install requirements if specified
+          if (script.requirements && script.requirements.length > 0) {
+            console.log(`🐍 [PRODUCTION] Installing Python requirements: ${script.requirements.join(', ')}`);
+            for (const requirement of script.requirements) {
+              try {
+                await execAsync(`pip3 install "${requirement}"`, {
+                  timeout: 60000, // 60 second timeout for installations
+                  cwd: tempDir
+                });
+              } catch (installError) {
+                console.warn(`Failed to install ${requirement}, continuing anyway:`, installError);
+              }
+            }
+          }
+
           // Execute the Python script
           const { stdout, stderr } = await execAsync(`python3 "${scriptPath}"`, {
             timeout: 30000, // 30 second timeout
