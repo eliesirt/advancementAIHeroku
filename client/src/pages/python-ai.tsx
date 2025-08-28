@@ -797,6 +797,8 @@ function ExecuteScriptForm({ script, onSubmit }: { script: PythonScript | null; 
 
 // Execution History Component
 function ExecutionHistory({ executions, loading }: { executions: ScriptExecution[]; loading: boolean }) {
+  const [selectedExecution, setSelectedExecution] = useState<ScriptExecution | null>(null);
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -807,48 +809,191 @@ function ExecutionHistory({ executions, loading }: { executions: ScriptExecution
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      case 'running': return 'bg-blue-100 text-blue-800';
+      case 'queued': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
-    return <div>Loading executions...</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Execution History</CardTitle>
+          <CardDescription>Recent script executions and their results</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+            Loading execution history...
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Execution History</CardTitle>
-        <CardDescription>Recent script executions and their results</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-96">
-          <div className="space-y-3">
-            {executions.length > 0 ? (
-              executions.map((execution) => (
-                <div key={execution.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(execution.status)}
-                    <div>
-                      <p className="font-medium">Script #{execution.scriptId}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {execution.triggeredByUser?.firstName} {execution.triggeredByUser?.lastName}
-                        {execution.isScheduled && ' (Scheduled)'}
-                      </p>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Execution History</CardTitle>
+          <CardDescription>Recent script executions and their results</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-3">
+              {executions.length > 0 ? (
+                executions.map((execution: any) => (
+                  <div 
+                    key={execution.id} 
+                    className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                    onClick={() => setSelectedExecution(execution)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        {getStatusIcon(execution.status)}
+                        <div>
+                          <p className="font-medium">{execution.script?.name || `Script #${execution.scriptId}`}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {execution.triggeredByUser?.firstName} {execution.triggeredByUser?.lastName}
+                            {execution.isScheduled && ' (Scheduled)'}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge className={getStatusColor(execution.status)} variant="secondary">
+                        {execution.status}
+                      </Badge>
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                      <div>
+                        <span className="font-medium">Started:</span> {format(new Date(execution.startedAt || execution.createdAt), 'MMM d, HH:mm:ss')}
+                      </div>
+                      <div>
+                        <span className="font-medium">Duration:</span> {execution.duration || 0}ms
+                      </div>
+                      {execution.exitCode !== null && (
+                        <div>
+                          <span className="font-medium">Exit Code:</span> {execution.exitCode}
+                        </div>
+                      )}
+                      {execution.inputs && Object.keys(execution.inputs).length > 0 && (
+                        <div>
+                          <span className="font-medium">Parameters:</span> {Object.keys(execution.inputs).length} inputs
+                        </div>
+                      )}
+                    </div>
+
+                    {(execution.stdout || execution.stderr) && (
+                      <div className="mt-3 pt-3 border-t">
+                        {execution.stdout && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-green-600">OUTPUT:</span>
+                            <div className="text-xs bg-black text-green-400 p-2 rounded font-mono mt-1 max-h-20 overflow-hidden">
+                              {execution.stdout.substring(0, 200)}{execution.stdout.length > 200 && '...'}
+                            </div>
+                          </div>
+                        )}
+                        {execution.stderr && (
+                          <div>
+                            <span className="text-xs font-medium text-red-600">ERROR:</span>
+                            <div className="text-xs bg-black text-red-400 p-2 rounded font-mono mt-1 max-h-20 overflow-hidden">
+                              {execution.stderr.substring(0, 200)}{execution.stderr.length > 200 && '...'}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right text-sm text-muted-foreground">
-                    <p>{format(new Date(execution.createdAt), 'MMM d, HH:mm')}</p>
-                    {execution.duration && <p>{execution.duration}ms</p>}
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <PlayCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500">No executions yet</p>
+                  <p className="text-sm text-gray-400 mt-2">Run a Python script to see execution history here</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Execution Details Dialog */}
+      <Dialog open={!!selectedExecution} onOpenChange={() => setSelectedExecution(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Execution Details</DialogTitle>
+            <DialogDescription>
+              Full details for execution #{selectedExecution?.id}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedExecution && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Script</Label>
+                  <p className="font-medium">{selectedExecution.script?.name || `Script #${selectedExecution.scriptId}`}</p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Badge className={getStatusColor(selectedExecution.status)} variant="secondary">
+                    {selectedExecution.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Triggered By</Label>
+                  <p>{selectedExecution.triggeredByUser?.firstName} {selectedExecution.triggeredByUser?.lastName}</p>
+                </div>
+                <div>
+                  <Label>Duration</Label>
+                  <p>{selectedExecution.duration || 0}ms</p>
+                </div>
+                <div>
+                  <Label>Started At</Label>
+                  <p>{new Date(selectedExecution.startedAt || selectedExecution.createdAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <Label>Completed At</Label>
+                  <p>{selectedExecution.completedAt ? new Date(selectedExecution.completedAt).toLocaleString() : 'N/A'}</p>
+                </div>
+              </div>
+
+              {selectedExecution.inputs && Object.keys(selectedExecution.inputs).length > 0 && (
+                <div>
+                  <Label>Input Parameters</Label>
+                  <div className="bg-gray-50 p-3 rounded font-mono text-sm mt-2">
+                    <pre>{JSON.stringify(selectedExecution.inputs, null, 2)}</pre>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <PlayCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No executions yet</p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+              )}
+
+              {selectedExecution.stdout && (
+                <div>
+                  <Label>Standard Output</Label>
+                  <div className="bg-black text-green-400 p-3 rounded font-mono text-sm mt-2 max-h-64 overflow-y-auto">
+                    <pre>{selectedExecution.stdout}</pre>
+                  </div>
+                </div>
+              )}
+
+              {selectedExecution.stderr && (
+                <div>
+                  <Label>Standard Error</Label>
+                  <div className="bg-black text-red-400 p-3 rounded font-mono text-sm mt-2 max-h-64 overflow-y-auto">
+                    <pre>{selectedExecution.stderr}</pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

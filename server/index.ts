@@ -1269,8 +1269,13 @@ app.get('/health', (req, res) => {
 
     app.get("/api/script-executions", async (req: any, res) => {
       try {
-        // Mock empty array for now since executions table is not fully implemented
-        res.json([]);
+        const { scriptId, userId } = req.query;
+        const { storage } = await import("./storage");
+        const executions = await storage.getScriptExecutions(
+          scriptId ? parseInt(scriptId as string) : undefined,
+          userId as string
+        );
+        res.json(executions);
       } catch (error: any) {
         console.error('Error fetching script executions:', error);
         res.status(500).json({ error: error.message });
@@ -1343,23 +1348,27 @@ app.get('/health', (req, res) => {
           // Clean up temporary file
           fs.unlinkSync(scriptPath);
 
-          const execution = {
-            id: Date.now(),
+          // Save execution to database
+          const userId = req.session?.user?.id || "42195145";
+          const savedExecution = await storage.createScriptExecution({
             scriptId: parseInt(id),
+            triggeredBy: userId,
             status: 'completed',
             inputs,
             stdout: stdout || null,
             stderr: stderr || null,
             exitCode: 0,
             duration: endTime - startTime,
-            startedAt: new Date(startTime).toISOString(),
-            completedAt: new Date(endTime).toISOString(),
-            isScheduled: false,
-            createdAt: new Date().toISOString()
-          };
+            startedAt: new Date(startTime),
+            completedAt: new Date(endTime),
+            isScheduled: false
+          });
 
-          console.log("🐍 [PRODUCTION] Python script execution completed:", { scriptId: id, duration: execution.duration });
-          res.json(execution);
+          // Also update the script's lastRunAt
+          await storage.updatePythonScript(parseInt(id), { lastRunAt: new Date() });
+
+          console.log("🐍 [PRODUCTION] Python script execution completed:", { scriptId: id, duration: savedExecution.duration });
+          res.json(savedExecution);
         } catch (execError: any) {
           const endTime = Date.now();
           
@@ -1368,23 +1377,24 @@ app.get('/health', (req, res) => {
             fs.unlinkSync(scriptPath);
           }
 
-          const execution = {
-            id: Date.now(),
+          // Save failed execution to database
+          const userId = req.session?.user?.id || "42195145";
+          const savedExecution = await storage.createScriptExecution({
             scriptId: parseInt(id),
+            triggeredBy: userId,
             status: 'failed',
             inputs,
             stdout: execError.stdout || null,
             stderr: execError.stderr || execError.message,
             exitCode: execError.code || 1,
             duration: endTime - startTime,
-            startedAt: new Date(startTime).toISOString(),
-            completedAt: new Date(endTime).toISOString(),
-            isScheduled: false,
-            createdAt: new Date().toISOString()
-          };
+            startedAt: new Date(startTime),
+            completedAt: new Date(endTime),
+            isScheduled: false
+          });
 
           console.log("🐍 [PRODUCTION] Python script execution failed:", { scriptId: id, error: execError.message });
-          res.json(execution);
+          res.json(savedExecution);
         }
       } catch (error: any) {
         console.error('Error executing Python script:', error);

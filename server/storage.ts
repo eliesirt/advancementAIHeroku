@@ -1705,6 +1705,76 @@ export class DatabaseStorage implements IStorage {
 
     return updated;
   }
+
+  // Script execution methods
+  async getScriptExecutions(scriptId?: number, userId?: string): Promise<ScriptExecution[]> {
+    let query = db.select({
+      id: scriptExecutions.id,
+      scriptId: scriptExecutions.scriptId,
+      scheduleId: scriptExecutions.scheduleId,
+      triggeredBy: scriptExecutions.triggeredBy,
+      status: scriptExecutions.status,
+      inputs: scriptExecutions.inputs,
+      stdout: scriptExecutions.stdout,
+      stderr: scriptExecutions.stderr,
+      exitCode: scriptExecutions.exitCode,
+      duration: scriptExecutions.duration,
+      startedAt: scriptExecutions.startedAt,
+      completedAt: scriptExecutions.completedAt,
+      environmentSnapshot: scriptExecutions.environmentSnapshot,
+      artifacts: scriptExecutions.artifacts,
+      resourceUsage: scriptExecutions.resourceUsage,
+      isScheduled: scriptExecutions.isScheduled,
+      createdAt: scriptExecutions.createdAt,
+      triggeredByUser: {
+        firstName: users.firstName,
+        lastName: users.lastName
+      },
+      script: {
+        name: pythonScripts.name,
+        description: pythonScripts.description
+      }
+    })
+      .from(scriptExecutions)
+      .leftJoin(users, eq(scriptExecutions.triggeredBy, users.id))
+      .leftJoin(pythonScripts, eq(scriptExecutions.scriptId, pythonScripts.id));
+
+    if (scriptId) {
+      query = query.where(eq(scriptExecutions.scriptId, scriptId));
+    }
+    if (userId) {
+      query = query.where(eq(scriptExecutions.triggeredBy, userId));
+    }
+
+    return await query.orderBy(desc(scriptExecutions.createdAt));
+  }
+
+  async createScriptExecution(executionData: InsertScriptExecution): Promise<ScriptExecution> {
+    const [execution] = await db.insert(scriptExecutions).values(executionData).returning();
+    return execution;
+  }
+
+  async updateScriptExecution(id: number, updates: Partial<InsertScriptExecution>): Promise<ScriptExecution> {
+    const [execution] = await db
+      .update(scriptExecutions)
+      .set(updates)
+      .where(eq(scriptExecutions.id, id))
+      .returning();
+    
+    if (!execution) {
+      throw new Error(`Script execution with id ${id} not found`);
+    }
+    
+    return execution;
+  }
+
+  async getScriptExecution(id: number): Promise<ScriptExecution | undefined> {
+    const [execution] = await db.select()
+      .from(scriptExecutions)
+      .where(eq(scriptExecutions.id, id));
+    
+    return execution || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();
