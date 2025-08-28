@@ -18,10 +18,10 @@ Run this command in Heroku CLI to update the database schema:
 heroku apps:info advancement-ai
 
 # Push database schema to production
-heroku run npm run db:push -- --force
+heroku run npm run db:push
 
 # Alternative: Run drizzle push directly
-heroku run npx drizzle-kit push --force
+heroku run npx drizzle-kit push
 ```
 
 ### Solution 2: Verify Database Tables Exist
