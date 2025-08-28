@@ -1613,7 +1613,7 @@ export class DatabaseStorage implements IStorage {
 
   // Python Scripts methods
   async getPythonScripts(): Promise<PythonScript[]> {
-    return await this.db.select({
+    return await db.select({
       id: pythonScripts.id,
       name: pythonScripts.name,
       description: pythonScripts.description,
@@ -1641,7 +1641,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPythonScript(scriptData: any): Promise<PythonScript> {
-    const [script] = await this.db.insert(pythonScripts).values({
+    const [script] = await db.insert(pythonScripts).values({
       name: scriptData.name,
       description: scriptData.description,
       tags: scriptData.tags || [],
