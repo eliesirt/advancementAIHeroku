@@ -14,14 +14,18 @@ The "Create Script" button fails in Heroku production with "Error Failed to crea
 Run this command in Heroku CLI to update the database schema:
 
 ```bash
-# Connect to Heroku app
-heroku apps:info advancement-ai
+# First, check your Heroku app name
+heroku apps
 
-# Push database schema to production
-heroku run npm run db:push
+# Push database schema to production (replace 'your-app-name' with actual app name)
+heroku run npm run db:push --app your-app-name
 
 # Alternative: Run drizzle push directly
-heroku run npx drizzle-kit push
+heroku run npx drizzle-kit push --app your-app-name
+
+# Example if your app is named 'advancement-ai':
+heroku run npm run db:push --app advancement-ai
+heroku run npx drizzle-kit push --app advancement-ai
 ```
 
 ### Solution 2: Verify Database Tables Exist
