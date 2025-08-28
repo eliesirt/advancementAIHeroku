@@ -1281,24 +1281,96 @@ app.get('/health', (req, res) => {
       try {
         const { id } = req.params;
         const { inputs } = req.body;
+        const startTime = Date.now();
+
+        // Get the script from storage
+        const { storage } = await import("./storage");
+        const script = await storage.getPythonScript(parseInt(id));
+        if (!script) {
+          return res.status(404).json({ error: 'Script not found' });
+        }
+
+        // Create a temporary directory for execution
+        const fs = await import('fs');
+        const path = await import('path');
+        const { exec } = await import('child_process');
+        const { promisify } = await import('util');
+        const execAsync = promisify(exec);
+
+        const tempDir = path.join(process.cwd(), 'temp');
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const scriptPath = path.join(tempDir, `script_${id}_${Date.now()}.py`);
         
-        // Mock execution response as Python runtime is not available on Heroku
-        const execution = {
-          id: Date.now(),
-          scriptId: parseInt(id),
-          status: 'completed',
-          stdout: 'Mock execution completed successfully',
-          stderr: null,
-          exitCode: 0,
-          duration: 150,
-          startedAt: new Date().toISOString(),
-          completedAt: new Date().toISOString(),
-          isScheduled: false,
-          createdAt: new Date().toISOString()
-        };
+        // Write script content to temporary file
+        let scriptContent = script.content || '';
         
-        console.log("🐍 [PRODUCTION] Mock Python script execution:", { scriptId: id, inputs });
-        res.json(execution);
+        // If inputs are provided, inject them as a JSON variable at the top of the script
+        if (inputs && Object.keys(inputs).length > 0) {
+          const inputsJson = JSON.stringify(inputs, null, 2);
+          scriptContent = `# Injected runtime inputs\ninputs = ${inputsJson}\n\n${scriptContent}`;
+        }
+        
+        fs.writeFileSync(scriptPath, scriptContent);
+
+        try {
+          // Execute the Python script
+          const { stdout, stderr } = await execAsync(`python3 "${scriptPath}"`, {
+            timeout: 30000, // 30 second timeout
+            cwd: tempDir,
+            env: { ...process.env, PYTHONPATH: tempDir }
+          });
+
+          const endTime = Date.now();
+          
+          // Clean up temporary file
+          fs.unlinkSync(scriptPath);
+
+          const execution = {
+            id: Date.now(),
+            scriptId: parseInt(id),
+            status: 'completed',
+            inputs,
+            stdout: stdout || null,
+            stderr: stderr || null,
+            exitCode: 0,
+            duration: endTime - startTime,
+            startedAt: new Date(startTime).toISOString(),
+            completedAt: new Date(endTime).toISOString(),
+            isScheduled: false,
+            createdAt: new Date().toISOString()
+          };
+
+          console.log("🐍 [PRODUCTION] Python script execution completed:", { scriptId: id, duration: execution.duration });
+          res.json(execution);
+        } catch (execError: any) {
+          const endTime = Date.now();
+          
+          // Clean up temporary file
+          if (fs.existsSync(scriptPath)) {
+            fs.unlinkSync(scriptPath);
+          }
+
+          const execution = {
+            id: Date.now(),
+            scriptId: parseInt(id),
+            status: 'failed',
+            inputs,
+            stdout: execError.stdout || null,
+            stderr: execError.stderr || execError.message,
+            exitCode: execError.code || 1,
+            duration: endTime - startTime,
+            startedAt: new Date(startTime).toISOString(),
+            completedAt: new Date(endTime).toISOString(),
+            isScheduled: false,
+            createdAt: new Date().toISOString()
+          };
+
+          console.log("🐍 [PRODUCTION] Python script execution failed:", { scriptId: id, error: execError.message });
+          res.json(execution);
+        }
       } catch (error: any) {
         console.error('Error executing Python script:', error);
         res.status(500).json({ error: error.message });
