@@ -1338,9 +1338,30 @@ app.get('/health', (req, res) => {
           // Install requirements if specified
           if (script.requirements && script.requirements.length > 0) {
             console.log(`🐍 [PRODUCTION] Installing Python requirements: ${script.requirements.join(', ')}`);
+            
+            // Determine pip command
+            let pipCommand = 'pip3';
+            try {
+              await execAsync('which pip3', { timeout: 5000 });
+            } catch {
+              try {
+                await execAsync('which pip', { timeout: 5000 });
+                pipCommand = 'pip';
+              } catch {
+                console.warn('No pip found, trying to install pip...');
+                try {
+                  await execAsync('python3 -m ensurepip --upgrade', { timeout: 60000 });
+                  pipCommand = 'python3 -m pip';
+                } catch {
+                  pipCommand = 'python -m pip';
+                }
+              }
+            }
+
             for (const requirement of script.requirements) {
               try {
-                await execAsync(`pip3 install "${requirement}"`, {
+                console.log(`🐍 Installing ${requirement} with ${pipCommand}...`);
+                await execAsync(`${pipCommand} install "${requirement}"`, {
                   timeout: 60000, // 60 second timeout for installations
                   cwd: tempDir
                 });
@@ -1350,8 +1371,32 @@ app.get('/health', (req, res) => {
             }
           }
 
-          // Execute the Python script
-          const { stdout, stderr } = await execAsync(`python3 "${scriptPath}"`, {
+          // Execute the Python script with fallback python commands
+          let pythonCommand = 'python3';
+          try {
+            // Try python3 first
+            await execAsync('which python3', { timeout: 5000 });
+          } catch {
+            try {
+              // Fallback to python
+              await execAsync('which python', { timeout: 5000 });
+              pythonCommand = 'python';
+            } catch {
+              // If neither exists, install python3
+              console.log('🐍 [HEROKU] Installing Python3...');
+              try {
+                await execAsync('apt-get update && apt-get install -y python3 python3-pip', {
+                  timeout: 120000 // 2 minute timeout for installation
+                });
+                pythonCommand = 'python3';
+              } catch (installError) {
+                throw new Error(`Python not available and installation failed: ${installError}`);
+              }
+            }
+          }
+
+          console.log(`🐍 [HEROKU] Executing script with ${pythonCommand}...`);
+          const { stdout, stderr } = await execAsync(`${pythonCommand} "${scriptPath}"`, {
             timeout: 30000, // 30 second timeout
             cwd: tempDir,
             env: { ...process.env, PYTHONPATH: tempDir }
