@@ -15,6 +15,7 @@ import UserManagementPage from "@/pages/user-management";
 import Launcher from "@/pages/launcher";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import PythonAI from "@/pages/python-ai";
 
 // Hooks
 import { useAuth } from "@/hooks/useAuth";
@@ -46,7 +47,7 @@ function AppContent() {
             <Route path="/apps/itinerary" component={ItineraryPage} />
             <Route path="/apps/settings" component={SettingsPage} />
             <Route path="/apps/user-management" component={UserManagementPage} />
-            <Route path="/apps/python-ai" component={lazy(() => import('./pages/python-ai'))} />
+            <Route path="/apps/python-ai" component={PythonAI} />
             <Route path="/apps" component={Launcher} />
           </>
         )}

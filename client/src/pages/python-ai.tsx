@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,17 +94,29 @@ export default function PythonAI() {
   const [selectedScript, setSelectedScript] = useState<PythonScript | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isExecuteDialogOpen, setIsExecuteDialogOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const queryClient = useQueryClient();
 
-  // Fetch Python scripts
+  // Initialize component with startTransition to prevent suspension
+  useEffect(() => {
+    startTransition(() => {
+      setIsReady(true);
+    });
+  }, []);
+
+  // Fetch Python scripts - only when ready
   const { data: scripts = [], isLoading: scriptsLoading } = useQuery({
     queryKey: ['/api/python-scripts'],
+    enabled: isReady,
+    suspense: false,
   });
 
-  // Fetch script executions
+  // Fetch script executions - only when ready
   const { data: executions = [], isLoading: executionsLoading } = useQuery({
     queryKey: ['/api/script-executions'],
+    enabled: isReady,
+    suspense: false,
   });
 
   // Create script mutation
@@ -119,8 +131,10 @@ export default function PythonAI() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/python-scripts'] });
-      setIsCreateDialogOpen(false);
+      startTransition(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/python-scripts'] });
+        setIsCreateDialogOpen(false);
+      });
       toast({ title: 'Success', description: 'Script created successfully' });
     },
     onError: (error: any) => {
@@ -140,8 +154,10 @@ export default function PythonAI() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/script-executions'] });
-      setIsExecuteDialogOpen(false);
+      startTransition(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/script-executions'] });
+        setIsExecuteDialogOpen(false);
+      });
       toast({ title: 'Success', description: 'Script execution started' });
     },
     onError: (error: any) => {
@@ -182,6 +198,18 @@ export default function PythonAI() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Show loading state while initializing
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="text-lg text-gray-700">Loading pythonAI...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
