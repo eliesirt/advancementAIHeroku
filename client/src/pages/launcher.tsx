@@ -120,8 +120,8 @@ export default function Launcher() {
             ['interaction-manager', 'portfolio-ai', 'itinerary-ai'].includes(app.name)
           );
           
-          const configurationApps = sortedApps.filter(app => 
-            ['settings', 'user-management'].includes(app.name)
+          const administrationApps = sortedApps.filter(app => 
+            ['python-ai', 'settings', 'user-management'].includes(app.name)
           );
 
           const renderAppCard = (app: ApplicationWithPermissions) => (
