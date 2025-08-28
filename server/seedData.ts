@@ -82,12 +82,24 @@ export async function seedInitialData() {
         sortOrder: 5,
       });
 
+      const pythonAIApp = await storage.createApplication({
+        name: "pythonai",
+        displayName: "pythonAI",
+        description: "AI-enhanced Python script management, execution, and scheduling",
+        route: "/apps/python-ai",
+        icon: "Code",
+        color: "bg-yellow-500",
+        isActive: true,
+        sortOrder: 6,
+      });
+
       console.log("Created default applications:", { 
         interactionApp: interactionApp.id, 
         settingsApp: settingsApp.id,
         portfolioApp: portfolioApp.id,
         itineraryApp: itineraryApp.id,
-        userManagementApp: userManagementApp.id
+        userManagementApp: userManagementApp.id,
+        pythonAIApp: pythonAIApp.id
       });
 
       // Grant admin role access to all applications
@@ -100,6 +112,7 @@ export async function seedInitialData() {
         await storage.assignRoleApplication(adminRole.id, portfolioApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, itineraryApp.id, ["read", "write", "admin"]);
         await storage.assignRoleApplication(adminRole.id, userManagementApp.id, ["read", "write", "admin"]);
+        await storage.assignRoleApplication(adminRole.id, pythonAIApp.id, ["read", "write", "admin"]);
         console.log("Granted admin role access to all applications");
       }
 
@@ -109,7 +122,8 @@ export async function seedInitialData() {
         await storage.assignRoleApplication(userRole.id, interactionApp.id, ["read", "write"]);
         await storage.assignRoleApplication(userRole.id, portfolioApp.id, ["read", "write"]);
         await storage.assignRoleApplication(userRole.id, itineraryApp.id, ["read", "write"]);
-        console.log("Granted user role access to interaction, portfolio, and itinerary apps");
+        await storage.assignRoleApplication(userRole.id, pythonAIApp.id, ["read", "write"]);
+        console.log("Granted user role access to interaction, portfolio, itinerary, and pythonAI apps");
       }
     }
 

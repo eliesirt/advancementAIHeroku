@@ -32,6 +32,8 @@ Preferred communication style: Simple, everyday language.
 - **Data Flow**: Voice input -> Real-time Transcription -> AI Processing (Whisper, GPT-4) -> Data Extraction -> Affinity Matching -> Form Population -> Validation -> CRM Submission.
 - **PythonAI Application**: Full-featured system for managing Python scripts, including database schema for script management (versions, executions, schedules, QC results) and full CRUD operations.
 - **Application Suite & Launcher**: Transformed into a multi-application suite with an "AdvancementAI" launcher page, featuring organized groupings for primary AI tools and system configuration.
+- **Execution Logging & Download**: Complete script execution history with database persistence, detailed logging of all runs including stdout/stderr/timing, and downloadable execution logs with comprehensive metadata.
+- **Production Database Management**: Automated seeding system for applications and roles, with migration scripts for production deployments.
 
 ### Data Model Highlights
 - **Users**: Profiles with BUID and BBEC GUID mapping, roles.
@@ -39,6 +41,8 @@ Preferred communication style: Simple, everyday language.
 - **Affinity Tags**: Configurable interest/preference tags with matching settings.
 - **AI Prompt Settings**: User-specific customizable prompt templates for AI analysis.
 - **Python Scripts**: Tables for scripts, versions, executions, schedules, QC results, git repositories, and permissions.
+- **Script Executions**: Comprehensive execution logging with stdout, stderr, duration, exit codes, and input parameters stored in PostgreSQL.
+- **Application Management**: Role-based access control for the multi-application launcher with dynamic permissions.
 
 ## External Dependencies
 
