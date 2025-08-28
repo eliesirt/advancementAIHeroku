@@ -957,83 +957,53 @@ function ExecutionHistory({ executions, loading }: { executions: ScriptExecution
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-96">
-            <div className="space-y-3">
+            <div className="space-y-2">
               {executions.length > 0 ? (
                 executions.map((execution: any) => (
                   <div 
                     key={execution.id} 
-                    className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                    className="p-3 bg-gray-50 rounded border hover:bg-gray-100 cursor-pointer transition-colors"
                     onClick={() => setSelectedExecution(execution)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {getStatusIcon(execution.status)}
-                        <div>
-                          <p className="font-medium">{execution.script?.name || `Script #${execution.scriptId}`}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {execution.triggeredByUser?.firstName} {execution.triggeredByUser?.lastName}
-                            {execution.isScheduled && ' (Scheduled)'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            downloadExecutionLog(execution);
-                          }}
-                          className="h-8 w-8 p-0"
-                          title="Download execution log"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Badge className={getStatusColor(execution.status)} variant="secondary">
-                          {execution.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="font-medium">Started:</span> {format(new Date(execution.startedAt || execution.createdAt), 'MMM d, HH:mm:ss')}
-                      </div>
-                      <div>
-                        <span className="font-medium">Duration:</span> {execution.duration || 0}ms
-                      </div>
-                      {execution.exitCode !== null && (
-                        <div>
-                          <span className="font-medium">Exit Code:</span> {execution.exitCode}
-                        </div>
-                      )}
-                      {execution.inputs && Object.keys(execution.inputs).length > 0 && (
-                        <div>
-                          <span className="font-medium">Parameters:</span> {Object.keys(execution.inputs).length} inputs
-                        </div>
-                      )}
-                    </div>
-
-                    {(execution.stdout || execution.stderr) && (
-                      <div className="mt-3 pt-3 border-t">
-                        {execution.stdout && (
-                          <div className="mb-2">
-                            <span className="text-xs font-medium text-green-600">OUTPUT:</span>
-                            <div className="text-xs bg-black text-green-400 p-2 rounded font-mono mt-1 max-h-20 overflow-hidden">
-                              {execution.stdout.substring(0, 200)}{execution.stdout.length > 200 && '...'}
-                            </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <p className="font-medium text-sm truncate">{execution.script?.name || `Script #${execution.scriptId}`}</p>
+                            <Badge className={`${getStatusColor(execution.status)} text-xs px-2 py-0`} variant="secondary">
+                              {execution.status}
+                            </Badge>
                           </div>
-                        )}
-                        {execution.stderr && (
-                          <div>
-                            <span className="text-xs font-medium text-red-600">ERROR:</span>
-                            <div className="text-xs bg-black text-red-400 p-2 rounded font-mono mt-1 max-h-20 overflow-hidden">
-                              {execution.stderr.substring(0, 200)}{execution.stderr.length > 200 && '...'}
-                            </div>
+                          <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-1">
+                            <span>{execution.triggeredByUser?.firstName} {execution.triggeredByUser?.lastName}</span>
+                            <span>{format(new Date(execution.startedAt || execution.createdAt), 'MMM d, HH:mm')}</span>
+                            <span>{execution.duration || 0}ms</span>
+                            {execution.exitCode !== null && (
+                              <span className={execution.exitCode === 0 ? 'text-green-600' : 'text-red-600'}>
+                                Exit: {execution.exitCode}
+                              </span>
+                            )}
+                            {execution.inputs && Object.keys(execution.inputs).length > 0 && (
+                              <span>{Object.keys(execution.inputs).length} params</span>
+                            )}
+                            {execution.isScheduled && <span className="text-blue-600">Scheduled</span>}
                           </div>
-                        )}
+                        </div>
                       </div>
-                    )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadExecutionLog(execution);
+                        }}
+                        className="h-7 w-7 p-0 ml-2 flex-shrink-0"
+                        title="Download execution log"
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
