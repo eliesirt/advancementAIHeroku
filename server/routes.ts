@@ -2866,12 +2866,21 @@ Example header format:
 Generate a complete, functional Python script that accomplishes the user's requirements with proper error handling, documentation, and best practices.
 `;
 
-      const response = await openai.chat.completions.create({
-        model: AI_MODELS.GENERATION, // Configurable AI model for script generation - Currently set to GPT-5
+      // GPT-5 API configuration - different parameters than GPT-4
+      const apiParams: any = {
+        model: AI_MODELS.GENERATION,
         messages: [{ role: "user", content: generationPrompt }],
-        temperature: 0.3,
-        max_completion_tokens: 4000 // GPT-5 uses max_completion_tokens instead of max_tokens
-      });
+        max_completion_tokens: 4000
+      };
+      
+      // GPT-4 supports custom temperature, GPT-5 only supports default (1)
+      if (AI_MODELS.GENERATION === "gpt-4") {
+        apiParams.temperature = 0.3;
+        apiParams.max_tokens = 4000; // GPT-4 uses max_tokens
+        delete apiParams.max_completion_tokens;
+      }
+      
+      const response = await openai.chat.completions.create(apiParams);
 
       let generatedScript = response.choices[0].message.content || '';
       
