@@ -752,7 +752,7 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [generationDescription, setGenerationDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // AI Script Generation function
+  // AI Script Generation function with async job polling
   const handleGenerateScript = async () => {
     if (!generationDescription.trim()) {
       toast({
@@ -765,6 +765,7 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
 
     setIsGenerating(true);
     try {
+      // Start the async job
       const response = await fetch('/api/python-scripts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -773,27 +774,47 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to generate script');
+        throw new Error(error.error || 'Failed to start script generation');
       }
 
-      const { generatedScript, metadata } = await response.json();
+      const { jobId, status, message } = await response.json();
       
-      // Populate form with generated script and metadata
-      setFormData(prev => ({
-        ...prev,
-        name: metadata.name || 'Generated Script',
-        description: metadata.description || generationDescription,
-        content: generatedScript,
-        tags: metadata.tags || [],
-        requirements: [], // Could be parsed from script if needed
-        pythonVersion: metadata.pythonVersion || '3.11'
-      }));
+      if (status === 'processing') {
+        toast({
+          title: "Processing",
+          description: message || "Script generation started. Please wait...",
+        });
+        
+        // Poll for job completion
+        const result = await pollJobStatus(jobId);
+        
+        if (result.status === 'completed' && result.result) {
+          const { generatedScript, metadata } = result.result;
+          
+          // Populate form with generated script and metadata
+          setFormData(prev => ({
+            ...prev,
+            name: metadata?.name || 'Generated Script',
+            description: metadata?.description || generationDescription,
+            content: generatedScript || '# Generated script content not available',
+            tags: metadata?.tags || [],
+            requirements: [],
+            pythonVersion: metadata?.pythonVersion || '3.11'
+          }));
 
-      setGenerationDescription('');
-      toast({
-        title: "Success",
-        description: "AI-generated script created successfully!",
-      });
+          setGenerationDescription('');
+          toast({
+            title: "Success",
+            description: "AI-generated script created successfully!",
+          });
+        } else if (result.status === 'failed') {
+          throw new Error(result.error || 'Script generation failed');
+        } else {
+          throw new Error('Script generation timed out');
+        }
+      } else {
+        throw new Error('Unexpected response status: ' + status);
+      }
     } catch (error) {
       console.error('Error generating script:', error);
       toast({
@@ -804,6 +825,45 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Poll job status until completion
+  const pollJobStatus = async (jobId: number): Promise<any> => {
+    const maxAttempts = 60; // 60 attempts = 5 minutes max
+    const pollInterval = 5000; // 5 seconds
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await fetch(`/api/ai-jobs/${jobId}`);
+        if (!response.ok) {
+          throw new Error('Failed to check job status');
+        }
+        
+        const job = await response.json();
+        
+        if (job.status === 'completed' || job.status === 'failed') {
+          return job;
+        }
+        
+        // Update progress if available
+        if (job.progress > 0) {
+          toast({
+            title: "Processing",
+            description: `Script generation in progress... ${job.progress}%`,
+          });
+        }
+        
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      } catch (error) {
+        console.error('Error polling job status:', error);
+        if (attempt === maxAttempts - 1) {
+          throw new Error('Failed to check generation status');
+        }
+      }
+    }
+    
+    throw new Error('Script generation timed out after 5 minutes');
   };
 
   // AI Code Analysis mutation
