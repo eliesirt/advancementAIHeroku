@@ -366,14 +366,16 @@ export default function PythonAI() {
                     New Script
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                  <DialogHeader className="flex-shrink-0">
                     <DialogTitle>Create New Python Script</DialogTitle>
                     <DialogDescription>
                       Upload a new Python script or create one from scratch.
                     </DialogDescription>
                   </DialogHeader>
-                  <CreateScriptForm onSubmit={(data) => createScriptMutation.mutate(data)} />
+                  <div className="flex-1 overflow-y-auto">
+                    <CreateScriptForm onSubmit={(data) => createScriptMutation.mutate(data)} />
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
@@ -450,19 +452,21 @@ export default function PythonAI() {
 
       {/* Edit Script Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit Python Script</DialogTitle>
             <DialogDescription>
               Modify your Python script details and code.
             </DialogDescription>
           </DialogHeader>
-          {selectedScript && (
-            <EditScriptForm 
-              script={selectedScript}
-              onSubmit={(data) => updateScriptMutation.mutate({ id: selectedScript.id, scriptData: data })} 
-            />
-          )}
+          <div className="flex-1 overflow-y-auto">
+            {selectedScript && (
+              <EditScriptForm 
+                script={selectedScript}
+                onSubmit={(data) => updateScriptMutation.mutate({ id: selectedScript.id, scriptData: data })} 
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
