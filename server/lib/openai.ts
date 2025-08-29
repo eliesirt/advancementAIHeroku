@@ -254,10 +254,26 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
       temperature: 0.3
     });
 
-    return response.choices[0].message.content?.trim() || "Analysis not available";
+    const synopsis = response.choices[0].message.content?.trim() || "Analysis not available";
+    
+    // HEROKU TRANSCRIPT FIX: Include transcript in synopsis for enhanced comments
+    const fullSynopsisWithTranscript = `${synopsis}
+
+TRANSCRIPT:
+${transcript}`;
+    
+    console.log("🔧 SYNOPSIS WITH TRANSCRIPT: Generated full synopsis with transcript included");
+    console.log("🔧 SYNOPSIS WITH TRANSCRIPT: Full length:", fullSynopsisWithTranscript.length);
+    console.log("🔧 SYNOPSIS WITH TRANSCRIPT: Includes TRANSCRIPT section:", fullSynopsisWithTranscript.includes("TRANSCRIPT:"));
+    
+    return fullSynopsisWithTranscript;
   } catch (error) {
     console.error("Synopsis generation error:", error);
-    return "Synopsis could not be generated";
+    // Fallback format that includes transcript
+    return `Synopsis could not be generated due to processing error.
+
+TRANSCRIPT:
+${transcript}`;
   }
 }
 
@@ -283,7 +299,11 @@ ${transcript}`;
 
     console.log("🔧 ENHANCE COMMENTS: Final formatted length:", formattedComments?.length || 0);
     console.log("🔧 ENHANCE COMMENTS: Includes transcript:", formattedComments.includes("TRANSCRIPT:"));
-    console.log("🔧 ENHANCE COMMENTS: Final preview:", formattedComments.substring(formattedComments.length - 100));
+    console.log("🔧 ENHANCE COMMENTS: Input transcript preview:", transcript?.substring(0, 100));
+    console.log("🔧 ENHANCE COMMENTS: Synopsis preview:", synopsis?.substring(0, 100));
+    console.log("🔧 ENHANCE COMMENTS: Final 200 chars:", formattedComments.substring(formattedComments.length - 200));
+    console.log("🔧 ENHANCE COMMENTS: Raw output being returned:");
+    console.log(formattedComments);
 
     return formattedComments;
   } catch (error) {

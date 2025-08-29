@@ -389,6 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enhancedComments = await enhanceInteractionComments(finalTranscript, extractedInfo, userId);
       console.log("🔧 VOICE PROCESSING: Enhanced comments generated, length:", enhancedComments?.length);
       console.log("🔧 VOICE PROCESSING: Enhanced comments include transcript:", enhancedComments?.includes("TRANSCRIPT:"));
+      console.log("🔧 VOICE PROCESSING: Enhanced comments preview:", enhancedComments?.substring(0, 200));
 
       // Perform quality assessment
       console.log("📊 Evaluating interaction quality...");
@@ -629,7 +630,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transcript,
         extractedInfo: {
           ...extractedInfo,
-          suggestedAffinityTags
+          suggestedAffinityTags,
+          aiSynopsis: enhancedComments  // HEROKU FIX: Ensure enhanced comments appear in aiSynopsis field
         },
         conciseSummary,
         enhancedComments
