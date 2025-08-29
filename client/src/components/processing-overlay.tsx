@@ -53,25 +53,22 @@ export function ProcessingOverlay({
       return;
     }
 
+    // Initialize with dynamic steps
+    setCurrentSteps(dynamicSteps.map(step => ({ ...step, status: 'pending' })));
+    setCurrentStepIndex(0);
+
     // Show progress through steps at realistic intervals
     const progressThroughSteps = async () => {
       console.log("Starting processing overlay progression");
       
       for (let i = 0; i < dynamicSteps.length; i++) {
-        if (!isVisible) {
-          console.log("Overlay hidden, stopping progression at step", i);
-          return;
-        }
-        
         console.log(`Processing step ${i + 1}/${dynamicSteps.length}: ${dynamicSteps[i].label}`);
         
         setCurrentStepIndex(i);
-        setCurrentSteps(prev => 
-          prev.map((step, index) => ({
-            ...step,
-            status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
-          }))
-        );
+        setCurrentSteps(dynamicSteps.map((step, index) => ({
+          ...step,
+          status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
+        })));
         
         // Wait between steps - final step stays processing until API completes
         if (i < dynamicSteps.length - 1) {
@@ -85,7 +82,7 @@ export function ProcessingOverlay({
     };
 
     progressThroughSteps();
-  }, [isVisible, dynamicSteps]);
+  }, [isVisible, aiModel]); // Depend on aiModel instead of dynamicSteps
 
   // Effect to handle immediate completion when API finishes
   useEffect(() => {
@@ -97,44 +94,31 @@ export function ProcessingOverlay({
         console.log("Starting completion animation");
         
         for (let i = 0; i < dynamicSteps.length; i++) {
-          if (!isVisible) {
-            console.log("Overlay hidden during completion, stopping");
-            return;
-          }
-          
           console.log(`Completing step ${i + 1}/${dynamicSteps.length}`);
           
           setCurrentStepIndex(i);
-          setCurrentSteps(prev => 
-            prev.map((step, index) => ({
-              ...step,
-              status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
-            }))
-          );
+          setCurrentSteps(dynamicSteps.map((step, index) => ({
+            ...step,
+            status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
+          })));
           await new Promise(resolve => setTimeout(resolve, 150)); // Quick animation
         }
         
         // Mark all complete
-        if (isVisible) {
-          console.log("✅ All processing steps completed");
-          setCurrentSteps(prev => 
-            prev.map(step => ({ ...step, status: 'complete' }))
-          );
-          setCurrentStepIndex(dynamicSteps.length - 1);
-          
-          // Automatically trigger onComplete after a brief delay
-          setTimeout(() => {
-            if (isVisible) {
-              console.log("🔄 Auto-triggering onComplete");
-              onComplete?.();
-            }
-          }, 800);
-        }
+        console.log("✅ All processing steps completed");
+        setCurrentSteps(dynamicSteps.map(step => ({ ...step, status: 'complete' })));
+        setCurrentStepIndex(dynamicSteps.length - 1);
+        
+        // Automatically trigger onComplete after a brief delay
+        setTimeout(() => {
+          console.log("🔄 Auto-triggering onComplete");
+          onComplete?.();
+        }, 800);
       };
       
       completeSteps();
     }
-  }, [completeImmediately, isVisible, dynamicSteps, onComplete]);
+  }, [completeImmediately, isVisible, aiModel, onComplete]); // Depend on aiModel instead of dynamicSteps
 
   if (!isVisible) {
     return null;
