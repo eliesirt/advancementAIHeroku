@@ -201,26 +201,37 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       // Check if we have full AI analysis or just transcript
       const hasAiAnalysis = !!(extractedInfo && enhancedComments && enhancedComments.length > 50);
       
+      console.log("Processing completion check:", {
+        hasExtractedInfo: !!extractedInfo,
+        hasEnhancedComments: !!enhancedComments,
+        enhancedCommentsLength: enhancedComments?.length || 0,
+        hasAiAnalysis
+      });
+      
       if (hasAiAnalysis) {
         // Full AI processing completed - complete overlay animation then show form
         console.log("✅ Full AI analysis completed, completing processing overlay");
         setProcessingComplete(true);
         
         setTimeout(() => {
+          console.log("🔄 Showing interaction form and hiding processing");
           setShowInteractionForm(true);
           setShowProcessing(false);
           setProcessingComplete(false); // Reset for next time
-        }, 1000); // Time for overlay to show completion
+        }, 1200); // Longer delay for completion animation
 
         toast({
           title: "Voice Recording Processed",
           description: "Your voice recording has been transcribed and analyzed. Please review and submit.",
         });
       } else {
-        // Only transcript available - hide processing but don't show form yet
-        console.log("⚠️ Only transcript available, prompting for AI analysis");
-        setShowProcessing(false);
-        setProcessingComplete(false);
+        // Only transcript available - hide processing and show form anyway for manual AI analysis
+        console.log("⚠️ Only transcript available, showing form for manual AI analysis");
+        setTimeout(() => {
+          setShowInteractionForm(true);
+          setShowProcessing(false);
+          setProcessingComplete(false);
+        }, 500);
         
         toast({
           title: "Transcript Ready",

@@ -53,77 +53,40 @@ export function ProcessingOverlay({
       return;
     }
 
-    // Start with first step processing immediately
+    // Simply show first step as processing - no simulation
     setCurrentStepIndex(0);
-    setCurrentSteps(prev => 
-      prev.map((step, index) => ({
-        ...step,
-        status: index === 0 ? 'processing' : 'pending'
-      }))
-    );
-
-    // Simulate realistic progress through steps while waiting for actual API
-    const progressSteps = async () => {
-      // Step 1: Transcribing (immediate)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setCurrentStepIndex(1);
-      setCurrentSteps(prev => 
-        prev.map((step, index) => ({
-          ...step,
-          status: index === 0 ? 'complete' : index === 1 ? 'processing' : 'pending'
-        }))
-      );
-
-      // Step 2: Extracting (after a delay)
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      setCurrentStepIndex(2);
-      setCurrentSteps(prev => 
-        prev.map((step, index) => ({
-          ...step,
-          status: index <= 1 ? 'complete' : index === 2 ? 'processing' : 'pending'
-        }))
-      );
-
-      // Step 3: Matching (after another delay)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setCurrentStepIndex(3);
-      setCurrentSteps(prev => 
-        prev.map((step, index) => ({
-          ...step,
-          status: index <= 2 ? 'complete' : index === 3 ? 'processing' : 'pending'
-        }))
-      );
-
-      // Step 4: Enhancing (final processing step)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setCurrentStepIndex(4);
-      setCurrentSteps(prev => 
-        prev.map((step, index) => ({
-          ...step,
-          status: index <= 3 ? 'complete' : index === 4 ? 'processing' : 'pending'
-        }))
-      );
-
-      // Keep step 4 (Preparing form) processing until parent tells us to complete
-      // Parent component will call onComplete when API actually finishes
-    };
-
-    progressSteps();
+    setCurrentSteps(dynamicSteps.map((step, index) => ({
+      ...step,
+      status: index === 0 ? 'processing' : 'pending'
+    })));
   }, [isVisible, dynamicSteps]);
 
   // Effect to handle immediate completion when API finishes
   useEffect(() => {
     if (completeImmediately && isVisible) {
       console.log("API completed - finishing all processing steps immediately");
-      // Complete all steps immediately
-      setCurrentSteps(prev => 
-        prev.map(step => ({ ...step, status: 'complete' }))
-      );
-      setCurrentStepIndex(dynamicSteps.length - 1);
+      
+      // Animate through all steps quickly
+      const completeSteps = async () => {
+        for (let i = 0; i < dynamicSteps.length; i++) {
+          setCurrentStepIndex(i);
+          setCurrentSteps(prev => 
+            prev.map((step, index) => ({
+              ...step,
+              status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
+            }))
+          );
+          await new Promise(resolve => setTimeout(resolve, 200)); // Quick animation
+        }
+        
+        // Mark all complete
+        setCurrentSteps(prev => 
+          prev.map(step => ({ ...step, status: 'complete' }))
+        );
+        setCurrentStepIndex(dynamicSteps.length - 1);
+      };
+      
+      completeSteps();
     }
   }, [completeImmediately, isVisible, dynamicSteps]);
 
