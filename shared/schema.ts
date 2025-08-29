@@ -427,6 +427,30 @@ export const aiJobs = pgTable("ai_jobs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// System settings for application-wide configuration
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(), // Setting identifier like 'ai_model_preference'
+  value: jsonb("value").notNull(), // Setting value (can be string, object, array, etc.)
+  description: text("description"), // Human-readable description
+  category: text("category").default("general"), // 'ai', 'integrations', 'ui', etc.
+  isUserSpecific: boolean("is_user_specific").default(false), // If true, users can have individual values
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User-specific setting overrides
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  settingKey: text("setting_key").notNull(), // References systemSettings.key
+  value: jsonb("value").notNull(), // User's override value
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserSetting: index("unique_user_setting_idx").on(table.userId, table.settingKey),
+}));
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -710,6 +734,18 @@ export const insertAiJobSchema = createInsertSchema(aiJobs).omit({
   updatedAt: true,
 });
 
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSettingSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -780,6 +816,11 @@ export type ItineraryTravelSegment = typeof itineraryTravelSegments.$inferSelect
 export type InsertItineraryTravelSegment = z.infer<typeof insertItineraryTravelSegmentSchema>;
 export type AiJob = typeof aiJobs.$inferSelect;
 export type InsertAiJob = z.infer<typeof insertAiJobSchema>;
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+export type UserSetting = typeof userSettings.$inferSelect;
+export type InsertUserSetting = z.infer<typeof insertUserSettingSchema>;
 
 // Extended types for UI
 export interface UserWithRoles extends User {

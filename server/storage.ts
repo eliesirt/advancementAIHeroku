@@ -77,7 +77,13 @@ import {
   type InsertScriptPermission,
   aiJobs,
   type AiJob,
-  type InsertAiJob
+  type InsertAiJob,
+  systemSettings,
+  userSettings,
+  type SystemSetting,
+  type InsertSystemSetting,
+  type UserSetting,
+  type InsertUserSetting
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
@@ -233,6 +239,20 @@ export interface IStorage {
   getScriptPermissions(scriptId: number): Promise<ScriptPermission[]>;
   createScriptPermission(permissionData: InsertScriptPermission): Promise<ScriptPermission>;
   deleteScriptPermission(id: number): Promise<boolean>;
+
+  // AI Jobs for async processing
+  createAiJob(job: InsertAiJob): Promise<AiJob>;
+  updateAiJob(id: number, updates: Partial<AiJob>): Promise<AiJob>;
+  getAiJob(id: number): Promise<AiJob | undefined>;
+  getUserAiJobs(userId: string): Promise<AiJob[]>;
+
+  // System and User Settings
+  getSystemSetting(key: string): Promise<SystemSetting | undefined>;
+  setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
+  getUserSetting(userId: string, settingKey: string): Promise<UserSetting | undefined>;
+  setUserSetting(setting: InsertUserSetting): Promise<UserSetting>;
+  getUserSettingValue<T>(userId: string, settingKey: string, defaultValue?: T): Promise<T>;
+  getAllUserSettings(userId: string): Promise<UserSetting[]>;
 }
 
 export class MemStorage implements Partial<IStorage> {
@@ -1815,6 +1835,73 @@ export class DatabaseStorage implements IStorage {
       .from(aiJobs)
       .where(eq(aiJobs.userId, userId))
       .orderBy(desc(aiJobs.createdAt));
+  }
+
+  // System and User Settings implementation
+  async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
+    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    return setting || undefined;
+  }
+
+  async setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting> {
+    const [result] = await db
+      .insert(systemSettings)
+      .values(setting)
+      .onConflictDoUpdate({
+        target: systemSettings.key,
+        set: {
+          value: setting.value,
+          description: setting.description,
+          category: setting.category,
+          updatedAt: sql`NOW()`
+        }
+      })
+      .returning();
+    return result;
+  }
+
+  async getUserSetting(userId: string, settingKey: string): Promise<UserSetting | undefined> {
+    const [setting] = await db
+      .select()
+      .from(userSettings)
+      .where(and(eq(userSettings.userId, userId), eq(userSettings.settingKey, settingKey)));
+    return setting || undefined;
+  }
+
+  async setUserSetting(setting: InsertUserSetting): Promise<UserSetting> {
+    const [result] = await db
+      .insert(userSettings)
+      .values(setting)
+      .onConflictDoUpdate({
+        target: [userSettings.userId, userSettings.settingKey],
+        set: {
+          value: setting.value,
+          updatedAt: sql`NOW()`
+        }
+      })
+      .returning();
+    return result;
+  }
+
+  async getUserSettingValue<T>(userId: string, settingKey: string, defaultValue?: T): Promise<T> {
+    // First try user-specific setting
+    const userSetting = await this.getUserSetting(userId, settingKey);
+    if (userSetting) {
+      return userSetting.value as T;
+    }
+
+    // Fall back to system setting
+    const systemSetting = await this.getSystemSetting(settingKey);
+    if (systemSetting) {
+      return systemSetting.value as T;
+    }
+
+    // Return default if provided
+    return defaultValue as T;
+  }
+
+  async getAllUserSettings(userId: string): Promise<UserSetting[]> {
+    return await db.select().from(userSettings).where(eq(userSettings.userId, userId));
   }
 }
 

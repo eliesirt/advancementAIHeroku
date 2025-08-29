@@ -154,6 +154,9 @@ export default function SettingsPage() {
     synopsis: ''
   });
 
+  // AI model preference state
+  const [aiModelPreference, setAiModelPreference] = useState<string>('gpt-4o');
+
   const { toast } = useToast();
 
   // Fetch user data
@@ -217,6 +220,12 @@ export default function SettingsPage() {
     retry: false,
   });
 
+  // Fetch AI model preference
+  const { data: aiModelPreferenceData } = useQuery<{ value: string; description: string }>({
+    queryKey: ["/api/settings/ai-model-preference"],
+    retry: false,
+  });
+
   // Load AI prompt settings when data is available
   useEffect(() => {
     if (aiPromptSettingsData) {
@@ -226,6 +235,13 @@ export default function SettingsPage() {
       });
     }
   }, [aiPromptSettingsData]);
+
+  // Load AI model preference when data is available
+  useEffect(() => {
+    if (aiModelPreferenceData) {
+      setAiModelPreference(aiModelPreferenceData.value);
+    }
+  }, [aiModelPreferenceData]);
 
   // Manual refresh affinity tags mutation
   const refreshAffinityTagsMutation = useMutation({
@@ -302,6 +318,28 @@ export default function SettingsPage() {
       toast({
         title: "Update Failed",
         description: "Unable to save AI prompt template. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update AI model preference mutation
+  const updateAiModelPreferenceMutation = useMutation({
+    mutationFn: async (value: string) => {
+      const response = await apiRequest("POST", "/api/settings/ai-model-preference", { value });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "AI Model Preference Updated",
+        description: `All OpenAI functionality will now use ${data.setting.value} as the primary model.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/ai-model-preference"] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Unable to save AI model preference. Please try again.",
         variant: "destructive",
       });
     },
@@ -401,6 +439,12 @@ export default function SettingsPage() {
   // Update AI prompt settings local state
   const updateAiPromptSetting = (promptType: string, value: string) => {
     setAiPromptSettings(prev => ({ ...prev, [promptType]: value }));
+  };
+
+  // Handle AI model preference change
+  const handleAiModelPreferenceChange = (value: string) => {
+    setAiModelPreference(value);
+    updateAiModelPreferenceMutation.mutate(value);
   };
 
   // Get default prompt template for reference
@@ -953,6 +997,76 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Model Preference Section */}
+        <Card className="border-2 hover:border-green-100 transition-colors bg-white shadow-lg">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+              <div className="p-2 rounded-lg bg-green-50">
+                <Bot className="h-6 w-6" style={{ color: '#22c55e' }} />
+              </div>
+              <span>AI Model Settings</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <div>
+              <Label htmlFor="aiModelPreference" className="text-base font-medium">
+                AI Model Preference
+              </Label>
+              <p className="text-sm text-muted-foreground mb-3">
+                Choose the primary AI model for all OpenAI functionality across the platform (script generation, analysis, prompts).
+              </p>
+              <Select
+                value={aiModelPreference}
+                onValueChange={handleAiModelPreferenceChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select AI model preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-5">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">GPT-5</div>
+                        <div className="text-xs text-muted-foreground">Latest model (recommended)</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="gpt-4o">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">GPT-4o</div>
+                        <div className="text-xs text-muted-foreground">Fast, optimized model (default)</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="gpt-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">GPT-4</div>
+                        <div className="text-xs text-muted-foreground">Reliable, older model</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="mt-3 p-3 bg-blue-50 rounded-md">
+                <div className="text-sm">
+                  <strong>Current setting:</strong> {aiModelPreference} 
+                  {updateAiModelPreferenceMutation.isPending && (
+                    <span className="ml-2 text-blue-600">Saving...</span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  This affects PythonAI script generation, InteractionAI analysis, and all other OpenAI features across the platform.
+                </div>
               </div>
             </div>
           </CardContent>

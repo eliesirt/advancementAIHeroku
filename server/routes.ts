@@ -2984,9 +2984,25 @@ Example header format:
 Generate a complete, functional Python script that accomplishes the user's requirements with proper error handling, documentation, and best practices.
 `;
 
-      // Try multiple models with proper fallback
+      // Get user's AI model preference and create model order
       let response;
-      const modelsToTry = ["gpt-4o", "gpt-4", "gpt-3.5-turbo"];
+      const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
+      const userPreference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
+      
+      // Create ordered list based on user preference
+      let modelsToTry;
+      switch (userPreference) {
+        case 'gpt-5':
+          modelsToTry = ["gpt-5", "gpt-4o", "gpt-4", "gpt-3.5-turbo"];
+          break;
+        case 'gpt-4':
+          modelsToTry = ["gpt-4", "gpt-3.5-turbo", "gpt-4o"];
+          break;
+        case 'gpt-4o':
+        default:
+          modelsToTry = ["gpt-4o", "gpt-4", "gpt-3.5-turbo"];
+          break;
+      }
       
       console.log(`🤖 [JOB PROCESSOR] Attempting OpenAI generation with models: ${modelsToTry.join(', ')}`);
       
@@ -3115,6 +3131,78 @@ Generate a complete, functional Python script that accomplishes the user's requi
       });
     }
   }
+
+  // ===== SYSTEM SETTINGS API =====
+  
+  // Get user's AI model preference (with fallback to system default)
+  app.get('/api/settings/ai-model-preference', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
+      
+      const preference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
+      
+      res.json({ 
+        value: preference,
+        description: 'AI model preference for all OpenAI functionality'
+      });
+    } catch (error) {
+      console.error('Error fetching AI model preference:', error);
+      res.status(500).json({ error: 'Failed to fetch AI model preference' });
+    }
+  });
+
+  // Set user's AI model preference
+  app.post('/api/settings/ai-model-preference', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
+      const { value } = req.body;
+      
+      if (!['gpt-5', 'gpt-4o', 'gpt-4'].includes(value)) {
+        return res.status(400).json({ 
+          error: 'Invalid AI model preference. Must be gpt-5, gpt-4o, or gpt-4' 
+        });
+      }
+
+      const setting = await storage.setUserSetting({
+        userId,
+        settingKey: 'ai_model_preference',
+        value: value
+      });
+
+      console.log(`🤖 User ${userId} set AI model preference to: ${value}`);
+
+      res.json({ 
+        success: true,
+        setting,
+        message: `AI model preference updated to ${value}`
+      });
+    } catch (error) {
+      console.error('Error setting AI model preference:', error);
+      res.status(500).json({ error: 'Failed to set AI model preference' });
+    }
+  });
+
+  // Get all user settings
+  app.get('/api/settings', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
+      
+      const settings = await storage.getAllUserSettings(userId);
+      
+      // Include AI model preference with default
+      const aiModelPreference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
+      
+      res.json({
+        userSettings: settings,
+        computed: {
+          aiModelPreference
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user settings:', error);
+      res.status(500).json({ error: 'Failed to fetch user settings' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
