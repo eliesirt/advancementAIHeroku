@@ -40,8 +40,8 @@ export function ProcessingOverlay({
   const dynamicSteps: ProcessingStep[] = [
     { id: 'transcribe', label: 'Transcribing audio with OpenAI Whisper', status: 'pending' },
     { id: 'extract', label: `Extracting key information with ${aiModel}`, status: 'pending' },
+    { id: 'enhance', label: `Generating AI synopsis with ${aiModel}`, status: 'pending' },
     { id: 'match', label: 'Matching affinity tags', status: 'pending' },
-    { id: 'enhance', label: `Enhancing comments with ${aiModel}`, status: 'pending' },
     { id: 'finalize', label: 'Preparing interaction form', status: 'pending' },
   ];
 

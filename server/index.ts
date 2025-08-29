@@ -487,16 +487,17 @@ app.get('/health', (req, res) => {
         // Process the transcript with AI to extract information
         let extractedInfo;
         try {
-          console.log("Processing transcript with AI to extract information...");
+          console.log("🔍 Extracting interaction information...");
+          console.log("🤖 Starting OpenAI extraction...");
           
           const openaiLib = await import("./lib/openai.js");
           if (openaiLib && openaiLib.extractInteractionInfo) {
             extractedInfo = await openaiLib.extractInteractionInfo(finalTranscript);
-            console.log("AI extraction completed successfully");
+            console.log("✅ OpenAI extraction completed");
             
             // Perform real quality assessment
             try {
-              console.log("📊 [PRODUCTION] Evaluating interaction quality...");
+              console.log("📊 Evaluating interaction quality...");
               if (openaiLib.evaluateInteractionQuality) {
                 const qualityAssessment = await openaiLib.evaluateInteractionQuality(
                   finalTranscript,
@@ -514,7 +515,7 @@ app.get('/health', (req, res) => {
                     subcategory: extractedInfo.subcategory || ''
                   }
                 );
-                console.log("✅ [PRODUCTION] Quality assessment completed - Score:", qualityAssessment.qualityScore + "/25");
+                console.log("✅ Quality assessment completed - Score:", qualityAssessment.qualityScore + "/25");
                 (extractedInfo as any).qualityScore = qualityAssessment.qualityScore;
                 (extractedInfo as any).qualityExplanation = qualityAssessment.qualityExplanation;
                 (extractedInfo as any).qualityRecommendations = qualityAssessment.recommendations;
@@ -557,15 +558,40 @@ app.get('/health', (req, res) => {
         // Generate detailed AI synopsis using custom prompts
         let aiSynopsis = "";
         try {
-          console.log("Generating detailed AI synopsis with custom prompts...");
+          console.log("📝 Generating concise summary...");
           const openaiLib = await import("./lib/openai.js");
           if (openaiLib && openaiLib.generateInteractionSynopsis) {
             aiSynopsis = await openaiLib.generateInteractionSynopsis(finalTranscript, extractedInfo, 42195145);
-            console.log("AI synopsis generated successfully");
+            console.log("✅ Concise summary generated");
           }
         } catch (synopsisError) {
           console.error("AI synopsis generation failed:", synopsisError);
           aiSynopsis = `Voice Interaction Analysis:\n\nTranscript: ${finalTranscript}\n\nSummary: ${extractedInfo.summary}`;
+        }
+
+        // Now perform affinity tag matching after AI synopsis is complete
+        try {
+          console.log("🔍 Matching affinity tags after AI synopsis...");
+          const { storage } = await import("./storage");
+          const [affinityTags, settings] = await Promise.all([
+            storage.getAffinityTags(),
+            storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }))
+          ]);
+          
+          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+          const affinityMatcher = await createAffinityMatcher(affinityTags, settings?.matchingThreshold || 0.25);
+          
+          const matchedTags = affinityMatcher.matchInterests(
+            extractedInfo.professionalInterests || [],
+            extractedInfo.personalInterests || [],
+            extractedInfo.philanthropicPriorities || []
+          );
+          
+          console.log("✅ Affinity tag matching completed:", { matchCount: matchedTags.length });
+          extractedInfo.suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+        } catch (affinityError) {
+          console.error("Affinity tag matching failed:", affinityError);
+          extractedInfo.suggestedAffinityTags = [];
         }
 
         // Format quality assessment for frontend compatibility
@@ -575,6 +601,8 @@ app.get('/health', (req, res) => {
           recommendations: (extractedInfo as any).qualityRecommendations || []
         } : null;
 
+        console.log("✅ Voice processing completed successfully");
+        
         console.log("Voice processing completed:", { 
           transcriptLength: finalTranscript.length,
           hasQualityAssessment: !!qualityAssessment,
