@@ -335,6 +335,10 @@ app.get('/health', (req, res) => {
         res.json({ 
           success: true, 
           message: "AI model preference updated successfully",
+          setting: {
+            value: preference.value,
+            description: `Using ${preference.value} as the AI model for analysis and processing`
+          },
           preference: {
             value: preference.value,
             description: `Using ${preference.value} as the AI model for analysis and processing`

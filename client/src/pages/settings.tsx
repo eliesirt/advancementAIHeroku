@@ -332,7 +332,7 @@ export default function SettingsPage() {
     onSuccess: (data) => {
       toast({
         title: "AI Model Preference Updated",
-        description: `All OpenAI functionality will now use ${data.setting.value} as the primary model.`,
+        description: `All OpenAI functionality will now use ${data.preference?.value || data.setting?.value || 'the selected model'} as the primary model.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/settings/ai-model-preference"] });
     },
