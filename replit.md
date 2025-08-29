@@ -4,7 +4,7 @@ This is a full-stack React application with an Express backend designed for voic
 
 **Recent Achievement (Aug 2025)**: Successfully resolved critical Heroku production issues:
 1. **Affinity Tags**: Fixed percentage-to-decimal threshold conversion (95% → 0.950), achieving full functionality for voice processing affinity tag population in production.
-2. **Enhanced Comments**: Resolved transcript missing from enhanced comments by implementing proper response structure compatibility (`aiSynopsis` field) for Heroku environment, ensuring voice recordings include both AI synopsis and full transcript.
+2. **Enhanced Comments**: Resolved transcript missing from enhanced comments by implementing proper response structure compatibility (`aiSynopsis` field) for Heroku environment, ensuring voice recordings include both AI synopsis and full transcript. Fixed duplicate transcript issue in Replit development by implementing smart detection logic.
 
 ## User Preferences
 

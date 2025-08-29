@@ -290,27 +290,30 @@ export async function enhanceInteractionComments(
     
     console.log("🔧 ENHANCE COMMENTS: Synopsis generated, length:", synopsis?.length || 0);
     
-    // Format the final comments with synopsis and transcript only
-    const formattedComments = `ADVANCEMENT OFFICE SYNOPSIS:
+    // Check if synopsis already includes transcript to avoid duplication
+    const synopsisIncludesTranscript = synopsis.includes("TRANSCRIPT:");
+    
+    // Format the final comments - add prefix only if synopsis doesn't already include it
+    const formattedComments = synopsisIncludesTranscript 
+      ? synopsis  // Synopsis already formatted with ADVANCEMENT OFFICE SYNOPSIS prefix and transcript
+      : `ADVANCEMENT OFFICE SYNOPSIS:
 ${synopsis}
 
 TRANSCRIPT:
 ${transcript}`;
 
+    console.log("🔧 ENHANCE COMMENTS: Synopsis includes transcript:", synopsisIncludesTranscript);
     console.log("🔧 ENHANCE COMMENTS: Final formatted length:", formattedComments?.length || 0);
     console.log("🔧 ENHANCE COMMENTS: Includes transcript:", formattedComments.includes("TRANSCRIPT:"));
     console.log("🔧 ENHANCE COMMENTS: Input transcript preview:", transcript?.substring(0, 100));
-    console.log("🔧 ENHANCE COMMENTS: Synopsis preview:", synopsis?.substring(0, 100));
     console.log("🔧 ENHANCE COMMENTS: Final 200 chars:", formattedComments.substring(formattedComments.length - 200));
-    console.log("🔧 ENHANCE COMMENTS: Raw output being returned:");
-    console.log(formattedComments);
 
     return formattedComments;
   } catch (error) {
     console.error("Comment enhancement error:", error);
     console.log("🔧 ENHANCE COMMENTS: Using fallback format with transcript");
     
-    // Fallback format if AI processing fails
+    // Fallback format if AI processing fails (already includes transcript)
     const fallbackComments = `ADVANCEMENT OFFICE SYNOPSIS:
 Synopsis could not be generated due to processing error.
 
