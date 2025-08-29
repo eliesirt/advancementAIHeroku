@@ -447,9 +447,7 @@ export const userSettings = pgTable("user_settings", {
   value: jsonb("value").notNull(), // User's override value
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserSetting: index("unique_user_setting_idx").on(table.userId, table.settingKey),
-}));
+});
 
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
