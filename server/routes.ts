@@ -2519,6 +2519,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Code Quality Analysis for Python Scripts
+  app.post('/api/python-scripts/analyze', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code, scriptName } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (!code) {
+        return res.status(400).json({ error: 'Code is required for analysis' });
+      }
+
+      // Import OpenAI (using dynamic import to avoid issues)
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const analysisPrompt = `
+You are a senior Python developer and code quality expert. Analyze the following Python code and provide a comprehensive evaluation.
+
+SCRIPT NAME: ${scriptName || 'Untitled Script'}
+
+CODE TO ANALYZE:
+\`\`\`python
+${code}
+\`\`\`
+
+Please provide a detailed analysis in the following JSON format:
+{
+  "overallScore": number (1-10, where 10 is excellent),
+  "qualityAssessment": {
+    "codeStructure": {
+      "score": number (1-10),
+      "comments": "string with specific feedback"
+    },
+    "readability": {
+      "score": number (1-10), 
+      "comments": "string with specific feedback"
+    },
+    "errorHandling": {
+      "score": number (1-10),
+      "comments": "string with specific feedback"
+    },
+    "documentation": {
+      "score": number (1-10),
+      "comments": "string with specific feedback"
+    },
+    "bestPractices": {
+      "score": number (1-10),
+      "comments": "string with specific feedback"
+    }
+  },
+  "securityIssues": [
+    {
+      "severity": "high|medium|low",
+      "issue": "description of the security concern",
+      "recommendation": "how to fix it",
+      "lineNumber": number (if applicable)
+    }
+  ],
+  "performanceImprovements": [
+    {
+      "priority": "high|medium|low",
+      "issue": "description of the performance concern", 
+      "recommendation": "how to improve it",
+      "lineNumber": number (if applicable)
+    }
+  ],
+  "codeSmells": [
+    {
+      "type": "type of code smell",
+      "description": "what the issue is",
+      "suggestion": "how to fix it",
+      "lineNumber": number (if applicable)
+    }
+  ],
+  "recommendations": [
+    "string recommendations for overall improvement"
+  ],
+  "summary": "Overall summary of the code quality and main areas for improvement"
+}
+
+Focus on:
+- Code structure and organization
+- Security vulnerabilities (SQL injection, XSS, unsafe imports, etc.)
+- Performance bottlenecks and inefficiencies  
+- Error handling and edge cases
+- Documentation and comments quality
+- Python best practices (PEP 8, naming conventions, etc.)
+- Potential bugs or logical errors
+- Maintainability and readability
+
+Provide specific, actionable feedback with line numbers when possible.
+`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: analysisPrompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.3,
+        max_tokens: 4000
+      });
+
+      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      
+      console.log(`🔍 [CODE ANALYSIS] Script "${scriptName}" analyzed by user ${userId}`);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Code analysis error:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze code', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

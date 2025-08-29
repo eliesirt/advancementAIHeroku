@@ -222,6 +222,28 @@ export default function PythonAI() {
     },
   });
 
+  // AI Code Analysis mutation
+  const analyzeCodeMutation = useMutation({
+    mutationFn: async (data: { code: string; scriptName: string }) => {
+      const response = await fetch('/api/python-scripts/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to analyze code');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Code analysis completed' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
   // Filter scripts
   const filteredScripts = scripts.filter((script: PythonScript) => {
     const matchesSearch = script.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -691,7 +713,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-// Create Script Form Component with File Upload
+// Create Script Form Component with File Upload and AI Analysis
 function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -704,6 +726,32 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [tagInput, setTagInput] = useState('');
   const [reqInput, setReqInput] = useState('');
   const [uploadMode, setUploadMode] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  // AI Code Analysis mutation
+  const analyzeCodeMutation = useMutation({
+    mutationFn: async (data: { code: string; scriptName: string }) => {
+      const response = await fetch('/api/python-scripts/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to analyze code');
+      }
+      return response.json();
+    },
+    onSuccess: (result) => {
+      setAnalysisResult(result);
+      setShowAnalysis(true);
+      toast({ title: 'Success', description: 'Code analysis completed' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -897,10 +945,52 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline">Cancel</Button>
-        <Button type="submit">Create Script</Button>
+      <div className="flex justify-between pt-4">
+        <Button 
+          type="button" 
+          variant="outline"
+          onClick={() => {
+            if (!formData.content.trim()) {
+              toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
+              return;
+            }
+            analyzeCodeMutation.mutate({
+              code: formData.content,
+              scriptName: formData.name || 'Untitled Script'
+            });
+          }}
+          disabled={analyzeCodeMutation.isPending}
+          className="flex items-center space-x-2"
+        >
+          {analyzeCodeMutation.isPending ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <TestTube className="h-4 w-4" />
+          )}
+          <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
+        </Button>
+        <div className="flex space-x-2">
+          <Button type="button" variant="outline">Cancel</Button>
+          <Button type="submit">Create Script</Button>
+        </div>
       </div>
+
+      {/* AI Analysis Results */}
+      {showAnalysis && analysisResult && (
+        <div className="mt-6 border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">AI Code Quality Analysis</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAnalysis(false)}
+            >
+              ×
+            </Button>
+          </div>
+          <CodeAnalysisResults analysis={analysisResult} />
+        </div>
+      )}
     </form>
   );
 }
@@ -919,6 +1009,32 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
 
   const [tagInput, setTagInput] = useState('');
   const [reqInput, setReqInput] = useState('');
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  // AI Code Analysis mutation
+  const analyzeCodeMutation = useMutation({
+    mutationFn: async (data: { code: string; scriptName: string }) => {
+      const response = await fetch('/api/python-scripts/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to analyze code');
+      }
+      return response.json();
+    },
+    onSuccess: (result) => {
+      setAnalysisResult(result);
+      setShowAnalysis(true);
+      toast({ title: 'Success', description: 'Code analysis completed' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1060,10 +1176,52 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline">Cancel</Button>
-        <Button type="submit">Update Script</Button>
+      <div className="flex justify-between pt-4">
+        <Button 
+          type="button" 
+          variant="outline"
+          onClick={() => {
+            if (!formData.content.trim()) {
+              toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
+              return;
+            }
+            analyzeCodeMutation.mutate({
+              code: formData.content,
+              scriptName: formData.name || 'Untitled Script'
+            });
+          }}
+          disabled={analyzeCodeMutation.isPending}
+          className="flex items-center space-x-2"
+        >
+          {analyzeCodeMutation.isPending ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <TestTube className="h-4 w-4" />
+          )}
+          <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
+        </Button>
+        <div className="flex space-x-2">
+          <Button type="button" variant="outline">Cancel</Button>
+          <Button type="submit">Update Script</Button>
+        </div>
       </div>
+
+      {/* AI Analysis Results */}
+      {showAnalysis && analysisResult && (
+        <div className="mt-6 border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">AI Code Quality Analysis</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAnalysis(false)}
+            >
+              ×
+            </Button>
+          </div>
+          <CodeAnalysisResults analysis={analysisResult} />
+        </div>
+      )}
     </form>
   );
 }
@@ -1372,6 +1530,161 @@ function ExecutionHistory({ executions, loading }: { executions: ScriptExecution
             </div>
           </DialogContent>
         </Dialog>
+      )}
+    </div>
+  );
+}
+
+// Code Analysis Results Component
+function CodeAnalysisResults({ analysis }: { analysis: any }) {
+  const getScoreColor = (score: number) => {
+    if (score >= 8) return 'text-green-600';
+    if (score >= 6) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'text-red-600 bg-red-50';
+      case 'medium': return 'text-yellow-600 bg-yellow-50';
+      case 'low': return 'text-blue-600 bg-blue-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Overall Score */}
+      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className={`text-3xl font-bold ${getScoreColor(analysis.overallScore)}`}>
+            {analysis.overallScore}/10
+          </div>
+          <div className="text-sm text-gray-500">Overall Score</div>
+        </div>
+        <div className="flex-1">
+          <h4 className="font-medium mb-2">Summary</h4>
+          <p className="text-sm text-gray-700">{analysis.summary}</p>
+        </div>
+      </div>
+
+      {/* Quality Assessment */}
+      <div>
+        <h4 className="font-medium mb-3">Quality Assessment</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(analysis.qualityAssessment || {}).map(([key, value]: [string, any]) => (
+            <div key={key} className="border rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                <span className={`font-bold ${getScoreColor(value.score)}`}>
+                  {value.score}/10
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">{value.comments}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Security Issues */}
+      {analysis.securityIssues && analysis.securityIssues.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3 flex items-center">
+            <Shield className="h-4 w-4 mr-2 text-red-600" />
+            Security Issues ({analysis.securityIssues.length})
+          </h4>
+          <div className="space-y-2">
+            {analysis.securityIssues.map((issue: any, index: number) => (
+              <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                issue.severity === 'high' ? 'border-red-500 bg-red-50' :
+                issue.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs px-2 py-1 rounded ${getSeverityColor(issue.severity)}`}>
+                    {issue.severity.toUpperCase()}
+                  </span>
+                  {issue.lineNumber && (
+                    <span className="text-xs text-gray-500">Line {issue.lineNumber}</span>
+                  )}
+                </div>
+                <p className="font-medium text-sm mb-1">{issue.issue}</p>
+                <p className="text-sm text-gray-600">{issue.recommendation}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Performance Improvements */}
+      {analysis.performanceImprovements && analysis.performanceImprovements.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3 flex items-center">
+            <Zap className="h-4 w-4 mr-2 text-yellow-600" />
+            Performance Improvements ({analysis.performanceImprovements.length})
+          </h4>
+          <div className="space-y-2">
+            {analysis.performanceImprovements.map((improvement: any, index: number) => (
+              <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                improvement.priority === 'high' ? 'border-orange-500 bg-orange-50' :
+                improvement.priority === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs px-2 py-1 rounded ${getSeverityColor(improvement.priority)}`}>
+                    {improvement.priority.toUpperCase()}
+                  </span>
+                  {improvement.lineNumber && (
+                    <span className="text-xs text-gray-500">Line {improvement.lineNumber}</span>
+                  )}
+                </div>
+                <p className="font-medium text-sm mb-1">{improvement.issue}</p>
+                <p className="text-sm text-gray-600">{improvement.recommendation}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Code Smells */}
+      {analysis.codeSmells && analysis.codeSmells.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3 flex items-center">
+            <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+            Code Smells ({analysis.codeSmells.length})
+          </h4>
+          <div className="space-y-2">
+            {analysis.codeSmells.map((smell: any, index: number) => (
+              <div key={index} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
+                    {smell.type}
+                  </span>
+                  {smell.lineNumber && (
+                    <span className="text-xs text-gray-500">Line {smell.lineNumber}</span>
+                  )}
+                </div>
+                <p className="font-medium text-sm mb-1">{smell.description}</p>
+                <p className="text-sm text-gray-600">{smell.suggestion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recommendations */}
+      {analysis.recommendations && analysis.recommendations.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-3">General Recommendations</h4>
+          <ul className="space-y-2">
+            {analysis.recommendations.map((recommendation: string, index: number) => (
+              <li key={index} className="flex items-start space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-sm text-gray-700">{recommendation}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
