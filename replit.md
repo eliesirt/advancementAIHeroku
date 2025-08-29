@@ -2,6 +2,8 @@
 
 This is a full-stack React application with an Express backend designed for voice-enabled interaction management with Blackbaud CRM. The system allows users to record voice interactions, process them with AI to extract key information, and submit them to the Blackbaud CRM system via SOAP API integration. It aims to provide a mobile-first, voice-enabled, and responsive solution for efficient data entry and management within the Blackbaud ecosystem, branded as "AdvancementAI - Boston University Advancement Technology Suite." The system has evolved into a multi-application suite, including Python script management capabilities, focusing on enhancing fundraising and advancement operations.
 
+**Recent Achievement (Aug 2025)**: Successfully resolved critical Heroku production issue where voice processing affinity tags were not populating. Implemented comprehensive threshold conversion and fallback matching strategies, achieving full functionality in production environment.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -27,7 +29,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Features & Technical Implementations
 - **Voice Recording System**: Utilizes WebRTC MediaRecorder for audio capture, WebKit Speech Recognition for real-time transcription, and OpenAI Whisper API for audio transcription.
 - **AI Processing Pipeline**: Integrates OpenAI Whisper for transcription and GPT-4 for structured data extraction, content enhancement, and summarization. Includes AI-powered quality assessment and customizable AI prompts for synopsis generation.
-- **Affinity Matching**: Employs a fuzzy matching system (Fuse.js) for tag suggestions, with configurable matching thresholds and improved preprocessing logic for better accuracy.
+- **Affinity Matching**: Employs a fuzzy matching system (Fuse.js) for tag suggestions, with configurable matching thresholds, improved preprocessing logic, and production-tested threshold conversion (percentage-to-decimal). Successfully operational in Heroku production environment with comprehensive fallback strategies.
 - **CRM Integration**: Achieved via SOAP API with Blackbaud CRM, including basic authentication, structured data mapping to BBEC format, and real-time constituent lookup.
 - **Data Flow**: Voice input -> Real-time Transcription -> AI Processing (Whisper, GPT-4) -> Data Extraction -> Affinity Matching -> Form Population -> Validation -> CRM Submission.
 - **PythonAI Application**: Full-featured system for managing Python scripts, including database schema for script management (versions, executions, schedules, QC results) and full CRUD operations.
