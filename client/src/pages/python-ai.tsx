@@ -43,7 +43,8 @@ import {
   Shield,
   Zap,
   ArrowLeft,
-  FilePlus
+  FilePlus,
+  MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 
