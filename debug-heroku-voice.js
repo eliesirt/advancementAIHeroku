@@ -1,86 +1,95 @@
-// Quick test script to debug voice processing on Heroku production
-// This script tests if the API response format is different between dev/prod
+#!/usr/bin/env node
 
-const testVoiceProcessingFormats = async () => {
-  console.log('=== Testing Voice Processing API Response Formats ===\n');
-  
-  // Test both development and production endpoints
-  const endpoints = [
-    { name: 'Replit Dev', url: 'http://localhost:5000/api/voice-recordings/process-direct' },
-    { name: 'Heroku Prod', url: 'https://advancement-ai-b8abf01faf28.herokuapp.com/api/voice-recordings/process-direct' }
-  ];
-  
-  const testData = {
-    transcript: "This is a test transcript for John Smith regarding a donation discussion. We talked about his interest in supporting the engineering program.",
-    audioData: "", 
-    duration: 15
+// Direct test of Heroku voice processing vs Find Tags comparison
+
+import https from 'https';
+
+async function testHerokuVoiceProcessing() {
+  console.log('🧪 Testing Heroku Voice Processing vs Find Tags Button\n');
+
+  // Test 1: Voice Processing Route
+  console.log('📝 Test 1: Voice Processing Route');
+  const voiceData = {
+    transcript: "Ice Hockey scholarship donation",
+    audioData: "test",
+    duration: 2
   };
 
-  for (const endpoint of endpoints) {
-    console.log(`\n--- Testing ${endpoint.name} ---`);
+  try {
+    const voiceResponse = await makeRequest('/api/voice-recordings/process-direct', 'POST', voiceData);
+    console.log('✅ Voice Processing Response:');
+    console.log('- Affinity Tags Found:', voiceResponse.extractedInfo?.suggestedAffinityTags?.length || 0);
+    console.log('- Personal Interests:', voiceResponse.extractedInfo?.personalInterests || []);
+    console.log('- Philanthropic Priorities:', voiceResponse.extractedInfo?.philanthropicPriorities || []);
     
-    try {
-      const response = await fetch(endpoint.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Note: Add session cookies or auth headers as needed for production
-        },
-        body: JSON.stringify(testData)
-      });
+    // Test 2: Find Tags Button Route (Working)
+    console.log('\n📋 Test 2: Find Tags Button Route (Known Working)');
+    const findTagsData = {
+      professionalInterests: [],
+      personalInterests: voiceResponse.extractedInfo?.personalInterests || ["Ice Hockey"],
+      philanthropicPriorities: voiceResponse.extractedInfo?.philanthropicPriorities || ["Scholarship donation"],
+      rawTranscript: "Ice Hockey scholarship donation"
+    };
 
-      console.log(`Status: ${response.status} ${response.statusText}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        console.log('Response Structure:');
-        console.log('- Top level keys:', Object.keys(data));
-        
-        // Check for different response formats
-        if (data.transcript) {
-          console.log('✓ Direct format: data.transcript exists');
-          console.log('✓ Direct format: data.extractedInfo exists:', !!data.extractedInfo);
-          console.log('✓ Direct format: data.enhancedComments exists:', !!data.enhancedComments);
-        }
-        
-        if (data.voiceRecording) {
-          console.log('✓ Nested format: data.voiceRecording exists');
-          console.log('  - voiceRecording keys:', Object.keys(data.voiceRecording));
-        }
-        
-        if (data.result) {
-          console.log('✓ Result format: data.result exists');
-          console.log('  - result keys:', Object.keys(data.result));
-        }
-        
-        // Sample the actual content
-        const transcript = data.transcript || data.voiceRecording?.transcript || data.result?.transcript;
-        const enhancedComments = data.enhancedComments || data.voiceRecording?.enhancedComments || data.result?.enhancedComments;
-        
-        console.log('Content Sample:');
-        console.log('- Transcript length:', transcript?.length || 0);
-        console.log('- Enhanced comments length:', enhancedComments?.length || 0);
-        console.log('- Transcript sample:', transcript?.substring(0, 50) + '...');
-        
-      } else {
-        const errorData = await response.text();
-        console.log('❌ Error Response:', errorData);
-      }
-      
-    } catch (error) {
-      console.log('❌ Request failed:', error.message);
-    }
+    const findTagsResponse = await makeRequest('/api/interactions/identify-affinity-tags', 'POST', findTagsData);
+    console.log('✅ Find Tags Response:');
+    console.log('- Success:', findTagsResponse.success);
+    console.log('- Matched Tags:', findTagsResponse.matchedTags?.length || 0);
+    console.log('- Sample Tags:', findTagsResponse.matchedTags?.slice(0, 3)?.map(t => t.name) || []);
+
+    // Analysis
+    console.log('\n🔍 Analysis:');
+    console.log('- Voice Processing Working:', (voiceResponse.extractedInfo?.suggestedAffinityTags?.length || 0) > 0);
+    console.log('- Find Tags Working:', (findTagsResponse.matchedTags?.length || 0) > 0);
+    console.log('- Issue Confirmed:', (voiceResponse.extractedInfo?.suggestedAffinityTags?.length || 0) === 0 && (findTagsResponse.matchedTags?.length || 0) > 0);
+
+  } catch (error) {
+    console.error('❌ Test failed:', error.message);
   }
-};
+}
 
-// Instructions for running
-console.log('Voice Processing Format Debug Script');
-console.log('=====================================');
-console.log('1. Open browser dev tools');
-console.log('2. Copy this script to console');
-console.log('3. Run: testVoiceProcessingFormats()');
-console.log('4. Compare dev vs prod response formats');
+async function makeRequest(path, method, data) {
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify(data);
+    
+    const options = {
+      hostname: 'advancement-ai-b8abf01faf28.herokuapp.com',
+      port: 443,
+      path: path,
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
+        'Cookie': 'connect.sid=s%3AsampleCookie'
+      }
+    };
 
-// Uncomment to run automatically:
-// testVoiceProcessingFormats();
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(responseData);
+          resolve(parsed);
+        } catch (e) {
+          console.error('Failed to parse response:', e.message);
+          console.log('Raw response:', responseData.substring(0, 500));
+          resolve({ error: 'Invalid JSON', raw: responseData });
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      reject(e);
+    });
+
+    req.write(postData);
+    req.end();
+  });
+}
+
+testHerokuVoiceProcessing();

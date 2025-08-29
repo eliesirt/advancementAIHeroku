@@ -298,6 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract interaction information
       console.log("🔍 Extracting interaction information...");
+      console.log("✅ CRITICAL CHECKPOINT: About to call extractInteractionInfo");
       const extractedInfo: ExtractedInteractionInfo = await extractInteractionInfo(finalTranscript) || {
           summary: '',
           category: '',
@@ -310,6 +311,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           suggestedAffinityTags: [],
           prospectName: ''
         };
+      
+      console.log("✅ CRITICAL CHECKPOINT: After extractInteractionInfo successful");
+      console.log("✅ extractedInfo keys:", Object.keys(extractedInfo));
+      console.log("✅ personalInterests:", extractedInfo.personalInterests);
+      console.log("✅ CRITICAL CHECKPOINT: extractInteractionInfo completed, proceeding to affinity matching");
 
       // Match interests to affinity tags
       console.log("🎯 ROUTES.TS: Loading affinity tags and matcher...");
@@ -329,88 +335,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawTranscript: finalTranscript?.substring(0, 100)
       });
 
-      // CRITICAL HEROKU DEBUGGING: Add comprehensive error catching
-      let suggestedAffinityTags: string[] = [];
+      console.log("✅ EXECUTION CHECKPOINT: About to start affinity matching");
+      console.log("✅ Interest counts:", {
+        prof: professionalInterests.length,
+        pers: personalInterests.length,
+        phil: philanthropicPriorities.length
+      });
+
+      // DIRECT IMPLEMENTATION: Copy exact working pattern from Find Tags button (lines 545-558)
+      console.log("✅ EXECUTION CHECKPOINT: Loading affinity tags...");
+      const affinityTags = await storage.getAffinityTags();
+      console.log("✅ EXECUTION CHECKPOINT: Tags loaded:", affinityTags.length);
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+
+      const matchedTags = affinityMatcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities
+      );
+      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+
+      console.log("VOICE ROUTE: Extracted interests:", { professionalInterests, personalInterests, philanthropicPriorities });
+      console.log("VOICE ROUTE: Matched affinity tags:", suggestedAffinityTags);
       
-      try {
-        console.log("🔥 HEROKU CRITICAL: Starting affinity matching with comprehensive debugging");
-        console.log("🔥 Environment check:", {
-          isProduction: process.env.NODE_ENV === 'production',
-          hasHerokuVars: !!(process.env.DYNO || process.env.PORT),
-          databaseUrl: !!process.env.DATABASE_URL,
-          interestCounts: {
-            professional: professionalInterests.length,
-            personal: personalInterests.length,
-            philanthropic: philanthropicPriorities.length
-          }
-        });
-
-        // Step 1: Get affinity tags
-        console.log("🔥 STEP 1: Loading affinity tags...");
-        const affinityTags = await storage.getAffinityTags();
-        console.log("🔥 STEP 1 RESULT:", affinityTags.length, "tags loaded");
-        
-        if (affinityTags.length === 0) {
-          console.error("🚨 CRITICAL ERROR: No affinity tags in database!");
-          throw new Error("No affinity tags available");
-        }
-
-        // Step 2: Get threshold from database (Heroku uses 50%, Replit uses 95%)
-        console.log("🔥 STEP 2: Getting environment-specific threshold...");
-        const threshold = await getMatchingThreshold();
-        console.log("🔥 STEP 2 RESULT: Using environment threshold:", threshold, "(Heroku=0.50, Replit=0.95)");
-        
-        // Step 3: Create matcher with correct environment threshold
-        console.log("🔥 STEP 3: Creating affinity matcher...");
-        const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-        console.log("🔥 STEP 3 RESULT: Matcher created with threshold:", threshold);
-
-        // Step 4: Execute matching
-        console.log("🔥 STEP 4: Executing affinity matching...");
-        console.log("🔥 STEP 4 INPUT:", {
-          professionalInterests,
-          personalInterests,  
-          philanthropicPriorities,
-          transcriptLength: finalTranscript?.length || 0
-        });
-
-        const matchedTags = affinityMatcher.matchInterests(
-          professionalInterests,
-          personalInterests,
-          philanthropicPriorities,
-          finalTranscript
-        );
-        
-        console.log("🔥 STEP 4 RESULT: Raw matches:", matchedTags.length);
-        if (matchedTags.length > 0) {
-          console.log("🔥 STEP 4 SAMPLE MATCHES:", matchedTags.slice(0, 3).map(m => ({
-            tag: m.tag.name,
-            score: m.score,
-            interest: m.matchedInterest || m.interest
-          })));
-        }
-        
-        suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-        console.log("🔥 FINAL SUCCESS:", suggestedAffinityTags.length, "affinity tags found:", suggestedAffinityTags.slice(0, 5));
-
-      } catch (affinityError) {
-        console.error("🚨 HEROKU AFFINITY MATCHING FAILED:");
-        console.error("🚨 Error message:", (affinityError as Error).message);
-        console.error("🚨 Error stack:", (affinityError as Error).stack?.substring(0, 500));
-        console.error("🚨 Context:", {
-          hasInterests: (professionalInterests.length + personalInterests.length + philanthropicPriorities.length) > 0,
-          environmentVars: {
-            nodeEnv: process.env.NODE_ENV,
-            isDyno: !!process.env.DYNO,
-            hasDb: !!process.env.DATABASE_URL
-          }
-        });
-        
-        // Set empty array as fallback
-        suggestedAffinityTags = [];
+      // CRITICAL DEBUG: Log exact same data the Find Tags button would see
+      console.log("🚨 VOICE DEBUG: Environment-specific affinity matching result");
+      console.log("🚨 Tags available:", affinityTags.length);
+      console.log("🚨 Threshold used:", threshold);
+      console.log("🚨 Interest arrays populated:", {
+        prof: professionalInterests.length > 0,
+        pers: personalInterests.length > 0, 
+        phil: philanthropicPriorities.length > 0
+      });
+      console.log("🚨 Sample interests for matching:", {
+        personal: personalInterests.slice(0, 3),
+        philanthropic: philanthropicPriorities.slice(0, 3)
+      });
+      console.log("🚨 Raw match result:", matchedTags.length, "matches found");
+      if (matchedTags.length > 0) {
+        console.log("🚨 First few matches:", matchedTags.slice(0, 3).map(m => ({
+          tagName: m.tag.name,
+          score: m.score,
+          matchedInterest: m.matchedInterest
+        })));
       }
 
-      // Affinity matching is now handled above in the try-catch block
+      // Affinity matching is now handled above
 
       // Generate enhanced comments with full synopsis and transcript
       const userId = req.user.claims.sub;
@@ -471,6 +442,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // EMERGENCY FIX: Ensure affinity tags work by re-processing if none found
+      if (finalExtractedInfo.suggestedAffinityTags.length === 0 && 
+          (finalExtractedInfo.personalInterests?.length > 0 || finalExtractedInfo.philanthropicPriorities?.length > 0)) {
+        
+        console.log("🚨 EMERGENCY AFFINITY PROCESSING: Zero tags found but interests exist, applying working pattern");
+        try {
+          // Use exact same pattern as working "Find Tags" button (lines 1031-1044)
+          const affinityTags = await storage.getAffinityTags();
+          const threshold = await getMatchingThreshold();
+          const matcher = await createAffinityMatcher(affinityTags, threshold);
+          
+          const professionalInterests = Array.isArray(finalExtractedInfo.professionalInterests) ? finalExtractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(finalExtractedInfo.personalInterests) ? finalExtractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(finalExtractedInfo.philanthropicPriorities) ? finalExtractedInfo.philanthropicPriorities : [];
+          
+          const matchedTags = matcher.matchInterests(professionalInterests, personalInterests, philanthropicPriorities);
+          const emergencyAffinityTags = matchedTags.map(match => match.tag.name);
+          
+          console.log("🚨 EMERGENCY SUCCESS:", emergencyAffinityTags.length, "affinity tags found via emergency processing");
+          
+          // Update response with emergency tags
+          finalExtractedInfo.suggestedAffinityTags = emergencyAffinityTags;
+          
+        } catch (emergencyError) {
+          console.error("🚨 EMERGENCY PROCESSING FAILED:", (emergencyError as Error).message);
+        }
+      }
+
       res.json({
         transcript: finalTranscript,
         extractedInfo: finalExtractedInfo,
