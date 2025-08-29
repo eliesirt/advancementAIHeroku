@@ -1,0 +1,28 @@
+55c071c5bd4b fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=404 bytes=33 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T16:16:08.220175+00:00 app[web.1]: [production] GET /api/ai-jobs/2 404 in 1ms :: {"message":"API route not found"}
+2025-08-29T16:16:08.248234+00:00 app[web.1]: [production] GET /api/ai-jobs/2 404 in 1ms :: {"message":"API route not found"}
+2025-08-29T16:16:08.279625+00:00 app[web.1]: [production] GET /api/ai-jobs/2 404 in 0ms :: {"message":"API route not found"}
+2025-08-29T16:16:08.314261+00:00 app[web.1]: [production] GET /api/ai-jobs/2 404 in 1ms :: {"message":"API route not found"}
+2025-08-29T16:16:08.576844+00:00 app[web.1]: ✅ [JOB PROCESSOR] Successfully generated content with gpt-4o
+2025-08-29T16:16:08.576968+00:00 app[web.1]: 📝 [JOB PROCESSOR] OpenAI response for job 2: {
+2025-08-29T16:16:08.576969+00:00 app[web.1]:   choices: 1,
+2025-08-29T16:16:08.576970+00:00 app[web.1]:   hasContent: true,
+2025-08-29T16:16:08.576970+00:00 app[web.1]:   contentLength: 517,
+2025-08-29T16:16:08.576970+00:00 app[web.1]:   model: 'gpt-4o-2024-08-06',
+2025-08-29T16:16:08.576970+00:00 app[web.1]:   finishReason: 'stop'
+2025-08-29T16:16:08.576971+00:00 app[web.1]: }
+2025-08-29T16:16:08.636855+00:00 app[web.1]: 🔍 [JOB PROCESSOR] Saving result for job 2: {
+2025-08-29T16:16:08.636856+00:00 app[web.1]:   scriptLength: 517,
+2025-08-29T16:16:08.636856+00:00 app[web.1]:   metadataName: 'Hello Elie Printer',
+2025-08-29T16:16:08.636856+00:00 app[web.1]:   metadataKeys: [
+2025-08-29T16:16:08.636857+00:00 app[web.1]:     'name',
+2025-08-29T16:16:08.636857+00:00 app[web.1]:     'description',
+2025-08-29T16:16:08.636857+00:00 app[web.1]:     'tags',
+2025-08-29T16:16:08.636858+00:00 app[web.1]:     'pythonVersion',
+2025-08-29T16:16:08.636858+00:00 app[web.1]:     'inputs',
+2025-08-29T16:16:08.636858+00:00 app[web.1]:     'timeout',
+2025-08-29T16:16:08.636858+00:00 app[web.1]:     'memory',
+2025-08-29T16:16:08.636859+00:00 app[web.1]:     'cpuLimit'
+2025-08-29T16:16:08.636859+00:00 app[web.1]:   ]
+2025-08-29T16:16:08.636859+00:00 app[web.1]: }
+2025-08-29T16:16:08.681102+00:00 app[web.1]: ✅ [JOB PROCESSOR] Job 2 completed successfully
