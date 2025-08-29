@@ -125,13 +125,29 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       return processedData;
     },
     onSuccess: (data) => {
+      console.log("Voice recording API response:", data);
+      
       // Hide processing overlay first
       setShowProcessing(false);
       
+      // Handle both old and new response formats for backward compatibility
+      const transcript = data.transcript || data.voiceRecording?.transcript || '';
+      const extractedInfo = data.extractedInfo || null;
+      const enhancedComments = data.enhancedComments || 
+                              data.extractedInfo?.aiSynopsis || 
+                              data.extractedInfo?.summary || 
+                              '';
+
+      console.log("Parsed voice data:", { 
+        transcript: transcript?.substring(0, 100),
+        hasExtractedInfo: !!extractedInfo,
+        enhancedCommentsLength: enhancedComments.length 
+      });
+      
       // Set the processed data and show the interaction form for review
-      setCurrentTranscript(data.transcript || '');
-      setExtractedInfo(data.extractedInfo);
-      setEnhancedComments(data.enhancedComments || data.extractedInfo?.summary || '');
+      setCurrentTranscript(transcript);
+      setExtractedInfo(extractedInfo);
+      setEnhancedComments(enhancedComments);
       
       // Set quality assessment data if available from voice processing
       if (data.qualityAssessment) {
