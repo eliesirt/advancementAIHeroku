@@ -239,7 +239,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           setShowInteractionForm(true);
           setShowProcessing(false);
           setProcessingComplete(false); // Reset for next time
-        }, 1200); // Longer delay for completion animation
+        }, 2000); // Extra delay for completion animation
 
         toast({
           title: "Voice Recording Processed",
@@ -1010,7 +1010,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       <ProcessingOverlay
         isVisible={showProcessing}
         onComplete={() => {
-          console.log("ProcessingOverlay onComplete called");
+          console.log("🎯 ProcessingOverlay onComplete called - hiding overlay");
           setShowProcessing(false);
         }}
         aiModel={currentAiModel}

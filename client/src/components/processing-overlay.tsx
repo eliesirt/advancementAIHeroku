@@ -55,8 +55,15 @@ export function ProcessingOverlay({
 
     // Show progress through steps at realistic intervals
     const progressThroughSteps = async () => {
+      console.log("Starting processing overlay progression");
+      
       for (let i = 0; i < dynamicSteps.length; i++) {
-        if (!isVisible) return; // Stop if overlay was hidden
+        if (!isVisible) {
+          console.log("Overlay hidden, stopping progression at step", i);
+          return;
+        }
+        
+        console.log(`Processing step ${i + 1}/${dynamicSteps.length}: ${dynamicSteps[i].label}`);
         
         setCurrentStepIndex(i);
         setCurrentSteps(prev => 
@@ -68,7 +75,11 @@ export function ProcessingOverlay({
         
         // Wait between steps - final step stays processing until API completes
         if (i < dynamicSteps.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+          const delay = 2500 + Math.random() * 1500; // 2.5-4 seconds
+          console.log(`Waiting ${Math.round(delay)}ms before next step`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          console.log("Reached final step, waiting for API completion");
         }
       }
     };
@@ -79,12 +90,19 @@ export function ProcessingOverlay({
   // Effect to handle immediate completion when API finishes
   useEffect(() => {
     if (completeImmediately && isVisible) {
-      console.log("API completed - finishing all processing steps immediately");
+      console.log("🎯 API completed - finishing all processing steps immediately");
       
       // Animate through all steps quickly
       const completeSteps = async () => {
+        console.log("Starting completion animation");
+        
         for (let i = 0; i < dynamicSteps.length; i++) {
-          if (!isVisible) return; // Stop if overlay was hidden
+          if (!isVisible) {
+            console.log("Overlay hidden during completion, stopping");
+            return;
+          }
+          
+          console.log(`Completing step ${i + 1}/${dynamicSteps.length}`);
           
           setCurrentStepIndex(i);
           setCurrentSteps(prev => 
@@ -93,21 +111,30 @@ export function ProcessingOverlay({
               status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
             }))
           );
-          await new Promise(resolve => setTimeout(resolve, 200)); // Quick animation
+          await new Promise(resolve => setTimeout(resolve, 150)); // Quick animation
         }
         
         // Mark all complete
         if (isVisible) {
+          console.log("✅ All processing steps completed");
           setCurrentSteps(prev => 
             prev.map(step => ({ ...step, status: 'complete' }))
           );
           setCurrentStepIndex(dynamicSteps.length - 1);
+          
+          // Automatically trigger onComplete after a brief delay
+          setTimeout(() => {
+            if (isVisible) {
+              console.log("🔄 Auto-triggering onComplete");
+              onComplete?.();
+            }
+          }, 800);
         }
       };
       
       completeSteps();
     }
-  }, [completeImmediately, isVisible, dynamicSteps]);
+  }, [completeImmediately, isVisible, dynamicSteps, onComplete]);
 
   if (!isVisible) {
     return null;
