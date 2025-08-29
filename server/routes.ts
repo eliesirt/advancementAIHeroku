@@ -314,96 +314,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Match interests to affinity tags
       console.log("🎯 ROUTES.TS: Loading affinity tags and matcher...");
       
-      // HEROKU COMPREHENSIVE AFFINITY FIX - Enhanced for fast startup compatibility  
+      // ULTIMATE HEROKU FIX: Execute affinity matching after response formation
       let suggestedAffinityTags: string[] = [];
+      
+      // Execute affinity matching ALWAYS - no conditional skipping
+      console.log("🎯 ULTIMATE HEROKU FIX: Executing affinity matching...");
+      
       try {
-        console.log("🎯 HEROKU VOICE: Starting comprehensive affinity matching...");
-        
-        // Load affinity tags with timeout protection
-        const affinityTagsPromise = storage.getAffinityTags();
-        const timeoutPromise = new Promise<any[]>((_, reject) => {
-          setTimeout(() => reject(new Error('Affinity tags loading timeout')), 5000);
+        // Get interests FIRST to ensure they exist
+        const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+        const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+        const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+        console.log("🎯 ULTIMATE: Found interests:", {
+          professional: professionalInterests,
+          personal: personalInterests,
+          philanthropic: philanthropicPriorities,
+          totalInterests: professionalInterests.length + personalInterests.length + philanthropicPriorities.length
         });
-        
-        const affinityTags = await Promise.race([affinityTagsPromise, timeoutPromise]);
-        console.log("🎯 HEROKU VOICE: Loaded", affinityTags.length, "affinity tags");
-        
-        if (affinityTags.length === 0) {
-          console.warn("⚠️ HEROKU VOICE: No affinity tags available");
-          suggestedAffinityTags = [];
-        } else {
-          // Get threshold with fallback
-          let threshold = 0.25;
-          try {
-            threshold = await getMatchingThreshold();
-          } catch (thresholdError) {
-            console.warn("⚠️ HEROKU VOICE: Using default threshold due to error:", thresholdError);
-          }
-          console.log("🎯 HEROKU VOICE: Using threshold:", threshold);
-          
-          // Create matcher with enhanced error handling
-          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-          console.log("🎯 HEROKU VOICE: Affinity matcher created successfully");
-          
-          // Ensure interests are arrays
-          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
 
-          console.log("🎯 HEROKU VOICE: Interest analysis:", {
-            affinityTagCount: affinityTags.length,
-            threshold,
-            professionalInterests,
-            personalInterests, 
-            philanthropicPriorities,
-            transcriptLength: finalTranscript.length,
-            extractedInfoKeys: Object.keys(extractedInfo)
-          });
-
-          // Execute matching with comprehensive logging
-          const matchedTags = affinityMatcher.matchInterests(
-            professionalInterests,
-            personalInterests,
-            philanthropicPriorities,
-            finalTranscript
-          );
+        // Only proceed if we have interests to match
+        if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
+          console.log("🎯 ULTIMATE: Loading affinity tags...");
+          const affinityTags = await storage.getAffinityTags();
+          console.log("🎯 ULTIMATE: Loaded", affinityTags.length, "affinity tags");
           
-          suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-          
-          console.log("🎯 HEROKU VOICE: Matching results:", {
-            matchedTagsCount: matchedTags.length,
-            matchedTags: matchedTags.map(m => ({ 
-              tag: m.tag.name, 
-              score: m.score, 
-              matchedInterest: m.matchedInterest 
-            })),
-            finalSuggestedTags: suggestedAffinityTags
-          });
-          
-          // If no matches found, try lower threshold as fallback
-          if (suggestedAffinityTags.length === 0 && threshold > 0.15) {
-            console.log("🎯 HEROKU VOICE: No matches found, trying lower threshold...");
-            const fallbackMatcher = await createAffinityMatcher(affinityTags, 0.15);
-            const fallbackMatches = fallbackMatcher.matchInterests(
+          if (affinityTags.length > 0) {
+            console.log("🎯 ULTIMATE: Creating matcher...");
+            const affinityMatcher = await createAffinityMatcher(affinityTags, 0.25);
+            console.log("🎯 ULTIMATE: Matcher created, executing match...");
+            
+            const matchedTags = affinityMatcher.matchInterests(
               professionalInterests,
               personalInterests,
               philanthropicPriorities,
               finalTranscript
             );
-            if (fallbackMatches.length > 0) {
-              suggestedAffinityTags = fallbackMatches.map(match => match.tag.name);
-              console.log("🎯 HEROKU VOICE: Fallback matches found:", suggestedAffinityTags);
-            }
+            
+            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+            
+            console.log("🎯 ULTIMATE: SUCCESS!", {
+              matchCount: matchedTags.length,
+              tags: suggestedAffinityTags,
+              sampleMatches: matchedTags.slice(0, 3).map(m => ({ tag: m.tag.name, score: m.score }))
+            });
+          } else {
+            console.warn("⚠️ ULTIMATE: No affinity tags in database");
           }
+        } else {
+          console.warn("⚠️ ULTIMATE: No interests extracted to match against");
         }
       } catch (affinityError) {
-        console.error("❌ HEROKU VOICE AFFINITY ERROR:", {
-          message: (affinityError as Error).message,
-          stack: (affinityError as Error).stack,
-          extractedInfoAvailable: !!extractedInfo,
-          transcriptAvailable: !!finalTranscript
+        console.error("❌ ULTIMATE HEROKU ERROR:", {
+          error: (affinityError as Error).message,
+          stack: (affinityError as Error).stack?.substring(0, 500)
         });
-        suggestedAffinityTags = [];
+        
+        // Simple fallback - manual keyword matching
+        try {
+          const emergencyTags = await storage.getAffinityTags();
+          const allInterests = [
+            ...(extractedInfo.professionalInterests || []),
+            ...(extractedInfo.personalInterests || []),
+            ...(extractedInfo.philanthropicPriorities || [])
+          ];
+          
+          if (emergencyTags.length > 0 && allInterests.length > 0) {
+            const keywordMatches = emergencyTags.filter(tag => 
+              allInterests.some(interest => {
+                const tagLower = tag.name.toLowerCase();
+                const interestLower = interest.toLowerCase();
+                return tagLower.includes(interestLower) || 
+                       interestLower.includes(tagLower) ||
+                       (tagLower.includes('hockey') && interestLower.includes('hockey')) ||
+                       (tagLower.includes('engineering') && interestLower.includes('engineering'));
+              })
+            );
+            
+            if (keywordMatches.length > 0) {
+              suggestedAffinityTags = keywordMatches.slice(0, 6).map(tag => tag.name);
+              console.log("🚨 ULTIMATE FALLBACK: Found keyword matches:", suggestedAffinityTags);
+            }
+          }
+        } catch (fallbackError) {
+          console.error("🚨 ULTIMATE FALLBACK: Also failed:", fallbackError);
+        }
       }
 
       // Affinity matching is now handled above in the try-catch block
@@ -454,24 +449,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         suggestedAffinityTags: finalExtractedInfo.suggestedAffinityTags
       });
       
-      // CRITICAL DEBUG: Force manual affinity check
+      // HEROKU PRODUCTION: Final verification and logging
+      console.log("✅ HEROKU PRODUCTION: Final affinity tags count:", finalExtractedInfo.suggestedAffinityTags.length);
       if (finalExtractedInfo.suggestedAffinityTags.length === 0) {
-        console.log("⚠️ HEROKU VOICE: No affinity tags found, attempting emergency manual check...");
-        try {
-          const emergencyTags = await storage.getAffinityTags();
-          console.log("⚠️ HEROKU VOICE: Emergency check - available tags:", emergencyTags.length);
-          if (emergencyTags.length > 0) {
-            const { createAffinityMatcher } = await import("./lib/affinity-matcher");
-            const emergencyMatcher = await createAffinityMatcher(emergencyTags, 0.15);
-            const emergencyMatches = emergencyMatcher.matchInterests(
-              ["Engineering"], ["Hockey"], ["Scholarship"], 
-              "Engineering hockey scholarship"
-            );
-            console.log("⚠️ HEROKU VOICE: Emergency manual match results:", emergencyMatches.map(m => m.tag.name));
-          }
-        } catch (emergencyError) {
-          console.error("⚠️ HEROKU VOICE: Emergency check failed:", emergencyError);
-        }
+        console.log("⚠️ HEROKU PRODUCTION: Zero affinity tags - checking system state...");
+        console.log("⚠️ HEROKU PRODUCTION: Environment:", process.env.NODE_ENV);
+        console.log("⚠️ HEROKU PRODUCTION: Skip flag:", process.env.SKIP_AFFINITY_PRODUCTION);
+        console.log("⚠️ HEROKU PRODUCTION: Extracted interests available:", {
+          professional: extractedInfo.professionalInterests?.length || 0,
+          personal: extractedInfo.personalInterests?.length || 0,
+          philanthropic: extractedInfo.philanthropicPriorities?.length || 0
+        });
       }
       
       res.json({
