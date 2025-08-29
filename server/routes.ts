@@ -2679,6 +2679,77 @@ Provide specific, actionable feedback with line numbers when possible. Remember:
     }
   });
 
+  // AI Code Commenting for Python Scripts
+  app.post('/api/python-scripts/add-comments', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code, scriptName } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (!code) {
+        return res.status(400).json({ error: 'Code is required for commenting' });
+      }
+
+      // Import OpenAI (using dynamic import to avoid issues)
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const commentingPrompt = `
+You are a senior Python developer and documentation expert. Add comprehensive, professional comments to the following Python code following industry best practices.
+
+CRITICAL: You must respond with ONLY the commented Python code, no additional text before or after the code.
+
+SCRIPT NAME: ${scriptName || 'Untitled Script'}
+
+ORIGINAL CODE:
+\`\`\`python
+${code}
+\`\`\`
+
+Add comments following these Python industry standards:
+1. **Module docstring** - Add a comprehensive module docstring at the top describing purpose, author, date
+2. **Function/class docstrings** - Use triple quotes with Args, Returns, Raises sections
+3. **Inline comments** - Explain complex logic, algorithms, and business rules
+4. **Type hints** - Add where appropriate for better code clarity
+5. **Section comments** - Group related code blocks with descriptive headers
+6. **PEP 257** compliance - Follow Python docstring conventions
+7. **Clear explanations** - Focus on WHY the code does something, not just WHAT
+
+Format guidelines:
+- Use """triple quotes""" for docstrings
+- Use # for inline comments
+- Keep comments concise but informative
+- Explain the purpose and logic, not obvious syntax
+- Add TODO/FIXME/NOTE comments where appropriate
+- Include parameter types and return types in docstrings
+
+Respond with the fully commented Python code only. Do not include markdown code blocks or any explanatory text.
+`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: commentingPrompt }],
+        temperature: 0.2,
+        max_tokens: 4000
+      });
+
+      const commentedCode = response.choices[0].message.content || '';
+      
+      console.log(`💬 [CODE COMMENTING] Script "${scriptName}" commented by user ${userId}`);
+      
+      res.json({ commentedCode });
+    } catch (error) {
+      console.error('Code commenting error:', error);
+      res.status(500).json({ 
+        error: 'Failed to add comments to code', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

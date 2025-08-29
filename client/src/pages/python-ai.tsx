@@ -950,29 +950,63 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
       </div>
 
       <div className="flex justify-between pt-4">
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={() => {
-            if (!formData.content.trim()) {
-              toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
-              return;
-            }
-            analyzeCodeMutation.mutate({
-              code: formData.content,
-              scriptName: formData.name || 'Untitled Script'
-            });
-          }}
-          disabled={analyzeCodeMutation.isPending}
-          className="flex items-center space-x-2"
-        >
-          {analyzeCodeMutation.isPending ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <TestTube className="h-4 w-4" />
-          )}
-          <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => {
+              if (!formData.content.trim()) {
+                toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
+                return;
+              }
+              analyzeCodeMutation.mutate({
+                code: formData.content,
+                scriptName: formData.name || 'Untitled Script'
+              });
+            }}
+            disabled={analyzeCodeMutation.isPending}
+            className="flex items-center space-x-2"
+          >
+            {analyzeCodeMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <TestTube className="h-4 w-4" />
+            )}
+            <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => {
+              if (!formData.content.trim()) {
+                toast({ title: 'Error', description: 'Please enter code to add comments', variant: 'destructive' });
+                return;
+              }
+              // Add the commenting mutation call here - will define mutation next
+              fetch('/api/python-scripts/add-comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: formData.content, scriptName: formData.name || 'Untitled Script' }),
+              })
+              .then(response => response.json())
+              .then(result => {
+                if (result.commentedCode) {
+                  setFormData(prev => ({ ...prev, content: result.commentedCode }));
+                  toast({ title: 'Success', description: 'Professional comments added to your code' });
+                } else {
+                  throw new Error(result.error || 'Failed to add comments');
+                }
+              })
+              .catch(error => {
+                toast({ title: 'Error', description: error.message, variant: 'destructive' });
+              });
+            }}
+            className="flex items-center space-x-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Add Comments</span>
+          </Button>
+        </div>
         <div className="flex space-x-2">
           <Button type="button" variant="outline">Cancel</Button>
           <Button type="submit">Create Script</Button>
@@ -1183,29 +1217,62 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
       </div>
 
       <div className="flex justify-between pt-4">
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={() => {
-            if (!formData.content.trim()) {
-              toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
-              return;
-            }
-            analyzeCodeMutation.mutate({
-              code: formData.content,
-              scriptName: formData.name || 'Untitled Script'
-            });
-          }}
-          disabled={analyzeCodeMutation.isPending}
-          className="flex items-center space-x-2"
-        >
-          {analyzeCodeMutation.isPending ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <TestTube className="h-4 w-4" />
-          )}
-          <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => {
+              if (!formData.content.trim()) {
+                toast({ title: 'Error', description: 'Please enter code to analyze', variant: 'destructive' });
+                return;
+              }
+              analyzeCodeMutation.mutate({
+                code: formData.content,
+                scriptName: formData.name || 'Untitled Script'
+              });
+            }}
+            disabled={analyzeCodeMutation.isPending}
+            className="flex items-center space-x-2"
+          >
+            {analyzeCodeMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <TestTube className="h-4 w-4" />
+            )}
+            <span>{analyzeCodeMutation.isPending ? 'Analyzing...' : 'AI Quality Check'}</span>
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={() => {
+              if (!formData.content.trim()) {
+                toast({ title: 'Error', description: 'Please enter code to add comments', variant: 'destructive' });
+                return;
+              }
+              fetch('/api/python-scripts/add-comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: formData.content, scriptName: formData.name || 'Untitled Script' }),
+              })
+              .then(response => response.json())
+              .then(result => {
+                if (result.commentedCode) {
+                  setFormData(prev => ({ ...prev, content: result.commentedCode }));
+                  toast({ title: 'Success', description: 'Professional comments added to your code' });
+                } else {
+                  throw new Error(result.error || 'Failed to add comments');
+                }
+              })
+              .catch(error => {
+                toast({ title: 'Error', description: error.message, variant: 'destructive' });
+              });
+            }}
+            className="flex items-center space-x-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Add Comments</span>
+          </Button>
+        </div>
         <div className="flex space-x-2">
           <Button type="button" variant="outline">Cancel</Button>
           <Button type="submit">Update Script</Button>
