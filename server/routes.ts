@@ -314,92 +314,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Match interests to affinity tags
       console.log("🎯 ROUTES.TS: Loading affinity tags and matcher...");
       
-      // ULTIMATE HEROKU FIX: Execute affinity matching after response formation
-      let suggestedAffinityTags: string[] = [];
+      // SIMPLIFIED HEROKU FIX: Use exact same pattern as working "Find Tags" button
+      console.log("🎯 SIMPLIFIED AFFINITY MATCHING: Using working pattern...");
       
-      // Execute affinity matching ALWAYS - no conditional skipping
-      console.log("🎯 ULTIMATE HEROKU FIX: Executing affinity matching...");
-      
-      try {
-        // Get interests FIRST to ensure they exist
-        const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-        const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-        const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+      // Extract interests for matching
+      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
 
-        console.log("🎯 ULTIMATE: Found interests:", {
-          professional: professionalInterests,
-          personal: personalInterests,
-          philanthropic: philanthropicPriorities,
-          totalInterests: professionalInterests.length + personalInterests.length + philanthropicPriorities.length
-        });
+      console.log("🔍 Interests extracted:", {
+        professional: professionalInterests,
+        personal: personalInterests,
+        philanthropic: philanthropicPriorities,
+        rawTranscript: finalTranscript?.substring(0, 100)
+      });
 
-        // Only proceed if we have interests to match
-        if (professionalInterests.length > 0 || personalInterests.length > 0 || philanthropicPriorities.length > 0) {
-          console.log("🎯 ULTIMATE: Loading affinity tags...");
-          const affinityTags = await storage.getAffinityTags();
-          console.log("🎯 ULTIMATE: Loaded", affinityTags.length, "affinity tags");
-          
-          if (affinityTags.length > 0) {
-            console.log("🎯 ULTIMATE: Creating matcher...");
-            const affinityMatcher = await createAffinityMatcher(affinityTags, 0.25);
-            console.log("🎯 ULTIMATE: Matcher created, executing match...");
-            
-            const matchedTags = affinityMatcher.matchInterests(
-              professionalInterests,
-              personalInterests,
-              philanthropicPriorities,
-              finalTranscript
-            );
-            
-            suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-            
-            console.log("🎯 ULTIMATE: SUCCESS!", {
-              matchCount: matchedTags.length,
-              tags: suggestedAffinityTags,
-              sampleMatches: matchedTags.slice(0, 3).map(m => ({ tag: m.tag.name, score: m.score }))
-            });
-          } else {
-            console.warn("⚠️ ULTIMATE: No affinity tags in database");
-          }
-        } else {
-          console.warn("⚠️ ULTIMATE: No interests extracted to match against");
-        }
-      } catch (affinityError) {
-        console.error("❌ ULTIMATE HEROKU ERROR:", {
-          error: (affinityError as Error).message,
-          stack: (affinityError as Error).stack?.substring(0, 500)
-        });
-        
-        // Simple fallback - manual keyword matching
-        try {
-          const emergencyTags = await storage.getAffinityTags();
-          const allInterests = [
-            ...(extractedInfo.professionalInterests || []),
-            ...(extractedInfo.personalInterests || []),
-            ...(extractedInfo.philanthropicPriorities || [])
-          ];
-          
-          if (emergencyTags.length > 0 && allInterests.length > 0) {
-            const keywordMatches = emergencyTags.filter(tag => 
-              allInterests.some(interest => {
-                const tagLower = tag.name.toLowerCase();
-                const interestLower = interest.toLowerCase();
-                return tagLower.includes(interestLower) || 
-                       interestLower.includes(tagLower) ||
-                       (tagLower.includes('hockey') && interestLower.includes('hockey')) ||
-                       (tagLower.includes('engineering') && interestLower.includes('engineering'));
-              })
-            );
-            
-            if (keywordMatches.length > 0) {
-              suggestedAffinityTags = keywordMatches.slice(0, 6).map(tag => tag.name);
-              console.log("🚨 ULTIMATE FALLBACK: Found keyword matches:", suggestedAffinityTags);
-            }
-          }
-        } catch (fallbackError) {
-          console.error("🚨 ULTIMATE FALLBACK: Also failed:", fallbackError);
-        }
-      }
+      // Use EXACT same pattern as working route (lines 543-557)
+      const affinityTags = await storage.getAffinityTags();
+      const threshold = await getMatchingThreshold();
+      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+
+      const matchedTags = affinityMatcher.matchInterests(
+        professionalInterests,
+        personalInterests,
+        philanthropicPriorities,
+        finalTranscript
+      );
+      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+
+      console.log("🔍 FINAL MATCHES:", {
+        matchCount: matchedTags.length,
+        matches: matchedTags.slice(0, 10).map(m => ({ tag: m.tag.name, score: m.score, interest: m.interest }))
+      });
 
       // Affinity matching is now handled above in the try-catch block
 
