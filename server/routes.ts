@@ -442,32 +442,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // EMERGENCY FIX: Ensure affinity tags work by re-processing if none found
-      if (finalExtractedInfo.suggestedAffinityTags.length === 0 && 
-          (finalExtractedInfo.personalInterests?.length > 0 || finalExtractedInfo.philanthropicPriorities?.length > 0)) {
+      // HEROKU PRODUCTION FIX: Force affinity matching using working Find Tags pattern
+      console.log("🔧 HEROKU PRODUCTION: Forcing affinity matching for voice processing");
+      console.log("🔧 Input interests:", {
+        personal: finalExtractedInfo.personalInterests,
+        philanthropic: finalExtractedInfo.philanthropicPriorities,
+        professional: finalExtractedInfo.professionalInterests
+      });
+      
+      try {
+        // Force exact same code path as working Find Tags button (lines 1116-1119)
+        const affinityTags = await storage.getAffinityTags();
+        const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+        const threshold = await getMatchingThreshold();
+        const matcher = await createAffinityMatcher(affinityTags, threshold);
         
-        console.log("🚨 EMERGENCY AFFINITY PROCESSING: Zero tags found but interests exist, applying working pattern");
-        try {
-          // Use exact same pattern as working "Find Tags" button (lines 1031-1044)
-          const affinityTags = await storage.getAffinityTags();
-          const threshold = await getMatchingThreshold();
-          const matcher = await createAffinityMatcher(affinityTags, threshold);
+        const professionalInterests = Array.isArray(finalExtractedInfo.professionalInterests) ? finalExtractedInfo.professionalInterests : [];
+        const personalInterests = Array.isArray(finalExtractedInfo.personalInterests) ? finalExtractedInfo.personalInterests : [];
+        const philanthropicPriorities = Array.isArray(finalExtractedInfo.philanthropicPriorities) ? finalExtractedInfo.philanthropicPriorities : [];
+        
+        console.log("🔧 HEROKU: About to call matchInterests with:", {
+          prof: professionalInterests.length,
+          pers: personalInterests.length, 
+          phil: philanthropicPriorities.length,
+          tagsAvailable: affinityTags.length,
+          threshold
+        });
+        
+        const matchedTags = matcher.matchInterests(professionalInterests, personalInterests, philanthropicPriorities);
+        const forceAffinityTags = matchedTags.map(match => match.tag.name);
+        
+        console.log("🔧 HEROKU SUCCESS: Found", forceAffinityTags.length, "affinity tags:", forceAffinityTags);
+        
+        // Always override with forced results
+        finalExtractedInfo.suggestedAffinityTags = forceAffinityTags;
+        
+        // Additional debug for zero results
+        if (forceAffinityTags.length === 0) {
+          console.log("🔧 HEROKU ZERO TAGS DEBUG:");
+          console.log("- Total tags in database:", affinityTags.length);
+          console.log("- Threshold setting:", threshold);
+          console.log("- Sample personal interests:", personalInterests.slice(0, 2));
+          console.log("- Sample philanthropic priorities:", philanthropicPriorities.slice(0, 2));
+          console.log("- Sample affinity tags:", affinityTags.slice(0, 3).map(t => t.name));
           
-          const professionalInterests = Array.isArray(finalExtractedInfo.professionalInterests) ? finalExtractedInfo.professionalInterests : [];
-          const personalInterests = Array.isArray(finalExtractedInfo.personalInterests) ? finalExtractedInfo.personalInterests : [];
-          const philanthropicPriorities = Array.isArray(finalExtractedInfo.philanthropicPriorities) ? finalExtractedInfo.philanthropicPriorities : [];
-          
-          const matchedTags = matcher.matchInterests(professionalInterests, personalInterests, philanthropicPriorities);
-          const emergencyAffinityTags = matchedTags.map(match => match.tag.name);
-          
-          console.log("🚨 EMERGENCY SUCCESS:", emergencyAffinityTags.length, "affinity tags found via emergency processing");
-          
-          // Update response with emergency tags
-          finalExtractedInfo.suggestedAffinityTags = emergencyAffinityTags;
-          
-        } catch (emergencyError) {
-          console.error("🚨 EMERGENCY PROCESSING FAILED:", (emergencyError as Error).message);
+          // Test a direct simple match for debugging
+          const simpleTest = affinityTags.filter(tag => 
+            tag.name.toLowerCase().includes('hockey') || 
+            tag.name.toLowerCase().includes('ice') ||
+            tag.name.toLowerCase().includes('sport')
+          );
+          console.log("- Direct hockey/ice/sport matches:", simpleTest.map(t => t.name));
         }
+        
+      } catch (forceError) {
+        console.error("🔧 HEROKU FORCE FAILED:", (forceError as Error).message);
+        console.error("🔧 Stack:", (forceError as Error).stack?.substring(0, 300));
       }
 
       res.json({
