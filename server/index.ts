@@ -370,6 +370,16 @@ app.get('/health', (req, res) => {
       req.session.user = { id: "42195145", email: "elsirt@gmail.com" };
       next();
     };
+
+    // Test endpoint to verify our code changes are active
+    app.get("/api/heroku-affinity-test", (req: any, res) => {
+      console.log("🧪 HEROKU TEST ENDPOINT HIT - Affinity fix is active");
+      res.json({ 
+        message: "Heroku affinity fix is active", 
+        timestamp: new Date().toISOString(),
+        version: "v2.0-affinity-fix"
+      });
+    });
     
     // Analyze text content for AI insights (handles "Analyze & Continue" button) - OPTIMIZED FOR HEROKU
     app.post("/api/interactions/analyze-text", authenticateImmediate, async (req: any, res) => {
@@ -517,7 +527,7 @@ app.get('/health', (req, res) => {
     // Voice recording processing endpoint  
     app.post("/api/voice-recordings/process-direct", authenticateImmediate, async (req: any, res) => {
       try {
-        console.log("Voice recording processing started");
+        console.log("🎤 HEROKU VOICE PROCESSING START - Testing affinity tag fix");
         const { transcript, audioData, duration } = req.body;
         
         let finalTranscript = transcript;
@@ -649,41 +659,65 @@ app.get('/health', (req, res) => {
           aiSynopsis = `Voice Interaction Analysis:\n\nTranscript: ${finalTranscript}\n\nSummary: ${extractedInfo.summary}`;
         }
 
-        // Perform affinity tag matching using the same logic as the regular route
-        console.log("🔍 Starting affinity tag matching...");
+        // CRITICAL: Ensure affinity tags are populated before form display
+        console.log("🔍 HEROKU: Starting affinity tag matching for voice processing...");
+        console.log("Current extractedInfo before affinity matching:", {
+          hasExtractedInfo: !!extractedInfo,
+          hasAffinityTags: !!extractedInfo.suggestedAffinityTags,
+          currentTags: extractedInfo.suggestedAffinityTags,
+          interests: {
+            professional: extractedInfo.professionalInterests,
+            personal: extractedInfo.personalInterests,
+            philanthropic: extractedInfo.philanthropicPriorities
+          }
+        });
+
         try {
           const { storage } = await import("./storage");
           const affinityTags = await storage.getAffinityTags();
-          console.log(`Found ${affinityTags.length} affinity tags in database`);
           
-          // Use a simpler approach that matches the regular route logic
-          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
-          
-          console.log("Interests to match:", { professionalInterests, personalInterests, philanthropicPriorities });
-          
-          const { createAffinityMatcher } = await import("./lib/affinity-matcher");
-          const settings = await storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }));
-          const affinityMatcher = await createAffinityMatcher(affinityTags, settings?.matchingThreshold || 0.25);
-          
-          const matchedTags = affinityMatcher.matchInterests(
-            professionalInterests,
-            personalInterests,
-            philanthropicPriorities,
-            finalTranscript  // Include raw transcript for better matching
-          );
-          
-          // Add matched tags to extractedInfo
-          extractedInfo.suggestedAffinityTags = matchedTags.map(match => match.tag.name);
-          
-          console.log("✅ Affinity matching completed:", {
-            matchCount: matchedTags.length,
-            tags: extractedInfo.suggestedAffinityTags
-          });
+          if (!affinityTags || affinityTags.length === 0) {
+            console.error("❌ No affinity tags found in database");
+            extractedInfo.suggestedAffinityTags = [];
+          } else {
+            console.log(`✅ Found ${affinityTags.length} affinity tags in database`);
+            
+            const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+            const settings = await storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }));
+            const threshold = settings?.matchingThreshold || 0.25;
+            
+            console.log("Creating affinity matcher with threshold:", threshold);
+            const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+            
+            const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+            const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+            const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+            
+            console.log("Calling matchInterests with:", {
+              professional: professionalInterests,
+              personal: personalInterests,
+              philanthropic: philanthropicPriorities,
+              hasTranscript: !!finalTranscript
+            });
+            
+            const matchedTags = affinityMatcher.matchInterests(
+              professionalInterests,
+              personalInterests,
+              philanthropicPriorities,
+              finalTranscript
+            );
+            
+            // FORCE set the suggested tags
+            extractedInfo.suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+            
+            console.log("✅ HEROKU: Affinity matching COMPLETED:", {
+              inputInterestCount: professionalInterests.length + personalInterests.length + philanthropicPriorities.length,
+              matchedTagsCount: matchedTags.length,
+              finalSuggestedTags: extractedInfo.suggestedAffinityTags
+            });
+          }
         } catch (affinityError) {
-          console.error("❌ Affinity tag matching failed:", affinityError);
-          // Ensure suggestedAffinityTags is always an array
+          console.error("❌ HEROKU: Affinity tag matching ERROR:", affinityError);
           extractedInfo.suggestedAffinityTags = [];
         }
 
@@ -695,11 +729,13 @@ app.get('/health', (req, res) => {
         } : null;
 
         console.log("✅ Voice processing completed successfully");
+        console.log("Final suggestedAffinityTags before response:", extractedInfo.suggestedAffinityTags);
         
         console.log("Voice processing completed:", { 
           transcriptLength: finalTranscript.length,
           hasQualityAssessment: !!qualityAssessment,
-          qualityScore: qualityAssessment?.qualityScore
+          qualityScore: qualityAssessment?.qualityScore,
+          affinityTagCount: extractedInfo.suggestedAffinityTags?.length || 0
         });
         
         res.json({
@@ -707,7 +743,8 @@ app.get('/health', (req, res) => {
           extractedInfo: {
             ...extractedInfo,
             aiSynopsis,
-            originalTranscript: finalTranscript
+            originalTranscript: finalTranscript,
+            suggestedAffinityTags: extractedInfo.suggestedAffinityTags || []
           },
           qualityAssessment
         });
