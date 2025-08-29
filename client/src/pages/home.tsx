@@ -125,10 +125,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       return processedData;
     },
     onSuccess: (data) => {
+      // Hide processing overlay first
+      setShowProcessing(false);
+      
       // Set the processed data and show the interaction form for review
-      setCurrentTranscript(data.voiceRecording?.transcript || '');
+      setCurrentTranscript(data.transcript || '');
       setExtractedInfo(data.extractedInfo);
-      setEnhancedComments(data.extractedInfo?.aiSynopsis || data.extractedInfo?.summary || '');
+      setEnhancedComments(data.enhancedComments || data.extractedInfo?.summary || '');
       
       // Set quality assessment data if available from voice processing
       if (data.qualityAssessment) {
@@ -148,6 +151,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       });
     },
     onError: (error) => {
+      // Hide processing overlay on error
+      setShowProcessing(false);
+      
       toast({
         title: "Recording Error",
         description: "Failed to save voice recording. Please try again.",
@@ -366,6 +372,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
 
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
+    setShowProcessing(true); // Show processing overlay while AI analysis runs
 
     // Process voice recording with AI analysis
     createVoiceRecording.mutate({
