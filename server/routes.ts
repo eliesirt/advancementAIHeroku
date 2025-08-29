@@ -422,7 +422,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const finalExtractedInfo = {
         ...extractedInfo,
-        suggestedAffinityTags: suggestedAffinityTags || []
+        suggestedAffinityTags: suggestedAffinityTags || [],
+        aiSynopsis: enhancedComments  // HEROKU FIX: Add enhanced comments as aiSynopsis for frontend compatibility
       };
       
       console.log("✅ HEROKU VOICE: Final response structure:", {
@@ -508,13 +509,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔧 FINAL RESPONSE: Enhanced comments contains TRANSCRIPT:", enhancedComments?.includes("TRANSCRIPT:"));
       console.log("🔧 FINAL RESPONSE: Transcript length in response:", finalTranscript?.length);
 
-      res.json({
+      // HEROKU TRANSCRIPT FIX: Ensure enhancedComments are properly included
+      console.log("🔧 HEROKU TRANSCRIPT FIX: Final response structure preparation");
+      console.log("🔧 Enhanced comments length:", enhancedComments?.length);
+      console.log("🔧 Enhanced comments preview:", enhancedComments?.substring(0, 100));
+      console.log("🔧 Enhanced comments ends with transcript:", enhancedComments?.includes("TRANSCRIPT:"));
+
+      const responseData = {
         transcript: finalTranscript,
         extractedInfo: finalExtractedInfo,
         conciseSummary,
         enhancedComments,
         qualityAssessment
+      };
+
+      console.log("🔧 HEROKU TRANSCRIPT FIX: Final response data structure:", {
+        hasTranscript: !!responseData.transcript,
+        hasExtractedInfo: !!responseData.extractedInfo,
+        hasEnhancedComments: !!responseData.enhancedComments,
+        enhancedCommentsLength: responseData.enhancedComments?.length || 0
       });
+
+      res.json(responseData);
     } catch (error) {
       console.error("❌ Direct voice processing error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
@@ -603,8 +619,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processed: true
       });
 
-      // Generate enhanced comments with full synopsis and transcript
+      // Generate enhanced comments with full synopsis and transcript  
+      console.log("🔧 VOICE ROUTE 2: About to enhance comments with transcript:", transcript?.length);
       const enhancedComments = await enhanceInteractionComments(transcript, extractedInfo, 1);
+      console.log("🔧 VOICE ROUTE 2: Enhanced comments generated, length:", enhancedComments?.length);
+      console.log("🔧 VOICE ROUTE 2: Enhanced comments include transcript:", enhancedComments?.includes("TRANSCRIPT:"));
 
       res.json({
         transcript,
