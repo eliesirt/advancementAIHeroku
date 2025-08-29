@@ -2540,6 +2540,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analysisPrompt = `
 You are a senior Python developer and code quality expert. Analyze the following Python code and provide a comprehensive evaluation.
 
+CRITICAL: You must respond with ONLY a valid JSON object, no additional text before or after the JSON.
+
 SCRIPT NAME: ${scriptName || 'Untitled Script'}
 
 CODE TO ANALYZE:
@@ -2547,7 +2549,7 @@ CODE TO ANALYZE:
 ${code}
 \`\`\`
 
-Please provide a detailed analysis in the following JSON format:
+Respond with exactly this JSON structure (with your analysis):
 {
   "overallScore": number (1-10, where 10 is excellent),
   "qualityAssessment": {
@@ -2577,7 +2579,7 @@ Please provide a detailed analysis in the following JSON format:
       "severity": "high|medium|low",
       "issue": "description of the security concern",
       "recommendation": "how to fix it",
-      "lineNumber": number (if applicable)
+      "lineNumber": number (if applicable, or null)
     }
   ],
   "performanceImprovements": [
@@ -2585,7 +2587,7 @@ Please provide a detailed analysis in the following JSON format:
       "priority": "high|medium|low",
       "issue": "description of the performance concern", 
       "recommendation": "how to improve it",
-      "lineNumber": number (if applicable)
+      "lineNumber": number (if applicable, or null)
     }
   ],
   "codeSmells": [
@@ -2593,7 +2595,7 @@ Please provide a detailed analysis in the following JSON format:
       "type": "type of code smell",
       "description": "what the issue is",
       "suggestion": "how to fix it",
-      "lineNumber": number (if applicable)
+      "lineNumber": number (if applicable, or null)
     }
   ],
   "recommendations": [
@@ -2612,18 +2614,58 @@ Focus on:
 - Potential bugs or logical errors
 - Maintainability and readability
 
-Provide specific, actionable feedback with line numbers when possible.
+Provide specific, actionable feedback with line numbers when possible. Remember: respond with ONLY the JSON object, nothing else.
 `;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages: [{ role: "user", content: analysisPrompt }],
-        response_format: { type: "json_object" },
         temperature: 0.3,
         max_tokens: 4000
       });
 
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const responseContent = response.choices[0].message.content || '';
+      
+      // Clean the response content to ensure it's valid JSON
+      let cleanedContent = responseContent.trim();
+      
+      // Remove any markdown code blocks if present
+      if (cleanedContent.startsWith('```json')) {
+        cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedContent.startsWith('```')) {
+        cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      // Try to find JSON content if there's extra text
+      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedContent = jsonMatch[0];
+      }
+      
+      let analysis;
+      try {
+        analysis = JSON.parse(cleanedContent);
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        console.error('Raw response:', responseContent);
+        
+        // Fallback analysis if JSON parsing fails
+        analysis = {
+          overallScore: 5,
+          qualityAssessment: {
+            codeStructure: { score: 5, comments: "Analysis completed but formatting issue occurred" },
+            readability: { score: 5, comments: "Please try again" },
+            errorHandling: { score: 5, comments: "AI response formatting error" },
+            documentation: { score: 5, comments: "Analysis inconclusive" },
+            bestPractices: { score: 5, comments: "Please retry analysis" }
+          },
+          securityIssues: [],
+          performanceImprovements: [],
+          codeSmells: [],
+          recommendations: ["Please retry the AI analysis - there was a formatting issue with the response"],
+          summary: "Analysis failed due to response formatting. Please try again."
+        };
+      }
       
       console.log(`🔍 [CODE ANALYSIS] Script "${scriptName}" analyzed by user ${userId}`);
       
