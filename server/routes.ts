@@ -234,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Process voice recording directly without creating interaction draft first
   app.post("/api/voice-recordings/process-direct", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("🎙️ Voice recording processing started");
+      console.log("🎙️ HEROKU VOICE RECORDING PROCESSING STARTED - Fast startup mode");
       const { transcript, audioData, duration } = req.body;
 
       console.log("Voice processing request data:", { 
@@ -313,38 +313,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Match interests to affinity tags
       console.log("🎯 ROUTES.TS: Loading affinity tags and matcher...");
-      const affinityTags = await storage.getAffinityTags();
-      console.log("🎯 ROUTES.TS: Loaded affinity tags:", affinityTags.length);
-      const threshold = await getMatchingThreshold();
-      console.log("🎯 ROUTES.TS: Got threshold:", threshold);
-      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
-      console.log("🎯 ROUTES.TS: Created affinity matcher successfully");
+      
+      // HEROKU FIX: Ensure affinity matching works in fast startup mode
+      let suggestedAffinityTags: string[] = [];
+      try {
+        const affinityTags = await storage.getAffinityTags();
+        console.log("🎯 ROUTES.TS: Loaded affinity tags:", affinityTags.length);
+        
+        if (affinityTags.length === 0) {
+          console.warn("⚠️ No affinity tags available - database connection issue?");
+          suggestedAffinityTags = [];
+        } else {
+          const threshold = await getMatchingThreshold();
+          console.log("🎯 ROUTES.TS: Got threshold:", threshold);
+          
+          const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+          console.log("🎯 ROUTES.TS: Created affinity matcher successfully");
+          
+          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
 
-      const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
-      const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
-      const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+          console.log("🎯 ROUTES.TS: Starting affinity matching with:", {
+            affinityTagCount: affinityTags.length,
+            threshold,
+            professionalCount: professionalInterests.length,
+            personalCount: personalInterests.length,
+            philanthropicCount: philanthropicPriorities.length,
+            transcriptLength: finalTranscript.length
+          });
 
-      console.log("🎯 ROUTES.TS: Starting affinity matching with:", {
-        affinityTagCount: affinityTags.length,
-        threshold,
-        professionalCount: professionalInterests.length,
-        personalCount: personalInterests.length,
-        philanthropicCount: philanthropicPriorities.length,
-        transcriptLength: finalTranscript.length
-      });
+          const matchedTags = affinityMatcher.matchInterests(
+            professionalInterests,
+            personalInterests,
+            philanthropicPriorities,
+            finalTranscript  // Use raw transcript for additional direct matching
+          );
+          suggestedAffinityTags = matchedTags.map(match => match.tag.name);
 
-      const matchedTags = affinityMatcher.matchInterests(
-        professionalInterests,
-        personalInterests,
-        philanthropicPriorities,
-        finalTranscript  // Use raw transcript for additional direct matching
-      );
-      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+          console.log("🎯 ROUTES.TS: Affinity matching completed:", {
+            matchedCount: matchedTags.length,
+            suggestedTags: suggestedAffinityTags
+          });
+        }
+      } catch (affinityError) {
+        console.error("❌ HEROKU AFFINITY MATCHING ERROR:", affinityError);
+        suggestedAffinityTags = [];
+      }
 
-      console.log("🎯 ROUTES.TS: Affinity matching completed:", {
-        matchedCount: matchedTags.length,
-        suggestedTags: suggestedAffinityTags
-      });
+      // Affinity matching is now handled above in the try-catch block
 
       // Generate enhanced comments with full synopsis and transcript
       const userId = req.user.claims.sub;
@@ -377,13 +394,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail the entire process if quality assessment fails
       }
 
-      console.log("✅ Voice processing completed successfully");
+      console.log("✅ Voice processing completed successfully - Final suggestedAffinityTags:", suggestedAffinityTags);
+      
+      const finalExtractedInfo = {
+        ...extractedInfo,
+        suggestedAffinityTags: suggestedAffinityTags || []
+      };
+      
+      console.log("✅ Final response extractedInfo.suggestedAffinityTags:", finalExtractedInfo.suggestedAffinityTags);
+      
       res.json({
         transcript: finalTranscript,
-        extractedInfo: {
-          ...extractedInfo,
-          suggestedAffinityTags
-        },
+        extractedInfo: finalExtractedInfo,
         conciseSummary,
         enhancedComments,
         qualityAssessment

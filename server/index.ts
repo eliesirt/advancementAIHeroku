@@ -380,6 +380,57 @@ app.get('/health', (req, res) => {
         version: "v2.0-affinity-fix"
       });
     });
+
+    // Direct affinity matching test endpoint for debugging
+    app.post("/api/test-affinity-direct", authenticateImmediate, async (req: any, res) => {
+      try {
+        console.log("🧪 DIRECT AFFINITY TEST - Starting...");
+        const { interests, transcript } = req.body;
+        
+        const { storage } = await import("./storage");
+        const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+        
+        console.log("🧪 Loading affinity tags...");
+        const affinityTags = await storage.getAffinityTags();
+        console.log("🧪 Loaded", affinityTags.length, "affinity tags");
+        
+        const threshold = 0.25; // Default threshold
+        console.log("🧪 Creating matcher with threshold:", threshold);
+        const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+        console.log("🧪 Matcher created successfully");
+        
+        const testInterests = interests || ["Engineering", "Hockey", "Scholarship"];
+        console.log("🧪 Testing with interests:", testInterests);
+        
+        const matchedTags = affinityMatcher.matchInterests(testInterests, [], [], transcript);
+        const suggestedTags = matchedTags.map(match => match.tag.name);
+        
+        console.log("🧪 DIRECT TEST RESULTS:", {
+          inputInterests: testInterests,
+          matchedCount: matchedTags.length,
+          suggestedTags
+        });
+        
+        res.json({
+          success: true,
+          inputInterests: testInterests,
+          matchedTags: matchedTags.length,
+          suggestedAffinityTags: suggestedTags,
+          details: matchedTags.map(m => ({
+            tag: m.tag.name,
+            score: m.score,
+            matchedInterest: m.matchedInterest
+          }))
+        });
+      } catch (error) {
+        console.error("🧪 DIRECT AFFINITY TEST ERROR:", error);
+        res.status(500).json({
+          success: false,
+          error: (error as Error).message,
+          stack: process.env.NODE_ENV === 'development' ? (error as Error).stack : undefined
+        });
+      }
+    });
     
     // Analyze text content for AI insights (handles "Analyze & Continue" button) - OPTIMIZED FOR HEROKU
     app.post("/api/interactions/analyze-text", authenticateImmediate, async (req: any, res) => {
