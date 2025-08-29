@@ -355,15 +355,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error("No affinity tags available");
         }
 
-        // Step 2: Get threshold (bypass issues by hardcoding)
-        console.log("🔥 STEP 2: Using hardcoded working threshold...");
-        const workingThreshold = 0.95;
-        console.log("🔥 STEP 2 RESULT: Using threshold:", workingThreshold);
+        // Step 2: Get threshold from database (Heroku uses 50%, Replit uses 95%)
+        console.log("🔥 STEP 2: Getting environment-specific threshold...");
+        const threshold = await getMatchingThreshold();
+        console.log("🔥 STEP 2 RESULT: Using environment threshold:", threshold, "(Heroku=0.50, Replit=0.95)");
         
-        // Step 3: Create matcher
+        // Step 3: Create matcher with correct environment threshold
         console.log("🔥 STEP 3: Creating affinity matcher...");
-        const affinityMatcher = await createAffinityMatcher(affinityTags, workingThreshold);
-        console.log("🔥 STEP 3 RESULT: Matcher created successfully");
+        const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+        console.log("🔥 STEP 3 RESULT: Matcher created with threshold:", threshold);
 
         // Step 4: Execute matching
         console.log("🔥 STEP 4: Executing affinity matching...");
