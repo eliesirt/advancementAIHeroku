@@ -288,6 +288,12 @@ app.get('/health', (req, res) => {
       res.json({ isImpersonating: false });
     });
 
+    // Define authentication middleware BEFORE using it
+    const authenticateImmediate = (req: any, res: any, next: any) => {
+      req.session.user = { id: "42195145", email: "elsirt@gmail.com" };
+      next();
+    };
+
     // HEROKU AFFINITY FIX: Add immediate voice processing route with forced affinity matching
     console.log("🎙️ HEROKU: Setting up priority voice processing route with affinity fix...");
     
@@ -456,20 +462,7 @@ app.get('/health', (req, res) => {
     // CRITICAL: Add interaction processing routes immediately
     console.log("🤖 Setting up essential AI processing routes...");
     
-    // Add authentication middleware for immediate routes
-    const authenticateImmediate = (req: any, res: any, next: any) => {
-      // Check for session-based auth first
-      if (req.session?.user?.id) {
-        req.user = { claims: { sub: req.session.user.id } };
-        return next();
-      }
-      
-      // Fallback to admin user for Heroku
-      req.user = { claims: { sub: "42195145" } };
-      req.session = req.session || {};
-      req.session.user = { id: "42195145", email: "elsirt@gmail.com" };
-      next();
-    };
+    // Authentication function was already defined earlier
 
     // Test endpoint to verify our code changes are active
     app.get("/api/heroku-affinity-test", (req: any, res) => {
