@@ -39,16 +39,22 @@ export async function setupAuth(app: Express) {
   
   // Ensure sessions table exists for Heroku
   try {
-    const { pool } = await import("./db");
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        sid varchar(255) NOT NULL,
-        sess json NOT NULL,
-        expire timestamp(6) NOT NULL,
-        PRIMARY KEY (sid)
-      );
-    `);
-    console.log('✅ [HEROKU AUTH] Sessions table verified/created');
+    const dbModule = await import("./db");
+    const pool = dbModule.pool;
+    
+    if (pool && pool.query) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS sessions (
+          sid varchar(255) NOT NULL,
+          sess json NOT NULL,
+          expire timestamp(6) NOT NULL,
+          PRIMARY KEY (sid)
+        );
+      `);
+      console.log('✅ [HEROKU AUTH] Sessions table verified/created');
+    } else {
+      console.warn('⚠️ [HEROKU AUTH] Pool not available for session table creation');
+    }
   } catch (error) {
     console.warn('⚠️ [HEROKU AUTH] Failed to create sessions table:', error);
   }

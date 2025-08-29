@@ -3000,7 +3000,19 @@ Generate a complete, functional Python script that accomplishes the user's requi
       
       const response = await openai.chat.completions.create(apiParams);
 
+      console.log(`📝 [JOB PROCESSOR] OpenAI response for job ${jobId}:`, {
+        choices: response.choices?.length || 0,
+        hasContent: !!response.choices?.[0]?.message?.content,
+        contentLength: response.choices?.[0]?.message?.content?.length || 0,
+        model: response.model,
+        finishReason: response.choices?.[0]?.finish_reason
+      });
+
       let generatedScript = response.choices[0].message.content || '';
+      
+      if (!generatedScript || generatedScript.trim().length === 0) {
+        throw new Error('OpenAI returned empty response');
+      }
       
       // Clean the response to ensure it's valid Python code
       generatedScript = generatedScript.trim();
