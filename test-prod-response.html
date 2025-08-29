@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Production Voice API Response</title>
+</head>
+<body>
+    <h1>Voice Processing API Response Test</h1>
+    <button onclick="testProduction()">Test Heroku Production API</button>
+    <div id="results" style="margin-top: 20px; font-family: monospace; white-space: pre-wrap;"></div>
+
+    <script>
+        async function testProduction() {
+            const results = document.getElementById('results');
+            results.textContent = 'Testing production API...\n';
+
+            try {
+                const testData = {
+                    transcript: "This is John Smith calling about a potential donation to the engineering program. We discussed his interest in supporting student scholarships.",
+                    audioData: "", 
+                    duration: 20
+                };
+
+                const response = await fetch('https://advancement-ai-b8abf01faf28.herokuapp.com/api/voice-recordings/process-direct', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                results.textContent += `Status: ${response.status} ${response.statusText}\n`;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    results.textContent += '\n=== RESPONSE STRUCTURE ===\n';
+                    results.textContent += `Top-level keys: ${Object.keys(data).join(', ')}\n`;
+                    
+                    // Check different possible formats
+                    if (data.transcript) {
+                        results.textContent += '\n✓ DIRECT FORMAT DETECTED:\n';
+                        results.textContent += `- transcript: ${data.transcript ? 'EXISTS' : 'MISSING'}\n`;
+                        results.textContent += `- extractedInfo: ${data.extractedInfo ? 'EXISTS' : 'MISSING'}\n`;
+                        results.textContent += `- enhancedComments: ${data.enhancedComments ? 'EXISTS' : 'MISSING'}\n`;
+                    }
+                    
+                    if (data.voiceRecording) {
+                        results.textContent += '\n✓ NESTED FORMAT DETECTED:\n';
+                        results.textContent += `- voiceRecording keys: ${Object.keys(data.voiceRecording).join(', ')}\n`;
+                    }
+
+                    // Show actual content samples
+                    const transcript = data.transcript || data.voiceRecording?.transcript;
+                    const enhancedComments = data.enhancedComments || data.voiceRecording?.enhancedComments;
+                    
+                    results.textContent += '\n=== CONTENT SAMPLE ===\n';
+                    results.textContent += `Transcript (${transcript?.length || 0} chars): ${transcript?.substring(0, 100)}...\n`;
+                    results.textContent += `Enhanced Comments (${enhancedComments?.length || 0} chars): ${enhancedComments?.substring(0, 100)}...\n`;
+                    
+                    results.textContent += '\n=== FULL RESPONSE ===\n';
+                    results.textContent += JSON.stringify(data, null, 2);
+
+                } else {
+                    const errorText = await response.text();
+                    results.textContent += `\nError Response: ${errorText}\n`;
+                }
+
+            } catch (error) {
+                results.textContent += `\nFetch Error: ${error.message}\n`;
+            }
+        }
+    </script>
+</body>
+</html>

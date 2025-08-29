@@ -143,20 +143,53 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     },
     onSuccess: (data) => {
       console.log("Voice recording API response:", data);
+      console.log("Full response structure:", JSON.stringify(data, null, 2));
       
-      // Handle both old and new response formats for backward compatibility
-      const transcript = data.transcript || data.voiceRecording?.transcript || '';
-      const extractedInfo = data.extractedInfo || null;
-      const enhancedComments = data.enhancedComments || 
-                              data.extractedInfo?.aiSynopsis || 
-                              data.extractedInfo?.summary || 
-                              '';
+      // Comprehensive fallback handling for different response formats
+      let transcript = '';
+      let extractedInfo = null;
+      let enhancedComments = '';
+
+      // Try multiple possible response structures
+      if (data.transcript) {
+        // New format - direct properties
+        transcript = data.transcript;
+        extractedInfo = data.extractedInfo;
+        enhancedComments = data.enhancedComments || data.extractedInfo?.summary || '';
+      } else if (data.voiceRecording) {
+        // Old format - nested in voiceRecording
+        transcript = data.voiceRecording.transcript || '';
+        extractedInfo = data.voiceRecording.extractedInfo;
+        enhancedComments = data.voiceRecording.aiSynopsis || data.voiceRecording.enhancedComments || '';
+      } else if (data.result) {
+        // Alternative format - nested in result
+        transcript = data.result.transcript || '';
+        extractedInfo = data.result.extractedInfo;
+        enhancedComments = data.result.enhancedComments || data.result.aiSynopsis || '';
+      } else {
+        // Fallback - use raw transcript if available
+        transcript = data.message || data.text || data.content || '';
+        console.warn("Unknown response format, using fallback transcript");
+      }
 
       console.log("Parsed voice data:", { 
-        transcript: transcript?.substring(0, 100),
+        transcript: transcript?.substring(0, 100) + "...",
+        transcriptLength: transcript?.length,
         hasExtractedInfo: !!extractedInfo,
-        enhancedCommentsLength: enhancedComments.length 
+        extractedInfoKeys: extractedInfo ? Object.keys(extractedInfo) : [],
+        enhancedCommentsLength: enhancedComments?.length || 0,
+        enhancedCommentsSample: enhancedComments?.substring(0, 50) + "..."
       });
+
+      // If we don't have AI analysis but have a transcript, show warning
+      if (transcript && transcript.length > 50 && (!extractedInfo || !enhancedComments)) {
+        console.warn("Voice processing may not have completed AI analysis. Only transcript available.");
+        toast({
+          title: "Partial Processing Complete",
+          description: "Transcript ready. Click 'Analyze with AI' to extract key information.",
+          variant: "default"
+        });
+      }
       
       // Set the processed data 
       setCurrentTranscript(transcript);
@@ -180,9 +213,13 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         setShowProcessing(false);
       }, 100);
 
+      // Success message based on what we got
+      const hasAiAnalysis = !!(extractedInfo && enhancedComments);
       toast({
-        title: "Voice Recording Processed",
-        description: "Your voice recording has been transcribed and analyzed. Please review and submit.",
+        title: hasAiAnalysis ? "Voice Recording Processed" : "Transcript Ready",
+        description: hasAiAnalysis 
+          ? "Your voice recording has been transcribed and analyzed. Please review and submit."
+          : "Voice transcribed. Use 'Analyze with AI' for detailed analysis.",
       });
     },
     onError: (error) => {
