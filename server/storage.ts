@@ -1706,6 +1706,11 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deletePythonScript(id: number): Promise<boolean> {
+    const result = await db.delete(pythonScripts).where(eq(pythonScripts.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
   // Script execution methods
   async getScriptExecutions(scriptId?: number, userId?: string): Promise<ScriptExecution[]> {
     let query = db.select({

@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -40,7 +42,8 @@ import {
   TestTube,
   Shield,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  FilePlus
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -185,6 +188,30 @@ export default function PythonAI() {
         // Don't close dialog immediately, show results first
       });
       toast({ title: 'Success', description: 'Script executed successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Delete script mutation
+  const deleteScriptMutation = useMutation({
+    mutationFn: async (scriptId: number) => {
+      const response = await fetch(`/api/python-scripts/${scriptId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete script');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      startTransition(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/python-scripts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/script-executions'] });
+      });
+      toast({ title: 'Success', description: 'Script deleted successfully' });
     },
     onError: (error: any) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -353,6 +380,7 @@ export default function PythonAI() {
                       setSelectedScript(script);
                       setIsEditDialogOpen(true);
                     }}
+                    onDelete={(script) => deleteScriptMutation.mutate(script.id)}
                   />
                 ))
               ) : (
@@ -513,10 +541,11 @@ export default function PythonAI() {
 }
 
 // Script Card Component
-function ScriptCard({ script, onExecute, onEdit }: {
+function ScriptCard({ script, onExecute, onEdit, onDelete }: {
   script: PythonScript;
   onExecute: (script: PythonScript) => void;
   onEdit: (script: PythonScript) => void;
+  onDelete: (script: PythonScript) => void;
 }) {
   return (
     <Card className="group hover:shadow-md transition-shadow">
@@ -590,9 +619,50 @@ function ScriptCard({ script, onExecute, onEdit }: {
               Edit
             </Button>
           </div>
-          <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onExecute(script)}>
+                <Play className="h-4 w-4 mr-2" />
+                Run Script
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(script)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Script
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Script
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Script</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{script.name}"? This action cannot be undone. 
+                      All execution history and script versions will be permanently deleted.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => onDelete(script)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>
@@ -621,6 +691,7 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
 
   const [tagInput, setTagInput] = useState('');
   const [reqInput, setReqInput] = useState('');
+  const [uploadMode, setUploadMode] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1222,6 +1293,7 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
 
   const [tagInput, setTagInput] = useState('');
   const [reqInput, setReqInput] = useState('');
+  const [uploadMode, setUploadMode] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

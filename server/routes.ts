@@ -1805,6 +1805,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE Python script
+  app.delete("/api/python-scripts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const scriptId = parseInt(id);
+      
+      // Check if script exists and user has permission to delete
+      const script = await storage.getPythonScript(scriptId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      const userId = req.session?.user?.id || "42195145";
+      if (script.ownerId !== userId) {
+        return res.status(403).json({ error: 'Permission denied. You can only delete your own scripts.' });
+      }
+
+      // Delete the script (this will cascade delete executions, versions, etc. due to foreign key constraints)
+      await storage.deletePythonScript(scriptId);
+      
+      console.log(`🗑️ [SCRIPT DELETED] Script ${scriptId} (${script.name}) deleted by user ${userId}`);
+      res.json({ success: true, message: 'Script deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting Python script:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/python-scripts/:id/execute", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
