@@ -2705,18 +2705,21 @@ CRITICAL REQUIREMENTS:
 2. Ensure all added comments use proper Python syntax (# for inline, """triple quotes""" for docstrings)
 3. Do not break existing code functionality
 4. Preserve all original code logic and structure
+5. PRESERVE ALL EXISTING COMMENTS AND HEADERS - Do not replace, modify, or remove any existing comments, docstrings, or header metadata
 
 SCRIPT NAME: ${scriptName || 'Untitled Script'}
 
 ORIGINAL CODE:
 ${code}
 
+IMPORTANT: If the code already has header comments, author information, copyright notices, or any existing documentation, you must keep them EXACTLY as they are. Only ADD new comments where there are none.
+
 Add professional comments following Python standards:
-- Module docstring at top with purpose, functionality overview
-- Function/class docstrings with Args, Returns, Raises sections
-- Inline comments explaining complex logic and business rules
-- Type hints where beneficial for code clarity
-- Section comments grouping related functionality
+- If no module docstring exists, add one at the top (after any existing header comments)
+- Add function/class docstrings only where missing, with Args, Returns, Raises sections
+- Add inline comments explaining complex logic and business rules where none exist
+- Add type hints where beneficial and not already present
+- Add section comments grouping related functionality where helpful
 
 Comment formatting rules:
 - Use # for single-line comments
@@ -2724,8 +2727,9 @@ Comment formatting rules:
 - Follow PEP 257 docstring conventions
 - Keep comments concise and informative
 - Focus on WHY the code does something, not obvious WHAT
+- Maintain all existing formatting and indentation
 
-Return the complete Python script with added comments. Ensure the output is syntactically valid Python code that can be executed without errors.
+Return the complete Python script with added comments. Ensure the output is syntactically valid Python code that can be executed without errors and preserves all original metadata.
 `;
 
       const response = await openai.chat.completions.create({
