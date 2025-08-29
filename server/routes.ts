@@ -329,23 +329,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawTranscript: finalTranscript?.substring(0, 100)
       });
 
-      // Use EXACT same pattern as working route (lines 543-557)
-      const affinityTags = await storage.getAffinityTags();
-      const threshold = await getMatchingThreshold();
-      const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+      // CRITICAL HEROKU DEBUGGING: Add comprehensive error catching
+      let suggestedAffinityTags: string[] = [];
+      
+      try {
+        console.log("🔥 HEROKU CRITICAL: Starting affinity matching with comprehensive debugging");
+        console.log("🔥 Environment check:", {
+          isProduction: process.env.NODE_ENV === 'production',
+          hasHerokuVars: !!(process.env.DYNO || process.env.PORT),
+          databaseUrl: !!process.env.DATABASE_URL,
+          interestCounts: {
+            professional: professionalInterests.length,
+            personal: personalInterests.length,
+            philanthropic: philanthropicPriorities.length
+          }
+        });
 
-      const matchedTags = affinityMatcher.matchInterests(
-        professionalInterests,
-        personalInterests,
-        philanthropicPriorities,
-        finalTranscript
-      );
-      const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+        // Step 1: Get affinity tags
+        console.log("🔥 STEP 1: Loading affinity tags...");
+        const affinityTags = await storage.getAffinityTags();
+        console.log("🔥 STEP 1 RESULT:", affinityTags.length, "tags loaded");
+        
+        if (affinityTags.length === 0) {
+          console.error("🚨 CRITICAL ERROR: No affinity tags in database!");
+          throw new Error("No affinity tags available");
+        }
 
-      console.log("🔍 FINAL MATCHES:", {
-        matchCount: matchedTags.length,
-        matches: matchedTags.slice(0, 10).map(m => ({ tag: m.tag.name, score: m.score, interest: m.interest }))
-      });
+        // Step 2: Get threshold (bypass issues by hardcoding)
+        console.log("🔥 STEP 2: Using hardcoded working threshold...");
+        const workingThreshold = 0.95;
+        console.log("🔥 STEP 2 RESULT: Using threshold:", workingThreshold);
+        
+        // Step 3: Create matcher
+        console.log("🔥 STEP 3: Creating affinity matcher...");
+        const affinityMatcher = await createAffinityMatcher(affinityTags, workingThreshold);
+        console.log("🔥 STEP 3 RESULT: Matcher created successfully");
+
+        // Step 4: Execute matching
+        console.log("🔥 STEP 4: Executing affinity matching...");
+        console.log("🔥 STEP 4 INPUT:", {
+          professionalInterests,
+          personalInterests,  
+          philanthropicPriorities,
+          transcriptLength: finalTranscript?.length || 0
+        });
+
+        const matchedTags = affinityMatcher.matchInterests(
+          professionalInterests,
+          personalInterests,
+          philanthropicPriorities,
+          finalTranscript
+        );
+        
+        console.log("🔥 STEP 4 RESULT: Raw matches:", matchedTags.length);
+        if (matchedTags.length > 0) {
+          console.log("🔥 STEP 4 SAMPLE MATCHES:", matchedTags.slice(0, 3).map(m => ({
+            tag: m.tag.name,
+            score: m.score,
+            interest: m.matchedInterest || m.interest
+          })));
+        }
+        
+        suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+        console.log("🔥 FINAL SUCCESS:", suggestedAffinityTags.length, "affinity tags found:", suggestedAffinityTags.slice(0, 5));
+
+      } catch (affinityError) {
+        console.error("🚨 HEROKU AFFINITY MATCHING FAILED:");
+        console.error("🚨 Error message:", (affinityError as Error).message);
+        console.error("🚨 Error stack:", (affinityError as Error).stack?.substring(0, 500));
+        console.error("🚨 Context:", {
+          hasInterests: (professionalInterests.length + personalInterests.length + philanthropicPriorities.length) > 0,
+          environmentVars: {
+            nodeEnv: process.env.NODE_ENV,
+            isDyno: !!process.env.DYNO,
+            hasDb: !!process.env.DATABASE_URL
+          }
+        });
+        
+        // Set empty array as fallback
+        suggestedAffinityTags = [];
+      }
 
       // Affinity matching is now handled above in the try-catch block
 
