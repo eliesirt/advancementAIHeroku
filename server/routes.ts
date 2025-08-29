@@ -2690,7 +2690,8 @@ Provide specific, actionable feedback with line numbers when possible. Remember:
   app.post('/api/python-scripts/add-comments', isAuthenticated, async (req: any, res) => {
     try {
       const { code, scriptName } = req.body;
-      const userId = req.user?.claims?.sub;
+      // Support both Replit auth (req.user?.claims?.sub) and Heroku auth (req.session?.user?.id)
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -2816,7 +2817,8 @@ Return the complete Python script with added # comments only. Ensure the output 
   app.post('/api/python-scripts/generate', async (req, res) => {
     try {
       const { description } = req.body;
-      const userId = req.user?.claims?.sub;
+      // Support both Replit auth (req.user?.claims?.sub) and Heroku auth (req.session?.user?.id)
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
 
       if (!description || !description.trim()) {
         return res.status(400).json({ error: 'Description is required' });
