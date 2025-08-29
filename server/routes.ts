@@ -2899,6 +2899,32 @@ Return the complete Python script with added # comments only. Ensure the output 
     }
   });
 
+  // Debug endpoint to check job result structure
+  app.get('/api/ai-jobs/:jobId/debug', isAuthenticated, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const job = await storage.getAiJob(parseInt(jobId));
+      
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+
+      console.log(`🔍 [DEBUG] Job ${jobId} full data:`, JSON.stringify(job, null, 2));
+      
+      res.json({
+        jobId: job.id,
+        status: job.status,
+        result: job.result,
+        resultType: typeof job.result,
+        resultKeys: job.result ? Object.keys(job.result) : null,
+        rawJob: job
+      });
+    } catch (error) {
+      console.error('Error in debug endpoint:', error);
+      res.status(500).json({ error: 'Debug failed' });
+    }
+  });
+
   // Background job processor for script generation
   async function processScriptGenerationJob(jobId: number) {
     try {
@@ -3025,6 +3051,12 @@ Generate a complete, functional Python script that accomplishes the user's requi
       await storage.updateAiJob(jobId, { progress: 80 });
 
       // Complete job with results
+      console.log(`🔍 [JOB PROCESSOR] Saving result for job ${jobId}:`, {
+        scriptLength: generatedScript.length,
+        metadataName: metadata.name,
+        metadataKeys: Object.keys(metadata)
+      });
+
       await storage.updateAiJob(jobId, {
         status: 'completed',
         progress: 100,

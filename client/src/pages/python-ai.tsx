@@ -789,7 +789,12 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
         const result = await pollJobStatus(jobId);
         
         if (result.status === 'completed' && result.result) {
+          console.log('Job completed! Full result:', result);
+          console.log('Result data:', result.result);
+          
           const { generatedScript, metadata } = result.result;
+          
+          console.log('Extracted data:', { generatedScript, metadata });
           
           // Populate form with generated script and metadata
           setFormData(prev => ({
