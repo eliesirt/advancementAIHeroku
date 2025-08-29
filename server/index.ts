@@ -649,29 +649,41 @@ app.get('/health', (req, res) => {
           aiSynopsis = `Voice Interaction Analysis:\n\nTranscript: ${finalTranscript}\n\nSummary: ${extractedInfo.summary}`;
         }
 
-        // Now perform affinity tag matching after AI synopsis is complete
+        // Perform affinity tag matching using the same logic as the regular route
+        console.log("🔍 Starting affinity tag matching...");
         try {
-          console.log("🔍 Matching affinity tags after AI synopsis...");
           const { storage } = await import("./storage");
-          const [affinityTags, settings] = await Promise.all([
-            storage.getAffinityTags(),
-            storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }))
-          ]);
+          const affinityTags = await storage.getAffinityTags();
+          console.log(`Found ${affinityTags.length} affinity tags in database`);
+          
+          // Use a simpler approach that matches the regular route logic
+          const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
+          const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
+          const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+          
+          console.log("Interests to match:", { professionalInterests, personalInterests, philanthropicPriorities });
           
           const { createAffinityMatcher } = await import("./lib/affinity-matcher");
+          const settings = await storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }));
           const affinityMatcher = await createAffinityMatcher(affinityTags, settings?.matchingThreshold || 0.25);
           
           const matchedTags = affinityMatcher.matchInterests(
-            extractedInfo.professionalInterests || [],
-            extractedInfo.personalInterests || [],
-            extractedInfo.philanthropicPriorities || [],
-            finalTranscript  // Use raw transcript for additional direct matching
+            professionalInterests,
+            personalInterests,
+            philanthropicPriorities,
+            finalTranscript  // Include raw transcript for better matching
           );
           
-          console.log("✅ Affinity tag matching completed:", { matchCount: matchedTags.length });
+          // Add matched tags to extractedInfo
           extractedInfo.suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+          
+          console.log("✅ Affinity matching completed:", {
+            matchCount: matchedTags.length,
+            tags: extractedInfo.suggestedAffinityTags
+          });
         } catch (affinityError) {
-          console.error("Affinity tag matching failed:", affinityError);
+          console.error("❌ Affinity tag matching failed:", affinityError);
+          // Ensure suggestedAffinityTags is always an array
           extractedInfo.suggestedAffinityTags = [];
         }
 
