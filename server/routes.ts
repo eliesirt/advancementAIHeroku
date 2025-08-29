@@ -2813,19 +2813,25 @@ Return the complete Python script with added # comments only. Ensure the output 
     }
   });
 
-  // AI Script Generation endpoint
+  // AI Script Generation endpoint with enhanced error handling
   app.post('/api/python-scripts/generate', isAuthenticated, async (req, res) => {
+    // Ensure we always return JSON
+    res.setHeader('Content-Type', 'application/json');
+    
     try {
       const { description } = req.body;
       // Support both Replit auth (req.user?.claims?.sub) and Heroku auth (req.session?.user?.id)
       const userId = req.user?.claims?.sub || req.session?.user?.id;
+
+      console.log(`🤖 [SCRIPT GENERATION] Request from user ${userId} with description: ${description?.substring(0, 50)}...`);
 
       if (!description || !description.trim()) {
         return res.status(400).json({ error: 'Description is required' });
       }
 
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        console.error('🚨 [SCRIPT GENERATION] No user ID found in request');
+        return res.status(401).json({ error: 'Unauthorized - No user authentication found' });
       }
 
       // Import OpenAI (using dynamic import to avoid issues)
@@ -2938,8 +2944,20 @@ Generate a complete, functional Python script that accomplishes the user's requi
         metadata
       });
     } catch (error) {
-      console.error('Error generating script:', error);
-      res.status(500).json({ error: 'Failed to generate script' });
+      console.error('🚨 [SCRIPT GENERATION] Error generating script:', error);
+      
+      // Ensure we always return JSON even in error cases
+      res.setHeader('Content-Type', 'application/json');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorResponse = { 
+        error: 'Failed to generate script', 
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.error('🚨 [SCRIPT GENERATION] Returning error response:', errorResponse);
+      res.status(500).json(errorResponse);
     }
   });
 
