@@ -411,6 +411,22 @@ export const itineraryTravelSegments = pgTable("itinerary_travel_segments", {
   sortOrder: integer("sort_order").notNull(),
 });
 
+// AI Job Queue for handling long-running operations
+export const aiJobs = pgTable("ai_jobs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // 'script_generation', 'code_analysis', 'code_commenting'
+  status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  input: jsonb("input").notNull(), // Job input parameters
+  result: jsonb("result"), // Job result data
+  error: text("error"), // Error message if failed
+  progress: integer("progress").default(0), // 0-100 percentage
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -528,6 +544,13 @@ export const itineraryTravelSegmentsRelations = relations(itineraryTravelSegment
   toMeeting: one(itineraryMeetings, {
     fields: [itineraryTravelSegments.toMeetingId],
     references: [itineraryMeetings.id],
+  }),
+}));
+
+export const aiJobsRelations = relations(aiJobs, ({ one }) => ({
+  user: one(users, {
+    fields: [aiJobs.userId],
+    references: [users.id],
   }),
 }));
 
@@ -679,6 +702,14 @@ export const insertItineraryTravelSegmentSchema = createInsertSchema(itineraryTr
   id: true,
 });
 
+export const insertAiJobSchema = createInsertSchema(aiJobs).omit({
+  id: true,
+  startedAt: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -747,6 +778,8 @@ export type ItineraryMeeting = typeof itineraryMeetings.$inferSelect;
 export type InsertItineraryMeeting = z.infer<typeof insertItineraryMeetingSchema>;
 export type ItineraryTravelSegment = typeof itineraryTravelSegments.$inferSelect;
 export type InsertItineraryTravelSegment = z.infer<typeof insertItineraryTravelSegmentSchema>;
+export type AiJob = typeof aiJobs.$inferSelect;
+export type InsertAiJob = z.infer<typeof insertAiJobSchema>;
 
 // Extended types for UI
 export interface UserWithRoles extends User {

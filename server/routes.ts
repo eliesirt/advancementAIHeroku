@@ -2813,7 +2813,7 @@ Return the complete Python script with added # comments only. Ensure the output 
     }
   });
 
-  // AI Script Generation endpoint with enhanced error handling
+  // AI Script Generation endpoint with async job processing
   app.post('/api/python-scripts/generate', isAuthenticated, async (req, res) => {
     // Ensure we always return JSON
     res.setHeader('Content-Type', 'application/json');
@@ -2834,6 +2834,90 @@ Return the complete Python script with added # comments only. Ensure the output 
         return res.status(401).json({ error: 'Unauthorized - No user authentication found' });
       }
 
+      // Create async job for long-running AI operation
+      const jobData = await storage.createAiJob({
+        userId,
+        type: 'script_generation',
+        status: 'pending',
+        input: { description },
+        progress: 0
+      });
+
+      // Start processing job asynchronously (non-blocking)
+      processScriptGenerationJob(jobData.id).catch(error => {
+        console.error(`🚨 [JOB PROCESSOR] Job ${jobData.id} failed:`, error);
+      });
+
+      console.log(`✅ [SCRIPT GENERATION] Job ${jobData.id} created for user ${userId}`);
+      
+      // Return immediately with job ID
+      res.json({ 
+        jobId: jobData.id,
+        status: 'processing',
+        message: 'Script generation started. Use the job ID to check status.',
+        estimatedTime: '30-60 seconds'
+      });
+    } catch (error) {
+      console.error('🚨 [SCRIPT GENERATION] Error creating job:', error);
+      
+      // Ensure we always return JSON even in error cases
+      res.setHeader('Content-Type', 'application/json');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorResponse = { 
+        error: 'Failed to start script generation', 
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.error('🚨 [SCRIPT GENERATION] Returning error response:', errorResponse);
+      res.status(500).json(errorResponse);
+    }
+  });
+
+  // Job status endpoint
+  app.get('/api/ai-jobs/:jobId', isAuthenticated, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
+
+      const job = await storage.getAiJob(parseInt(jobId));
+      
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+
+      // Verify job belongs to user
+      if (job.userId !== userId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      res.json(job);
+    } catch (error) {
+      console.error('Error fetching job status:', error);
+      res.status(500).json({ error: 'Failed to fetch job status' });
+    }
+  });
+
+  // Background job processor for script generation
+  async function processScriptGenerationJob(jobId: number) {
+    try {
+      console.log(`🔄 [JOB PROCESSOR] Starting job ${jobId}`);
+      
+      // Update job to processing
+      await storage.updateAiJob(jobId, { 
+        status: 'processing', 
+        startedAt: new Date(),
+        progress: 10 
+      });
+
+      const job = await storage.getAiJob(jobId);
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
+      const { description } = job.input as { description: string };
+      
       // Import OpenAI (using dynamic import to avoid issues)
       const OpenAI = (await import('openai')).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -2881,8 +2965,8 @@ Generate a complete, functional Python script that accomplishes the user's requi
         max_completion_tokens: 4000
       };
       
-      // GPT-4 supports custom temperature, GPT-5 only supports default (1)
-      if (AI_MODELS.GENERATION === "gpt-4") {
+      // Use different parameters for different models
+      if (AI_MODELS.GENERATION.includes("gpt-4")) {
         apiParams.temperature = 0.3;
         apiParams.max_tokens = 4000; // GPT-4 uses max_tokens
         delete apiParams.max_completion_tokens;
@@ -2936,30 +3020,36 @@ Generate a complete, functional Python script that accomplishes the user's requi
           metadata.cpuLimit = trimmed.replace('# CPU Limit:', '').trim();
         }
       }
-      
-      console.log(`🤖 [SCRIPT GENERATED] Generated script "${metadata.name}" for user ${userId}`);
-      
-      res.json({ 
-        generatedScript: generatedScript.trim(),
-        metadata
+
+      // Update progress
+      await storage.updateAiJob(jobId, { progress: 80 });
+
+      // Complete job with results
+      await storage.updateAiJob(jobId, {
+        status: 'completed',
+        progress: 100,
+        result: {
+          generatedScript: generatedScript.trim(),
+          metadata
+        },
+        completedAt: new Date()
       });
+      
+      console.log(`✅ [JOB PROCESSOR] Job ${jobId} completed successfully`);
+      
     } catch (error) {
-      console.error('🚨 [SCRIPT GENERATION] Error generating script:', error);
+      console.error(`🚨 [JOB PROCESSOR] Job ${jobId} failed:`, error);
       
-      // Ensure we always return JSON even in error cases
-      res.setHeader('Content-Type', 'application/json');
-      
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorResponse = { 
-        error: 'Failed to generate script', 
-        details: errorMessage,
-        timestamp: new Date().toISOString()
-      };
-      
-      console.error('🚨 [SCRIPT GENERATION] Returning error response:', errorResponse);
-      res.status(500).json(errorResponse);
+      // Mark job as failed
+      await storage.updateAiJob(jobId, {
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date()
+      }).catch(updateError => {
+        console.error('Failed to update job status:', updateError);
+      });
     }
-  });
+  }
 
   const httpServer = createServer(app);
   return httpServer;

@@ -74,7 +74,10 @@ import {
   type GitRepository,
   type InsertGitRepository,
   type ScriptPermission,
-  type InsertScriptPermission
+  type InsertScriptPermission,
+  aiJobs,
+  type AiJob,
+  type InsertAiJob
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
@@ -1779,6 +1782,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(scriptExecutions.id, id));
     
     return execution || undefined;
+  }
+
+  // AI Job methods
+  async createAiJob(jobData: InsertAiJob): Promise<AiJob> {
+    const [job] = await db.insert(aiJobs).values(jobData).returning();
+    return job;
+  }
+
+  async getAiJob(id: number): Promise<AiJob | undefined> {
+    const [job] = await db.select().from(aiJobs).where(eq(aiJobs.id, id));
+    return job || undefined;
+  }
+
+  async updateAiJob(id: number, updates: Partial<InsertAiJob & { startedAt?: Date; completedAt?: Date; }>): Promise<AiJob> {
+    const [job] = await db
+      .update(aiJobs)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiJobs.id, id))
+      .returning();
+    
+    if (!job) {
+      throw new Error(`AI job with id ${id} not found`);
+    }
+    
+    return job;
+  }
+
+  async getAiJobsByUser(userId: string): Promise<AiJob[]> {
+    return await db
+      .select()
+      .from(aiJobs)
+      .where(eq(aiJobs.userId, userId))
+      .orderBy(desc(aiJobs.createdAt));
   }
 }
 
