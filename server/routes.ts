@@ -34,6 +34,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// AI Model Configuration - Easy toggle between GPT-4 and GPT-5
+const AI_MODELS = {
+  ANALYSIS: "gpt-4",      // For code analysis
+  COMMENTING: "gpt-4",    // For adding comments
+  GENERATION: "gpt-5",    // For script generation - TOGGLE: Change to "gpt-4" to revert
+} as const;
+
 // Helper function to get current matching threshold
 async function getMatchingThreshold(): Promise<number> {
   try {
@@ -2618,7 +2625,7 @@ Provide specific, actionable feedback with line numbers when possible. Remember:
 `;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        model: AI_MODELS.ANALYSIS, // Configurable AI model for code analysis
         messages: [{ role: "user", content: analysisPrompt }],
         temperature: 0.3,
         max_tokens: 4000
@@ -2746,7 +2753,7 @@ Return the complete Python script with added # comments only. Ensure the output 
 `;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        model: AI_MODELS.COMMENTING, // Configurable AI model for adding comments
         messages: [{ role: "user", content: commentingPrompt }],
         temperature: 0.2,
         max_tokens: 4000
@@ -2860,7 +2867,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
 `;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        model: AI_MODELS.GENERATION, // Configurable AI model for script generation - Currently set to GPT-5
         messages: [{ role: "user", content: generationPrompt }],
         temperature: 0.3,
         max_tokens: 4000
