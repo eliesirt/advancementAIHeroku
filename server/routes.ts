@@ -2814,7 +2814,7 @@ Return the complete Python script with added # comments only. Ensure the output 
   });
 
   // AI Script Generation endpoint
-  app.post('/api/python-scripts/generate', async (req, res) => {
+  app.post('/api/python-scripts/generate', isAuthenticated, async (req, res) => {
     try {
       const { description } = req.body;
       // Support both Replit auth (req.user?.claims?.sub) and Heroku auth (req.session?.user?.id)
