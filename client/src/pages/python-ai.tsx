@@ -87,6 +87,10 @@ interface ScriptExecution {
     firstName: string;
     lastName: string;
   };
+  script?: {
+    name: string;
+    description: string;
+  };
 }
 
 export default function PythonAI() {
@@ -1161,7 +1165,9 @@ function ExecutionHistory({ executions, loading }: { executions: ScriptExecution
                   </Badge>
                 </div>
                 <div>
-                  <div className="font-medium">Script ID: {execution.scriptId}</div>
+                  <div className="font-medium">
+                    {execution.script?.name || `Script ID: ${execution.scriptId}`}
+                  </div>
                   <div className="text-sm text-gray-500">
                     {execution.duration ? `${execution.duration}ms` : 'Duration unknown'}
                     {execution.exitCode !== null && ` • Exit code: ${execution.exitCode}`}
