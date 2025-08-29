@@ -13,6 +13,12 @@ export class AffinityMatcher {
   private matchingThreshold: number;
 
   constructor(affinityTags: AffinityTag[], matchingThreshold: number = 0.25) {
+    console.log("🏗️ AFFINITY MATCHER CONSTRUCTOR:", {
+      tagsCount: affinityTags.length,
+      threshold: matchingThreshold,
+      sampleTags: affinityTags.slice(0, 3).map(t => t.name)
+    });
+    
     this.affinityTags = affinityTags;
     this.matchingThreshold = matchingThreshold;
     this.fuse = new Fuse(affinityTags, {
@@ -53,11 +59,29 @@ export class AffinityMatcher {
     philanthropicPriorities: string[],
     rawTranscript?: string
   ): MatchedAffinityTag[] {
+    console.log("🔍 AFFINITY MATCHER DEBUG: Starting match with:", {
+      professionalCount: professionalInterests.length,
+      personalCount: personalInterests.length,
+      philanthropicCount: philanthropicPriorities.length,
+      rawTranscriptLength: rawTranscript?.length || 0,
+      totalAffinityTags: this.affinityTags.length,
+      threshold: this.matchingThreshold
+    });
+
+    console.log("🔍 INTERESTS DEBUG:", {
+      professional: professionalInterests,
+      personal: personalInterests,
+      philanthropic: philanthropicPriorities,
+      rawTranscript: rawTranscript?.substring(0, 50) + '...'
+    });
+
     const allInterests = [
       ...(Array.isArray(professionalInterests) ? professionalInterests : []),
       ...(Array.isArray(personalInterests) ? personalInterests : []),
       ...(Array.isArray(philanthropicPriorities) ? philanthropicPriorities : [])
     ];
+
+    console.log("🔍 ALL INTERESTS:", allInterests);
 
     // If rawTranscript is provided, use it for additional direct matching
     if (rawTranscript && rawTranscript.trim().length > 0) {
@@ -107,6 +131,11 @@ export class AffinityMatcher {
         }
       }
     }
+
+    console.log("🔍 FINAL MATCHES:", {
+      matchCount: matches.length,
+      matches: matches.map(m => ({ tag: m.tag.name, score: m.score, interest: m.matchedInterest }))
+    });
 
     // Sort by score (highest first) and limit to top 10
     return matches

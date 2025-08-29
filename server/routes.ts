@@ -45,9 +45,11 @@ const AI_MODELS = {
 async function getMatchingThreshold(): Promise<number> {
   try {
     const settings = await storage.getAffinityTagSettings();
+    console.log("🎯 THRESHOLD DEBUG: Retrieved settings:", settings);
     const threshold = settings?.matchingThreshold || 25;
-    // Convert from 0-100 scale to 0-1 scale for the matcher
-    return threshold / 100;
+    const convertedThreshold = threshold / 100;
+    console.log("🎯 THRESHOLD DEBUG: Raw threshold:", threshold, "Converted:", convertedThreshold);
+    return convertedThreshold;
   } catch (error) {
     console.warn("Failed to get matching threshold, using default:", error);
     return 0.25; // Default threshold
@@ -310,13 +312,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
       // Match interests to affinity tags
+      console.log("🎯 ROUTES.TS: Loading affinity tags and matcher...");
       const affinityTags = await storage.getAffinityTags();
+      console.log("🎯 ROUTES.TS: Loaded affinity tags:", affinityTags.length);
       const threshold = await getMatchingThreshold();
+      console.log("🎯 ROUTES.TS: Got threshold:", threshold);
       const affinityMatcher = await createAffinityMatcher(affinityTags, threshold);
+      console.log("🎯 ROUTES.TS: Created affinity matcher successfully");
 
       const professionalInterests = Array.isArray(extractedInfo.professionalInterests) ? extractedInfo.professionalInterests : [];
       const personalInterests = Array.isArray(extractedInfo.personalInterests) ? extractedInfo.personalInterests : [];
       const philanthropicPriorities = Array.isArray(extractedInfo.philanthropicPriorities) ? extractedInfo.philanthropicPriorities : [];
+
+      console.log("🎯 ROUTES.TS: Starting affinity matching with:", {
+        affinityTagCount: affinityTags.length,
+        threshold,
+        professionalCount: professionalInterests.length,
+        personalCount: personalInterests.length,
+        philanthropicCount: philanthropicPriorities.length,
+        transcriptLength: finalTranscript.length
+      });
 
       const matchedTags = affinityMatcher.matchInterests(
         professionalInterests,
@@ -325,6 +340,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         finalTranscript  // Use raw transcript for additional direct matching
       );
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
+
+      console.log("🎯 ROUTES.TS: Affinity matching completed:", {
+        matchedCount: matchedTags.length,
+        suggestedTags: suggestedAffinityTags
+      });
 
       // Generate enhanced comments with full synopsis and transcript
       const userId = req.user.claims.sub;
