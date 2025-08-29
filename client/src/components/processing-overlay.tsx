@@ -14,34 +14,47 @@ interface ProcessingOverlayProps {
   isVisible: boolean;
   onComplete?: () => void;
   steps?: ProcessingStep[];
+  aiModel?: string;
 }
 
 const defaultSteps: ProcessingStep[] = [
-  { id: 'transcribe', label: 'Transcribing audio', status: 'pending' },
-  { id: 'extract', label: 'Extracting key information', status: 'pending' },
+  { id: 'transcribe', label: 'Transcribing audio with OpenAI Whisper', status: 'pending' },
+  { id: 'extract', label: 'Extracting key information with GPT-5', status: 'pending' },
   { id: 'match', label: 'Matching affinity tags', status: 'pending' },
-  { id: 'enhance', label: 'Enhancing comments', status: 'pending' },
+  { id: 'enhance', label: 'Enhancing comments with AI', status: 'pending' },
+  { id: 'finalize', label: 'Preparing interaction form', status: 'pending' },
 ];
 
 export function ProcessingOverlay({ 
   isVisible, 
   onComplete,
-  steps = defaultSteps 
+  steps = defaultSteps,
+  aiModel = "GPT-5"
 }: ProcessingOverlayProps) {
   const [currentSteps, setCurrentSteps] = useState<ProcessingStep[]>(steps);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+  // Create dynamic steps with the actual AI model
+  const dynamicSteps: ProcessingStep[] = [
+    { id: 'transcribe', label: 'Transcribing audio with OpenAI Whisper', status: 'pending' },
+    { id: 'extract', label: `Extracting key information with ${aiModel}`, status: 'pending' },
+    { id: 'match', label: 'Matching affinity tags', status: 'pending' },
+    { id: 'enhance', label: `Enhancing comments with ${aiModel}`, status: 'pending' },
+    { id: 'finalize', label: 'Preparing interaction form', status: 'pending' },
+  ];
+
   useEffect(() => {
     if (!isVisible) {
       // Reset when overlay is hidden
-      setCurrentSteps(steps.map(step => ({ ...step, status: 'pending' })));
+      setCurrentSteps(dynamicSteps.map(step => ({ ...step, status: 'pending' })));
       setCurrentStepIndex(0);
       return;
     }
 
     // Simulate processing steps
     const processSteps = async () => {
-      for (let i = 0; i < steps.length; i++) {
+      const stepsToProcess = dynamicSteps;
+      for (let i = 0; i < stepsToProcess.length; i++) {
         setCurrentStepIndex(i);
         
         // Mark current step as processing
@@ -52,8 +65,8 @@ export function ProcessingOverlay({
           }))
         );
 
-        // Simulate processing time (1-3 seconds per step)
-        const processingTime = 1000 + Math.random() * 2000;
+        // Simulate processing time (2-4 seconds per step for realistic feel)
+        const processingTime = 2000 + Math.random() * 2000;
         await new Promise(resolve => setTimeout(resolve, processingTime));
 
         // Mark step as complete
@@ -65,14 +78,12 @@ export function ProcessingOverlay({
         );
       }
 
-      // All steps complete
-      setTimeout(() => {
-        onComplete?.();
-      }, 500);
+      // Don't auto-complete - let parent component control when to hide
+      // Parent will call onComplete when ready
     };
 
     processSteps();
-  }, [isVisible, steps, onComplete]);
+  }, [isVisible, dynamicSteps, onComplete]);
 
   if (!isVisible) {
     return null;
@@ -102,6 +113,11 @@ export function ProcessingOverlay({
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Processing Interaction
             </h3>
+            <div className="mb-2">
+              <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                Powered by {aiModel}
+              </span>
+            </div>
             <p className="text-gray-600">
               AI is analyzing your report and extracting key information...
             </p>

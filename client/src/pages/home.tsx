@@ -87,6 +87,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   } | null>(null);
   const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
   const [showProcessing, setShowProcessing] = useState(false);
+  const [currentAiModel, setCurrentAiModel] = useState("GPT-5");
 
   const { toast } = useToast();
 
@@ -106,6 +107,22 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     queryKey: ["/api/interactions/recent"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Fetch AI model preference for processing display
+  const { data: aiModelPreference } = useQuery<{ value: string }>({
+    queryKey: ["/api/settings/ai-model-preference"],
+    refetchInterval: 300000, // Refresh every 5 minutes
+  });
+
+  // Update current AI model when preference changes
+  useEffect(() => {
+    if (aiModelPreference?.value) {
+      const modelDisplay = aiModelPreference.value === 'gpt-5' ? 'GPT-5' :
+                           aiModelPreference.value === 'gpt-4o' ? 'GPT-4o' : 
+                           aiModelPreference.value === 'gpt-4' ? 'GPT-4' : 'GPT-5';
+      setCurrentAiModel(modelDisplay);
+    }
+  }, [aiModelPreference]);
 
   // State for bulk selection
   const [selectedInteractions, setSelectedInteractions] = useState<number[]>([]);
@@ -127,9 +144,6 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     onSuccess: (data) => {
       console.log("Voice recording API response:", data);
       
-      // Hide processing overlay first
-      setShowProcessing(false);
-      
       // Handle both old and new response formats for backward compatibility
       const transcript = data.transcript || data.voiceRecording?.transcript || '';
       const extractedInfo = data.extractedInfo || null;
@@ -144,7 +158,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         enhancedCommentsLength: enhancedComments.length 
       });
       
-      // Set the processed data and show the interaction form for review
+      // Set the processed data 
       setCurrentTranscript(transcript);
       setExtractedInfo(extractedInfo);
       setEnhancedComments(enhancedComments);
@@ -159,7 +173,12 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       }
       
       setEditingInteraction(null);
-      setShowInteractionForm(true);
+      
+      // Small delay to ensure state is set, then show form and hide processing
+      setTimeout(() => {
+        setShowInteractionForm(true);
+        setShowProcessing(false);
+      }, 100);
 
       toast({
         title: "Voice Recording Processed",
@@ -906,6 +925,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       <ProcessingOverlay
         isVisible={showProcessing}
         onComplete={() => setShowProcessing(false)}
+        aiModel={currentAiModel}
       />
 
       {/* Interaction Form */}
