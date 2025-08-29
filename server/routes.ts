@@ -234,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Process voice recording directly without creating interaction draft first
   app.post("/api/voice-recordings/process-direct", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("🎙️ HEROKU VOICE RECORDING PROCESSING STARTED - Fast startup mode");
+      console.log("🎙️ VOICE RECORDING PROCESSING STARTED");
       const { transcript, audioData, duration } = req.body;
 
       console.log("Voice processing request data:", { 
