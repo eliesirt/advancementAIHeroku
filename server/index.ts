@@ -288,6 +288,67 @@ app.get('/health', (req, res) => {
       res.json({ isImpersonating: false });
     });
 
+    // CRITICAL: Add AI model preference routes immediately for Settings app
+    console.log("⚙️ Setting up essential AI model preference routes...");
+    
+    app.get('/api/settings/ai-model-preference', async (req: any, res) => {
+      try {
+        const userId = req.session?.user?.id || "42195145";
+        const { storage } = await import("./storage");
+        const userPreference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
+        res.json({
+          value: userPreference,
+          description: `Using ${userPreference} as the AI model for analysis and processing`
+        });
+      } catch (error) {
+        console.error("Error fetching AI model preference:", error);
+        res.json({
+          value: 'gpt-4o',
+          description: 'Using default AI model (gpt-4o) for analysis and processing'
+        });
+      }
+    });
+
+    app.post('/api/settings/ai-model-preference', async (req: any, res) => {
+      try {
+        const { value } = req.body;
+        const userId = req.session?.user?.id || "42195145";
+
+        if (!value) {
+          return res.status(400).json({ message: "Value is required" });
+        }
+
+        const validModels = ['gpt-5', 'gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];
+        if (!validModels.includes(value)) {
+          return res.status(400).json({ message: "Invalid AI model selection" });
+        }
+
+        const { storage } = await import("./storage");
+        const preference = await storage.setUserSetting({
+          userId,
+          settingKey: 'ai_model_preference',
+          value,
+          category: 'ai'
+        });
+
+        console.log("🤖 AI model preference updated:", { userId, value });
+        res.json({ 
+          success: true, 
+          message: "AI model preference updated successfully",
+          preference: {
+            value: preference.value,
+            description: `Using ${preference.value} as the AI model for analysis and processing`
+          }
+        });
+      } catch (error) {
+        console.error("Error updating AI model preference:", error);
+        res.status(500).json({ 
+          message: "Failed to update AI model preference", 
+          error: (error as Error).message 
+        });
+      }
+    });
+
     // CRITICAL: Add interaction processing routes immediately
     console.log("🤖 Setting up essential AI processing routes...");
     
