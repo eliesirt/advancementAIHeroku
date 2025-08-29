@@ -2702,7 +2702,7 @@ You are a senior Python developer and documentation expert. Add comprehensive, p
 
 CRITICAL REQUIREMENTS:
 1. Return ONLY valid Python code - no markdown, no code blocks, no explanatory text
-2. Ensure all added comments use proper Python syntax (# for inline, """triple quotes""" for docstrings)
+2. Use ONLY # line-based comments - DO NOT use triple-quoted docstrings (""")
 3. Do not break existing code functionality
 4. Preserve all original code logic and structure
 5. PRESERVE ALL EXISTING COMMENTS AND HEADERS - Do not replace, modify, or remove any existing comments, docstrings, or header metadata
@@ -2714,22 +2714,35 @@ ${code}
 
 IMPORTANT: If the code already has header comments, author information, copyright notices, or any existing documentation, you must keep them EXACTLY as they are. Only ADD new comments where there are none.
 
-Add professional comments following Python standards:
-- If no module docstring exists, add one at the top (after any existing header comments)
-- Add function/class docstrings only where missing, with Args, Returns, Raises sections
+Add professional comments using ONLY # line-based format:
+- Add module description at the top using # comments (after any existing header comments)
+- Add function/class descriptions using # comments above function definitions
 - Add inline comments explaining complex logic and business rules where none exist
-- Add type hints where beneficial and not already present
 - Add section comments grouping related functionality where helpful
+- Explain parameters, return values, and logic using # comments
 
 Comment formatting rules:
-- Use # for single-line comments
-- Use """triple quotes""" for multi-line docstrings
-- Follow PEP 257 docstring conventions
+- Use ONLY # for ALL comments - no triple quotes allowed
+- Place # comments on their own lines above code blocks
+- Use # comments inline for complex expressions
 - Keep comments concise and informative
 - Focus on WHY the code does something, not obvious WHAT
 - Maintain all existing formatting and indentation
+- Use # to document function parameters and return values
 
-Return the complete Python script with added comments. Ensure the output is syntactically valid Python code that can be executed without errors and preserves all original metadata.
+Example format:
+# This function calculates the total sum
+# Parameters: numbers - list of integers to sum
+# Returns: integer sum of all numbers
+def calculate_sum(numbers):
+    # Initialize sum variable
+    total = 0
+    # Iterate through each number in the list
+    for num in numbers:
+        total += num  # Add current number to running total
+    return total
+
+Return the complete Python script with added # comments only. Ensure the output is syntactically valid Python code that can be executed without errors and preserves all original metadata.
 `;
 
       const response = await openai.chat.completions.create({
