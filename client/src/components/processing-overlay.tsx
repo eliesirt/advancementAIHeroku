@@ -15,6 +15,7 @@ interface ProcessingOverlayProps {
   onComplete?: () => void;
   steps?: ProcessingStep[];
   aiModel?: string;
+  completeImmediately?: boolean;
 }
 
 const defaultSteps: ProcessingStep[] = [
@@ -29,7 +30,8 @@ export function ProcessingOverlay({
   isVisible, 
   onComplete,
   steps = defaultSteps,
-  aiModel = "GPT-5"
+  aiModel = "GPT-5",
+  completeImmediately = false
 }: ProcessingOverlayProps) {
   const [currentSteps, setCurrentSteps] = useState<ProcessingStep[]>(steps);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -51,39 +53,79 @@ export function ProcessingOverlay({
       return;
     }
 
-    // Simulate processing steps
-    const processSteps = async () => {
-      const stepsToProcess = dynamicSteps;
-      for (let i = 0; i < stepsToProcess.length; i++) {
-        setCurrentStepIndex(i);
-        
-        // Mark current step as processing
-        setCurrentSteps(prev => 
-          prev.map((step, index) => ({
-            ...step,
-            status: index === i ? 'processing' : index < i ? 'complete' : 'pending'
-          }))
-        );
+    // Start with first step processing immediately
+    setCurrentStepIndex(0);
+    setCurrentSteps(prev => 
+      prev.map((step, index) => ({
+        ...step,
+        status: index === 0 ? 'processing' : 'pending'
+      }))
+    );
 
-        // Simulate processing time (2-4 seconds per step for realistic feel)
-        const processingTime = 2000 + Math.random() * 2000;
-        await new Promise(resolve => setTimeout(resolve, processingTime));
+    // Simulate realistic progress through steps while waiting for actual API
+    const progressSteps = async () => {
+      // Step 1: Transcribing (immediate)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setCurrentStepIndex(1);
+      setCurrentSteps(prev => 
+        prev.map((step, index) => ({
+          ...step,
+          status: index === 0 ? 'complete' : index === 1 ? 'processing' : 'pending'
+        }))
+      );
 
-        // Mark step as complete
-        setCurrentSteps(prev => 
-          prev.map((step, index) => ({
-            ...step,
-            status: index <= i ? 'complete' : 'pending'
-          }))
-        );
-      }
+      // Step 2: Extracting (after a delay)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      setCurrentStepIndex(2);
+      setCurrentSteps(prev => 
+        prev.map((step, index) => ({
+          ...step,
+          status: index <= 1 ? 'complete' : index === 2 ? 'processing' : 'pending'
+        }))
+      );
 
-      // Don't auto-complete - let parent component control when to hide
-      // Parent will call onComplete when ready
+      // Step 3: Matching (after another delay)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setCurrentStepIndex(3);
+      setCurrentSteps(prev => 
+        prev.map((step, index) => ({
+          ...step,
+          status: index <= 2 ? 'complete' : index === 3 ? 'processing' : 'pending'
+        }))
+      );
+
+      // Step 4: Enhancing (final processing step)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setCurrentStepIndex(4);
+      setCurrentSteps(prev => 
+        prev.map((step, index) => ({
+          ...step,
+          status: index <= 3 ? 'complete' : index === 4 ? 'processing' : 'pending'
+        }))
+      );
+
+      // Keep step 4 (Preparing form) processing until parent tells us to complete
+      // Parent component will call onComplete when API actually finishes
     };
 
-    processSteps();
-  }, [isVisible, dynamicSteps, onComplete]);
+    progressSteps();
+  }, [isVisible, dynamicSteps]);
+
+  // Effect to handle immediate completion when API finishes
+  useEffect(() => {
+    if (completeImmediately && isVisible) {
+      console.log("API completed - finishing all processing steps immediately");
+      // Complete all steps immediately
+      setCurrentSteps(prev => 
+        prev.map(step => ({ ...step, status: 'complete' }))
+      );
+      setCurrentStepIndex(dynamicSteps.length - 1);
+    }
+  }, [completeImmediately, isVisible, dynamicSteps]);
 
   if (!isVisible) {
     return null;

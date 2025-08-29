@@ -87,6 +87,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   } | null>(null);
   const [submittingInteractionId, setSubmittingInteractionId] = useState<number | null>(null);
   const [showProcessing, setShowProcessing] = useState(false);
+  const [processingComplete, setProcessingComplete] = useState(false);
   const [currentAiModel, setCurrentAiModel] = useState("GPT-5");
 
   const { toast } = useToast();
@@ -181,17 +182,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         enhancedCommentsSample: enhancedComments?.substring(0, 50) + "..."
       });
 
-      // If we don't have AI analysis but have a transcript, show warning
-      if (transcript && transcript.length > 50 && (!extractedInfo || !enhancedComments)) {
-        console.warn("Voice processing may not have completed AI analysis. Only transcript available.");
-        toast({
-          title: "Partial Processing Complete",
-          description: "Transcript ready. Click 'Analyze with AI' to extract key information.",
-          variant: "default"
-        });
-      }
-      
-      // Set the processed data 
+      // Set the processed data first
       setCurrentTranscript(transcript);
       setExtractedInfo(extractedInfo);
       setEnhancedComments(enhancedComments);
@@ -206,21 +197,37 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       }
       
       setEditingInteraction(null);
-      
-      // Small delay to ensure state is set, then show form and hide processing
-      setTimeout(() => {
-        setShowInteractionForm(true);
-        setShowProcessing(false);
-      }, 100);
 
-      // Success message based on what we got
-      const hasAiAnalysis = !!(extractedInfo && enhancedComments);
-      toast({
-        title: hasAiAnalysis ? "Voice Recording Processed" : "Transcript Ready",
-        description: hasAiAnalysis 
-          ? "Your voice recording has been transcribed and analyzed. Please review and submit."
-          : "Voice transcribed. Use 'Analyze with AI' for detailed analysis.",
-      });
+      // Check if we have full AI analysis or just transcript
+      const hasAiAnalysis = !!(extractedInfo && enhancedComments && enhancedComments.length > 50);
+      
+      if (hasAiAnalysis) {
+        // Full AI processing completed - complete overlay animation then show form
+        console.log("✅ Full AI analysis completed, completing processing overlay");
+        setProcessingComplete(true);
+        
+        setTimeout(() => {
+          setShowInteractionForm(true);
+          setShowProcessing(false);
+          setProcessingComplete(false); // Reset for next time
+        }, 1000); // Time for overlay to show completion
+
+        toast({
+          title: "Voice Recording Processed",
+          description: "Your voice recording has been transcribed and analyzed. Please review and submit.",
+        });
+      } else {
+        // Only transcript available - hide processing but don't show form yet
+        console.log("⚠️ Only transcript available, prompting for AI analysis");
+        setShowProcessing(false);
+        setProcessingComplete(false);
+        
+        toast({
+          title: "Transcript Ready",
+          description: "Voice transcribed. Use 'Analyze with AI' for detailed analysis.",
+          variant: "default"
+        });
+      }
     },
     onError: (error) => {
       // Hide processing overlay on error
@@ -445,6 +452,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
   const handleVoiceRecordingComplete = (audioData: string, transcript: string, duration: number) => {
     setShowVoiceRecorder(false);
     setShowProcessing(true); // Show processing overlay while AI analysis runs
+    setProcessingComplete(false); // Reset processing completion state
 
     // Process voice recording with AI analysis
     createVoiceRecording.mutate({
@@ -963,6 +971,7 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         isVisible={showProcessing}
         onComplete={() => setShowProcessing(false)}
         aiModel={currentAiModel}
+        completeImmediately={processingComplete}
       />
 
       {/* Interaction Form */}
