@@ -988,7 +988,9 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
               ×
             </Button>
           </div>
-          <CodeAnalysisResults analysis={analysisResult} />
+          <div className="max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+            <CodeAnalysisResults analysis={analysisResult} />
+          </div>
         </div>
       )}
     </form>
@@ -1219,7 +1221,9 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
               ×
             </Button>
           </div>
-          <CodeAnalysisResults analysis={analysisResult} />
+          <div className="max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+            <CodeAnalysisResults analysis={analysisResult} />
+          </div>
         </div>
       )}
     </form>
