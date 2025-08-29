@@ -2870,7 +2870,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
         model: AI_MODELS.GENERATION, // Configurable AI model for script generation - Currently set to GPT-5
         messages: [{ role: "user", content: generationPrompt }],
         temperature: 0.3,
-        max_tokens: 4000
+        max_completion_tokens: 4000 // GPT-5 uses max_completion_tokens instead of max_tokens
       });
 
       let generatedScript = response.choices[0].message.content || '';
