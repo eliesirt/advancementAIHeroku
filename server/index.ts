@@ -1822,6 +1822,61 @@ app.get('/health', (req, res) => {
       }
     });
 
+    // CRITICAL: AI Jobs async processing routes
+    console.log("🤖 Adding AI Jobs async processing routes...");
+    
+    app.get('/api/ai-jobs/:jobId', async (req: any, res) => {
+      try {
+        const { jobId } = req.params;
+        const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145"; // Fallback user
+        const { storage } = await import("./storage");
+
+        const job = await storage.getAiJob(parseInt(jobId));
+        
+        if (!job) {
+          return res.status(404).json({ error: 'Job not found' });
+        }
+
+        // Verify job belongs to user
+        if (job.userId !== userId) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+
+        res.json(job);
+      } catch (error) {
+        console.error('Error fetching job status:', error);
+        res.status(500).json({ error: 'Failed to fetch job status' });
+      }
+    });
+
+    app.get('/api/ai-jobs/:jobId/debug', async (req: any, res) => {
+      try {
+        const { jobId } = req.params;
+        const { storage } = await import("./storage");
+        const job = await storage.getAiJob(parseInt(jobId));
+        
+        if (!job) {
+          return res.status(404).json({ error: 'Job not found' });
+        }
+
+        console.log(`🔍 [DEBUG] Job ${jobId} full data:`, JSON.stringify(job, null, 2));
+        
+        res.json({
+          jobId: job.id,
+          status: job.status,
+          result: job.result,
+          resultType: typeof job.result,
+          resultKeys: job.result ? Object.keys(job.result) : null,
+          rawJob: job
+        });
+      } catch (error) {
+        console.error('Error in debug endpoint:', error);
+        res.status(500).json({ error: 'Debug failed' });
+      }
+    });
+
+    console.log("✅ AI Jobs async processing routes added to production server");
+
     console.log("✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately");
     
     // CRITICAL: Add Google Places API routes immediately in production
