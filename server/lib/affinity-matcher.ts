@@ -20,7 +20,14 @@ export class AffinityMatcher {
     });
     
     this.affinityTags = affinityTags;
-    this.matchingThreshold = matchingThreshold;
+    // Convert percentage (0-100) to decimal (0-1) if needed
+    this.matchingThreshold = matchingThreshold > 1 ? matchingThreshold / 100 : matchingThreshold;
+    
+    console.log("🔧 THRESHOLD CONVERSION:", {
+      original: matchingThreshold,
+      converted: this.matchingThreshold,
+      wasPercentage: matchingThreshold > 1
+    });
     this.fuse = new Fuse(affinityTags, {
       keys: ['name', 'category'],
       threshold: 0.50, // Midrange threshold for better matching
@@ -45,9 +52,19 @@ export class AffinityMatcher {
       variations.push(cleaned);
     }
     
-    // Add specific sport variations
+    // Add specific variations for better matching
     if (interest.toLowerCase().includes('ice hockey')) {
       variations.push('Men\'s Hockey', 'Women\'s Hockey', 'Hockey');
+    }
+    
+    // Engineering variations
+    if (interest.toLowerCase().includes('engineering')) {
+      variations.push('College of Engineering', 'School of Engineering', 'Engineering Department');
+    }
+    
+    // Education variations  
+    if (interest.toLowerCase().includes('education')) {
+      variations.push('Education Department', 'School of Education', 'Educational Programs');
     }
     
     return variations;
@@ -116,9 +133,24 @@ export class AffinityMatcher {
       for (const variation of variations) {
         const searchResults = this.fuse.search(variation);
         
+        console.log("🔍 SEARCH RESULTS for '" + variation + "':", {
+          resultsCount: searchResults.length,
+          topResults: searchResults.slice(0, 3).map(r => ({
+            name: r.item.name,
+            score: r.score?.toFixed(3)
+          }))
+        });
+        
         for (const result of searchResults.slice(0, 3)) { // Top 3 matches per variation
           const tag = result.item;
           const score = 1 - (result.score || 0); // Convert to similarity score
+          
+          console.log("🔍 SCORE CHECK:", {
+            tagName: tag.name,
+            score: score.toFixed(3),
+            threshold: this.matchingThreshold.toFixed(3),
+            passes: score > this.matchingThreshold
+          });
           
           if (!seenTags.has(tag.id) && score > this.matchingThreshold) { // Configurable threshold
             matches.push({
@@ -133,6 +165,46 @@ export class AffinityMatcher {
     }
 
     console.log("🔍 FINAL MATCHES:", {
+      matchCount: matches.length,
+      matches: matches.map(m => ({ tag: m.tag.name, score: m.score, interest: m.matchedInterest }))
+    });
+
+    // HEROKU PRODUCTION FALLBACK: If no matches found, use more lenient search
+    if (matches.length === 0 && allInterests.length > 0) {
+      console.log("🚨 HEROKU FALLBACK: No matches found, trying lenient search");
+      
+      for (const interest of allInterests) {
+        const lowerInterest = interest.toLowerCase();
+        
+        // Direct substring matching for common cases
+        const directMatches = this.affinityTags.filter(tag => {
+          const lowerTagName = tag.name.toLowerCase();
+          return lowerTagName.includes(lowerInterest) || 
+                 lowerInterest.includes(lowerTagName) ||
+                 // Engineering specific matches
+                 (lowerInterest.includes('engineer') && lowerTagName.includes('engineer')) ||
+                 // Education specific matches  
+                 (lowerInterest.includes('education') && lowerTagName.includes('education'));
+        });
+        
+        console.log("🚨 DIRECT MATCHES for '" + interest + "':", directMatches.length);
+        
+        // Add the best direct matches
+        for (const tag of directMatches.slice(0, 3)) {
+          if (!seenTags.has(tag.id)) {
+            matches.push({
+              tag,
+              score: 0.8, // High fallback score
+              matchedInterest: interest
+            });
+            seenTags.add(tag.id);
+            console.log("🚨 ADDED FALLBACK MATCH:", tag.name);
+          }
+        }
+      }
+    }
+
+    console.log("🔍 FINAL MATCHES (after fallback):", {
       matchCount: matches.length,
       matches: matches.map(m => ({ tag: m.tag.name, score: m.score, interest: m.matchedInterest }))
     });

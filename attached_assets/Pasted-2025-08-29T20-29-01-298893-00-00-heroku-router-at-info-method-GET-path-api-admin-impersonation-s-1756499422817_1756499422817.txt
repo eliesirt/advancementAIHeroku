@@ -1,0 +1,82 @@
+2025-08-29T20:29:01.298893+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=493cdc03-cf70-3f4e-ddd2-318c95cb019d fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:01.298874+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
+2025-08-29T20:29:01.773535+00:00 heroku[router]: at=info method=GET path="/api/interactions/recent" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=42a30b82-86e2-d157-6558-e2500cdad186 fwd="73.253.249.113" dyno=web.1 connect=0ms service=176ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:01.773732+00:00 app[web.1]: [production] GET /api/interactions/recent 304 in 176ms :: [{"id":123,"userId":"42195145","pr…
+2025-08-29T20:29:31.351094+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=64250f0b-a951-9f48-bc53-1df4ebef8580 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:31.351064+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 0ms :: {"isImpersonating":false}
+2025-08-29T20:29:31.706794+00:00 heroku[router]: at=info method=GET path="/api/stats" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=315703ed-208b-bba2-e595-8cbbb1659321 fwd="73.253.249.113" dyno=web.1 connect=0ms service=122ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:31.812340+00:00 heroku[router]: at=info method=GET path="/api/interactions/recent" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=743aa1c5-c6f8-d9f7-6522-0ac81375e624 fwd="73.253.249.113" dyno=web.1 connect=0ms service=9ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:31.706801+00:00 app[web.1]: [production] GET /api/stats 304 in 122ms :: {"todayInteractions":2,"thisWeekInteractions":5,…
+2025-08-29T20:29:31.813222+00:00 app[web.1]: [production] GET /api/interactions/recent 304 in 9ms :: [{"id":123,"userId":"42195145","pros…
+2025-08-29T20:29:33.458985+00:00 app[web.1]: 🎤 HEROKU VOICE PROCESSING START - Testing affinity tag fix
+2025-08-29T20:29:33.459012+00:00 app[web.1]: No browser transcript available, using OpenAI Whisper for transcription...
+2025-08-29T20:29:33.459012+00:00 app[web.1]: Starting OpenAI Whisper transcription...
+2025-08-29T20:29:33.459672+00:00 app[web.1]: Transcription attempt 1/3
+2025-08-29T20:29:33.459832+00:00 app[web.1]: Audio buffer size: 75509 bytes
+2025-08-29T20:29:35.144388+00:00 app[web.1]: Transcription successful: Eli Serrata pledged $1 million to the College of Engineering....
+2025-08-29T20:29:35.144457+00:00 app[web.1]: OpenAI Whisper transcription completed: { transcriptLength: 61 }
+2025-08-29T20:29:35.144472+00:00 app[web.1]: 🔍 Extracting interaction information...
+2025-08-29T20:29:35.144474+00:00 app[web.1]: 🤖 Starting OpenAI extraction...
+2025-08-29T20:29:35.144984+00:00 app[web.1]: 🤖 Starting OpenAI extraction...
+2025-08-29T20:29:35.145011+00:00 app[web.1]: Transcript being analyzed: Eli Serrata pledged $1 million to the College of Engineering.
+2025-08-29T20:29:37.541890+00:00 app[web.1]: ✅ OpenAI extraction completed
+2025-08-29T20:29:37.541929+00:00 app[web.1]: ✅ OpenAI extraction completed
+2025-08-29T20:29:37.541929+00:00 app[web.1]: 📊 Evaluating interaction quality...
+2025-08-29T20:29:41.695283+00:00 app[web.1]: ✅ Quality assessment completed - Score: 14/25
+2025-08-29T20:29:41.695305+00:00 app[web.1]: 📝 Generating concise summary...
+2025-08-29T20:29:45.409821+00:00 heroku[router]: at=info method=POST path="/api/voice-recordings/process-direct" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=6648c0db-d48b-c0e5-f61c-93060c3c9db0 fwd="73.253.249.113" dyno=web.1 connect=0ms service=12017ms status=200 bytes=4752 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T20:29:45.384791+00:00 app[web.1]: ✅ Concise summary generated
+2025-08-29T20:29:45.384814+00:00 app[web.1]: 🔍 HEROKU: Starting affinity tag matching for voice processing...
+2025-08-29T20:29:45.385071+00:00 app[web.1]: Current extractedInfo before affinity matching: {
+2025-08-29T20:29:45.385071+00:00 app[web.1]:   hasExtractedInfo: true,
+2025-08-29T20:29:45.385071+00:00 app[web.1]:   hasAffinityTags: true,
+2025-08-29T20:29:45.385072+00:00 app[web.1]:   currentTags: [],
+2025-08-29T20:29:45.385072+00:00 app[web.1]:   interests: {
+2025-08-29T20:29:45.385073+00:00 app[web.1]:     professional: [ 'Engineering' ],
+2025-08-29T20:29:45.385073+00:00 app[web.1]:     personal: [],
+2025-08-29T20:29:45.385073+00:00 app[web.1]:     philanthropic: [ 'Education', 'Engineering' ]
+2025-08-29T20:29:45.385073+00:00 app[web.1]:   }
+2025-08-29T20:29:45.385074+00:00 app[web.1]: }
+2025-08-29T20:29:45.390231+00:00 app[web.1]: ✅ Found 248 affinity tags in database
+2025-08-29T20:29:45.395488+00:00 app[web.1]: Creating affinity matcher with threshold: 40
+2025-08-29T20:29:45.395574+00:00 app[web.1]: 🏗️ AFFINITY MATCHER CONSTRUCTOR: {
+2025-08-29T20:29:45.395574+00:00 app[web.1]:   tagsCount: 248,
+2025-08-29T20:29:45.395574+00:00 app[web.1]:   threshold: 40,
+2025-08-29T20:29:45.395575+00:00 app[web.1]:   sampleTags: [
+2025-08-29T20:29:45.395575+00:00 app[web.1]:     'Academic Speech, Language & Hearing Center',
+2025-08-29T20:29:45.395575+00:00 app[web.1]:     'Accessibility',
+2025-08-29T20:29:45.395575+00:00 app[web.1]:     'AffordableBU'
+2025-08-29T20:29:45.395576+00:00 app[web.1]:   ]
+2025-08-29T20:29:45.395576+00:00 app[web.1]: }
+2025-08-29T20:29:45.396343+00:00 app[web.1]: Calling matchInterests with: {
+2025-08-29T20:29:45.396343+00:00 app[web.1]:   professional: [ 'Engineering' ],
+2025-08-29T20:29:45.396344+00:00 app[web.1]:   personal: [],
+2025-08-29T20:29:45.396344+00:00 app[web.1]:   philanthropic: [ 'Education', 'Engineering' ],
+2025-08-29T20:29:45.396344+00:00 app[web.1]:   hasTranscript: true
+2025-08-29T20:29:45.396344+00:00 app[web.1]: }
+2025-08-29T20:29:45.396385+00:00 app[web.1]: 🔍 AFFINITY MATCHER DEBUG: Starting match with: {
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   professionalCount: 1,
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   personalCount: 0,
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   philanthropicCount: 2,
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   rawTranscriptLength: 61,
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   totalAffinityTags: 248,
+2025-08-29T20:29:45.396386+00:00 app[web.1]:   threshold: 40
+2025-08-29T20:29:45.396387+00:00 app[web.1]: }
+2025-08-29T20:29:45.396426+00:00 app[web.1]: 🔍 INTERESTS DEBUG: {
+2025-08-29T20:29:45.396426+00:00 app[web.1]:   professional: [ 'Engineering' ],
+2025-08-29T20:29:45.396427+00:00 app[web.1]:   personal: [],
+2025-08-29T20:29:45.396427+00:00 app[web.1]:   philanthropic: [ 'Education', 'Engineering' ],
+2025-08-29T20:29:45.396427+00:00 app[web.1]:   rawTranscript: 'Eli Serrata pledged $1 million to the College of E...'
+2025-08-29T20:29:45.396428+00:00 app[web.1]: }
+2025-08-29T20:29:45.396457+00:00 app[web.1]: 🔍 ALL INTERESTS: [ 'Engineering', 'Education', 'Engineering' ]
+2025-08-29T20:29:45.408635+00:00 app[web.1]: 🔍 FINAL MATCHES: { matchCount: 0, matches: [] }
+2025-08-29T20:29:45.408677+00:00 app[web.1]: ✅ HEROKU: Affinity matching COMPLETED: { inputInterestCount: 3, matchedTagsCount: 0, finalSuggestedTags: [] }
+2025-08-29T20:29:45.408692+00:00 app[web.1]: ✅ Voice processing completed successfully
+2025-08-29T20:29:45.408707+00:00 app[web.1]: Final suggestedAffinityTags before response: []
+2025-08-29T20:29:45.408733+00:00 app[web.1]: Voice processing completed: {
+2025-08-29T20:29:45.408734+00:00 app[web.1]:   transcriptLength: 61,
+2025-08-29T20:29:45.408734+00:00 app[web.1]:   hasQualityAssessment: true,
+2025-08-29T20:29:45.408734+00:00 app[web.1]:   qualityScore: 14,
+2025-08-29T20:29:45.408734+00:00 app[web.1]:   affinityTagCount: 0
+2025-08-29T20:29:45.408735+00:00 app[web.1]: }
+2025-08-29T20:29:45.409583+00:00 app[web.1]: [production] POST /api/voice-recordings/process-direct 200 in 11951ms :: {"voiceRecording":{…
