@@ -2809,7 +2809,7 @@ Return the complete Python script with added # comments only. Ensure the output 
   app.post('/api/python-scripts/generate', async (req, res) => {
     try {
       const { description } = req.body;
-      const userId = req.session?.user?.id;
+      const userId = req.user?.claims?.sub;
 
       if (!description || !description.trim()) {
         return res.status(400).json({ error: 'Description is required' });
