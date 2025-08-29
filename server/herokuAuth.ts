@@ -37,26 +37,41 @@ const HEROKU_ADMIN_USER = {
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   
-  // Ensure sessions table exists for Heroku
-  try {
-    const dbModule = await import("./db");
-    const pool = dbModule.pool;
-    
-    if (pool && pool.query) {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS sessions (
-          sid varchar(255) NOT NULL,
-          sess json NOT NULL,
-          expire timestamp(6) NOT NULL,
-          PRIMARY KEY (sid)
-        );
-      `);
-      console.log('✅ [HEROKU AUTH] Sessions table verified/created');
-    } else {
-      console.warn('⚠️ [HEROKU AUTH] Pool not available for session table creation');
+  // Ensure sessions table exists for Heroku with retry logic
+  const maxRetries = 3;
+  let sessionTableCreated = false;
+  
+  for (let attempt = 1; attempt <= maxRetries && !sessionTableCreated; attempt++) {
+    try {
+      // Add delay for database connection to establish
+      if (attempt > 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+      
+      const dbModule = await import("./db");
+      const pool = dbModule.pool;
+      
+      if (pool && typeof pool.query === 'function') {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS sessions (
+            sid varchar(255) NOT NULL,
+            sess json NOT NULL,
+            expire timestamp(6) NOT NULL,
+            PRIMARY KEY (sid)
+          );
+        `);
+        console.log('✅ [HEROKU AUTH] Sessions table verified/created');
+        sessionTableCreated = true;
+      } else {
+        throw new Error('Pool or query method not available');
+      }
+    } catch (error) {
+      console.warn(`⚠️ [HEROKU AUTH] Attempt ${attempt}/${maxRetries} failed to create sessions table:`, error.message);
+      
+      if (attempt === maxRetries) {
+        console.error('🚨 [HEROKU AUTH] All attempts to create sessions table failed. Session storage may not work properly.');
+      }
     }
-  } catch (error) {
-    console.warn('⚠️ [HEROKU AUTH] Failed to create sessions table:', error);
   }
   
   app.use(getSession());

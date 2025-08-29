@@ -2984,21 +2984,42 @@ Example header format:
 Generate a complete, functional Python script that accomplishes the user's requirements with proper error handling, documentation, and best practices.
 `;
 
-      // GPT-5 API configuration - different parameters than GPT-4
-      const apiParams: any = {
-        model: AI_MODELS.GENERATION,
-        messages: [{ role: "user", content: generationPrompt }],
-        max_completion_tokens: 4000
-      };
+      // Try multiple models with proper fallback
+      let response;
+      const modelsToTry = ["gpt-4o", "gpt-4", "gpt-3.5-turbo"];
       
-      // Use different parameters for different models
-      if (AI_MODELS.GENERATION.includes("gpt-4")) {
-        apiParams.temperature = 0.3;
-        apiParams.max_tokens = 4000; // GPT-4 uses max_tokens
-        delete apiParams.max_completion_tokens;
+      console.log(`🤖 [JOB PROCESSOR] Attempting OpenAI generation with models: ${modelsToTry.join(', ')}`);
+      
+      for (const model of modelsToTry) {
+        try {
+          console.log(`🔄 [JOB PROCESSOR] Trying model: ${model}`);
+          
+          const apiParams: any = {
+            model: model,
+            messages: [{ role: "user", content: generationPrompt }],
+            temperature: 0.3,
+            max_tokens: 4000
+          };
+          
+          response = await openai.chat.completions.create(apiParams);
+          
+          if (response.choices?.[0]?.message?.content && response.choices[0].message.content.trim().length > 0) {
+            console.log(`✅ [JOB PROCESSOR] Successfully generated content with ${model}`);
+            break;
+          } else {
+            console.warn(`⚠️ [JOB PROCESSOR] Model ${model} returned empty content`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ [JOB PROCESSOR] Model ${model} failed:`, error.message);
+          if (modelsToTry.indexOf(model) === modelsToTry.length - 1) {
+            throw error; // Re-throw if this was the last model
+          }
+        }
       }
       
-      const response = await openai.chat.completions.create(apiParams);
+      if (!response) {
+        throw new Error('All AI models failed to generate content');
+      }
 
       console.log(`📝 [JOB PROCESSOR] OpenAI response for job ${jobId}:`, {
         choices: response.choices?.length || 0,
