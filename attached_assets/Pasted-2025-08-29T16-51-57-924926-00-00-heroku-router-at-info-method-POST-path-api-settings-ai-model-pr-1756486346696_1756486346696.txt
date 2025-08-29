@@ -1,0 +1,19 @@
+2025-08-29T16:51:57.924926+00:00 heroku[router]: at=info method=POST path="/api/settings/ai-model-preference" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=8227d4b6-081e-a486-7e46-e3813807843e fwd="73.253.249.113" dyno=web.1 connect=0ms service=5ms status=500 bytes=45 protocol=http1.1 tls=true tls_version=unknown
+2025-08-29T16:51:57.924109+00:00 app[web.1]: Error setting AI model preference: PostgresError: relation "user_settings" does not exist
+2025-08-29T16:51:57.924133+00:00 app[web.1]:     at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+2025-08-29T16:51:57.924133+00:00 app[web.1]:     at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+2025-08-29T16:51:57.924134+00:00 app[web.1]:     at TLSSocket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+2025-08-29T16:51:57.924135+00:00 app[web.1]:     at TLSSocket.emit (node:events:517:28)
+2025-08-29T16:51:57.924135+00:00 app[web.1]:     at addChunk (node:internal/streams/readable:368:12)
+2025-08-29T16:51:57.924136+00:00 app[web.1]:     at readableAddChunk (node:internal/streams/readable:341:9)
+2025-08-29T16:51:57.924136+00:00 app[web.1]:     at Readable.push (node:internal/streams/readable:278:10)
+2025-08-29T16:51:57.924145+00:00 app[web.1]:     at TLSWrap.onStreamRead (node:internal/stream_base_commons:190:23) {
+2025-08-29T16:51:57.924145+00:00 app[web.1]:   severity_local: 'ERROR',
+2025-08-29T16:51:57.924146+00:00 app[web.1]:   severity: 'ERROR',
+2025-08-29T16:51:57.924146+00:00 app[web.1]:   code: '42P01',
+2025-08-29T16:51:57.924147+00:00 app[web.1]:   position: '81',
+2025-08-29T16:51:57.924147+00:00 app[web.1]:   file: 'parse_relation.c',
+2025-08-29T16:51:57.924147+00:00 app[web.1]:   line: '1486',
+2025-08-29T16:51:57.924148+00:00 app[web.1]:   routine: 'parserOpenTable'
+2025-08-29T16:51:57.924149+00:00 app[web.1]: }
+2025-08-29T16:51:57.924827+00:00 app[web.1]: [production] POST /api/settings/ai-model-preference 500 in 5ms :: {"error":"Failed to set AI…
