@@ -267,8 +267,12 @@ export async function enhanceInteractionComments(
   userId: number = 1
 ): Promise<string> {
   try {
+    console.log("🔧 ENHANCE COMMENTS: Starting with transcript length:", transcript?.length || 0);
+    
     // Generate comprehensive synopsis
     const synopsis = await generateInteractionSynopsis(transcript, extractedInfo, userId);
+    
+    console.log("🔧 ENHANCE COMMENTS: Synopsis generated, length:", synopsis?.length || 0);
     
     // Format the final comments with synopsis and transcript only
     const formattedComments = `ADVANCEMENT OFFICE SYNOPSIS:
@@ -277,15 +281,24 @@ ${synopsis}
 TRANSCRIPT:
 ${transcript}`;
 
+    console.log("🔧 ENHANCE COMMENTS: Final formatted length:", formattedComments?.length || 0);
+    console.log("🔧 ENHANCE COMMENTS: Includes transcript:", formattedComments.includes("TRANSCRIPT:"));
+    console.log("🔧 ENHANCE COMMENTS: Final preview:", formattedComments.substring(formattedComments.length - 100));
+
     return formattedComments;
   } catch (error) {
     console.error("Comment enhancement error:", error);
+    console.log("🔧 ENHANCE COMMENTS: Using fallback format with transcript");
+    
     // Fallback format if AI processing fails
-    return `ADVANCEMENT OFFICE SYNOPSIS:
+    const fallbackComments = `ADVANCEMENT OFFICE SYNOPSIS:
 Synopsis could not be generated due to processing error.
 
 TRANSCRIPT:
 ${transcript}`;
+    
+    console.log("🔧 ENHANCE COMMENTS: Fallback includes transcript:", fallbackComments.includes("TRANSCRIPT:"));
+    return fallbackComments;
   }
 }
 

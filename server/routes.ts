@@ -384,8 +384,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Affinity matching is now handled above
 
       // Generate enhanced comments with full synopsis and transcript
+      console.log("🔧 VOICE PROCESSING: About to enhance comments with transcript:", finalTranscript?.length);
       const userId = req.user.claims.sub;
       const enhancedComments = await enhanceInteractionComments(finalTranscript, extractedInfo, userId);
+      console.log("🔧 VOICE PROCESSING: Enhanced comments generated, length:", enhancedComments?.length);
+      console.log("🔧 VOICE PROCESSING: Enhanced comments include transcript:", enhancedComments?.includes("TRANSCRIPT:"));
 
       // Perform quality assessment
       console.log("📊 Evaluating interaction quality...");
@@ -499,6 +502,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("🔧 HEROKU FORCE FAILED:", (forceError as Error).message);
         console.error("🔧 Stack:", (forceError as Error).stack?.substring(0, 300));
       }
+
+      console.log("🔧 FINAL RESPONSE: About to send response with enhanced comments");
+      console.log("🔧 FINAL RESPONSE: Enhanced comments preview (last 200 chars):", enhancedComments?.slice(-200));
+      console.log("🔧 FINAL RESPONSE: Enhanced comments contains TRANSCRIPT:", enhancedComments?.includes("TRANSCRIPT:"));
+      console.log("🔧 FINAL RESPONSE: Transcript length in response:", finalTranscript?.length);
 
       res.json({
         transcript: finalTranscript,
