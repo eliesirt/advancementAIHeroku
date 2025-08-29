@@ -2805,6 +2805,126 @@ Return the complete Python script with added # comments only. Ensure the output 
     }
   });
 
+  // AI Script Generation endpoint
+  app.post('/api/python-scripts/generate', async (req, res) => {
+    try {
+      const { description } = req.body;
+      const userId = req.session?.user?.id;
+
+      if (!description || !description.trim()) {
+        return res.status(400).json({ error: 'Description is required' });
+      }
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Import OpenAI (using dynamic import to avoid issues)
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const generationPrompt = `
+You are a senior Python developer. Generate a complete, production-ready Python script based on the user's description.
+
+USER DESCRIPTION: ${description}
+
+CRITICAL REQUIREMENTS:
+1. Return ONLY valid Python code - no markdown, no code blocks, no explanatory text
+2. Start with header metadata comments in this EXACT format:
+   # Script Name: [descriptive name, max 5 words]
+   # Description: [brief description, max 20 words]
+   # Tags: [comma-separated relevant tags like 'data-processing', 'automation', 'web-scraping']
+   # Python Version: [recommended version like '3.11']
+   # Inputs: [describe expected inputs or 'None']
+   # Timeout: [recommended timeout in seconds like '300']
+   # Memory: [recommended memory in MB like '512']
+   # CPU Limit: [recommended CPU limit like '1.0']
+
+3. Include comprehensive # line-based comments throughout the code
+4. Follow Python best practices and PEP 8 conventions
+5. Add error handling where appropriate
+6. Include input validation and proper documentation
+7. Make the script robust and production-ready
+
+Example header format:
+# Script Name: Data File Processor
+# Description: Processes CSV files and generates summary reports
+# Tags: data-processing, csv, reporting, automation
+# Python Version: 3.11
+# Inputs: CSV file path as command line argument
+# Timeout: 300
+# Memory: 512
+# CPU Limit: 1.0
+
+Generate a complete, functional Python script that accomplishes the user's requirements with proper error handling, documentation, and best practices.
+`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: generationPrompt }],
+        temperature: 0.3,
+        max_tokens: 4000
+      });
+
+      let generatedScript = response.choices[0].message.content || '';
+      
+      // Clean the response to ensure it's valid Python code
+      generatedScript = generatedScript.trim();
+      
+      // Remove any markdown code blocks if present
+      if (generatedScript.startsWith('```python') || generatedScript.startsWith('```py')) {
+        generatedScript = generatedScript.replace(/^```(python|py)\s*/, '').replace(/\s*```$/, '');
+      } else if (generatedScript.startsWith('```')) {
+        generatedScript = generatedScript.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      // Parse metadata from the generated script
+      const lines = generatedScript.split('\n');
+      const metadata = {
+        name: '',
+        description: '',
+        tags: [] as string[],
+        pythonVersion: '',
+        inputs: '',
+        timeout: '',
+        memory: '',
+        cpuLimit: ''
+      };
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('# Script Name:')) {
+          metadata.name = trimmed.replace('# Script Name:', '').trim();
+        } else if (trimmed.startsWith('# Description:')) {
+          metadata.description = trimmed.replace('# Description:', '').trim();
+        } else if (trimmed.startsWith('# Tags:')) {
+          const tagString = trimmed.replace('# Tags:', '').trim();
+          metadata.tags = tagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        } else if (trimmed.startsWith('# Python Version:')) {
+          metadata.pythonVersion = trimmed.replace('# Python Version:', '').trim();
+        } else if (trimmed.startsWith('# Inputs:')) {
+          metadata.inputs = trimmed.replace('# Inputs:', '').trim();
+        } else if (trimmed.startsWith('# Timeout:')) {
+          metadata.timeout = trimmed.replace('# Timeout:', '').trim();
+        } else if (trimmed.startsWith('# Memory:')) {
+          metadata.memory = trimmed.replace('# Memory:', '').trim();
+        } else if (trimmed.startsWith('# CPU Limit:')) {
+          metadata.cpuLimit = trimmed.replace('# CPU Limit:', '').trim();
+        }
+      }
+      
+      console.log(`🤖 [SCRIPT GENERATED] Generated script "${metadata.name}" for user ${userId}`);
+      
+      res.json({ 
+        generatedScript: generatedScript.trim(),
+        metadata
+      });
+    } catch (error) {
+      console.error('Error generating script:', error);
+      res.status(500).json({ error: 'Failed to generate script' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

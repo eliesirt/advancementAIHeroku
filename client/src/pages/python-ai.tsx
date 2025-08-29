@@ -749,6 +749,62 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [commentPreview, setCommentPreview] = useState<string | null>(null);
   const [showCommentPreview, setShowCommentPreview] = useState(false);
   const [isCommentingLoading, setIsCommentingLoading] = useState(false);
+  const [generationDescription, setGenerationDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // AI Script Generation function
+  const handleGenerateScript = async () => {
+    if (!generationDescription.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a description of what you want the script to do",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/python-scripts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: generationDescription }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate script');
+      }
+
+      const { generatedScript, metadata } = await response.json();
+      
+      // Populate form with generated script and metadata
+      setFormData(prev => ({
+        ...prev,
+        name: metadata.name || 'Generated Script',
+        description: metadata.description || generationDescription,
+        content: generatedScript,
+        tags: metadata.tags || [],
+        requirements: [], // Could be parsed from script if needed
+        pythonVersion: metadata.pythonVersion || '3.11'
+      }));
+
+      setGenerationDescription('');
+      toast({
+        title: "Success",
+        description: "AI-generated script created successfully!",
+      });
+    } catch (error) {
+      console.error('Error generating script:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate script",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // AI Code Analysis mutation
   const analyzeCodeMutation = useMutation({
@@ -839,6 +895,44 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* AI Script Generation Section */}
+      <div className="border rounded-lg p-4 bg-blue-50 space-y-3">
+        <div className="flex items-center space-x-2">
+          <Zap className="h-5 w-5 text-blue-600" />
+          <h3 className="font-medium text-blue-900">AI Script Generator</h3>
+        </div>
+        <div>
+          <Label className="text-blue-800">Describe what you want the script to do</Label>
+          <Textarea
+            value={generationDescription}
+            onChange={(e) => setGenerationDescription(e.target.value)}
+            placeholder="Example: Create a script that reads CSV files, analyzes sales data, and generates monthly reports with charts"
+            className="min-h-20"
+            disabled={isGenerating}
+          />
+        </div>
+        <Button
+          type="button"
+          onClick={handleGenerateScript}
+          disabled={isGenerating || !generationDescription.trim()}
+          className="w-full"
+          variant="default"
+        >
+          {isGenerating ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Generating Script...
+            </>
+          ) : (
+            <>
+              <Zap className="h-4 w-4 mr-2" />
+              Generate Script with AI
+            </>
+          )}
+        </Button>
+      </div>
+
+      <Separator />
       <div>
         <Label htmlFor="name">Script Name</Label>
         <Input
@@ -1144,6 +1238,8 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
   const [commentPreview, setCommentPreview] = useState<string | null>(null);
   const [showCommentPreview, setShowCommentPreview] = useState(false);
   const [isCommentingLoading, setIsCommentingLoading] = useState(false);
+  const [generationDescription, setGenerationDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // AI Code Analysis mutation
   const analyzeCodeMutation = useMutation({
