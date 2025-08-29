@@ -50,13 +50,37 @@ export class AffinityMatcher {
   matchInterests(
     professionalInterests: string[],
     personalInterests: string[],
-    philanthropicPriorities: string[]
+    philanthropicPriorities: string[],
+    rawTranscript?: string
   ): MatchedAffinityTag[] {
     const allInterests = [
       ...(Array.isArray(professionalInterests) ? professionalInterests : []),
       ...(Array.isArray(personalInterests) ? personalInterests : []),
       ...(Array.isArray(philanthropicPriorities) ? philanthropicPriorities : [])
     ];
+
+    // If rawTranscript is provided, use it for additional direct matching
+    if (rawTranscript && rawTranscript.trim().length > 0) {
+      // Extract potential interests from raw transcript text
+      const transcriptWords = rawTranscript.toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 2);
+      
+      // Look for direct matches with affinity tag names in the transcript
+      for (const tag of this.affinityTags) {
+        const tagWords = tag.name.toLowerCase().split(/\s+/);
+        const hasAllWords = tagWords.every(tagWord => 
+          transcriptWords.some(transcriptWord => 
+            transcriptWord.includes(tagWord) || tagWord.includes(transcriptWord)
+          )
+        );
+        
+        if (hasAllWords && tagWords.length > 0) {
+          allInterests.push(tag.name); // Add direct transcript matches as interests
+        }
+      }
+    }
 
     const matches: MatchedAffinityTag[] = [];
     const seenTags = new Set<number>();

@@ -649,7 +649,8 @@ app.get('/health', (req, res) => {
           const matchedTags = affinityMatcher.matchInterests(
             extractedInfo.professionalInterests || [],
             extractedInfo.personalInterests || [],
-            extractedInfo.philanthropicPriorities || []
+            extractedInfo.philanthropicPriorities || [],
+            finalTranscript  // Use raw transcript for additional direct matching
           );
           
           console.log("✅ Affinity tag matching completed:", { matchCount: matchedTags.length });

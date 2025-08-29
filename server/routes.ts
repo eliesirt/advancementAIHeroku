@@ -321,7 +321,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const matchedTags = affinityMatcher.matchInterests(
         professionalInterests,
         personalInterests,
-        philanthropicPriorities
+        philanthropicPriorities,
+        finalTranscript  // Use raw transcript for additional direct matching
       );
       const suggestedAffinityTags = matchedTags.map(match => match.tag.name);
 
