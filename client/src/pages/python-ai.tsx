@@ -48,6 +48,19 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
+// Helper function to render code with highlighted comments
+const renderCodeWithHighlightedComments = (code: string) => {
+  return code.split('\n').map((line, index) => (
+    <div key={index}>
+      {line.trim().startsWith('#') ? (
+        <span style={{ color: '#22c55e', fontWeight: '500' }}>{line}</span>
+      ) : (
+        <span>{line}</span>
+      )}
+    </div>
+  ));
+};
+
 interface PythonScript {
   id: number;
   name: string;
@@ -1068,7 +1081,7 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
                   <div>
                     <Label className="text-sm font-medium text-gray-600">With AI Comments</Label>
                     <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
-                      <code className="language-python">{commentPreview}</code>
+                      <code className="language-python">{commentPreview && renderCodeWithHighlightedComments(commentPreview)}</code>
                     </pre>
                   </div>
                 </div>
@@ -1411,7 +1424,7 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
                   <div>
                     <Label className="text-sm font-medium text-gray-600">With AI Comments</Label>
                     <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
-                      <code className="language-python">{commentPreview}</code>
+                      <code className="language-python">{commentPreview && renderCodeWithHighlightedComments(commentPreview)}</code>
                     </pre>
                   </div>
                 </div>
