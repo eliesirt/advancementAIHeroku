@@ -2700,33 +2700,32 @@ Provide specific, actionable feedback with line numbers when possible. Remember:
       const commentingPrompt = `
 You are a senior Python developer and documentation expert. Add comprehensive, professional comments to the following Python code following industry best practices.
 
-CRITICAL: You must respond with ONLY the commented Python code, no additional text before or after the code.
+CRITICAL REQUIREMENTS:
+1. Return ONLY valid Python code - no markdown, no code blocks, no explanatory text
+2. Ensure all added comments use proper Python syntax (# for inline, """triple quotes""" for docstrings)
+3. Do not break existing code functionality
+4. Preserve all original code logic and structure
 
 SCRIPT NAME: ${scriptName || 'Untitled Script'}
 
 ORIGINAL CODE:
-\`\`\`python
 ${code}
-\`\`\`
 
-Add comments following these Python industry standards:
-1. **Module docstring** - Add a comprehensive module docstring at the top describing purpose, author, date
-2. **Function/class docstrings** - Use triple quotes with Args, Returns, Raises sections
-3. **Inline comments** - Explain complex logic, algorithms, and business rules
-4. **Type hints** - Add where appropriate for better code clarity
-5. **Section comments** - Group related code blocks with descriptive headers
-6. **PEP 257** compliance - Follow Python docstring conventions
-7. **Clear explanations** - Focus on WHY the code does something, not just WHAT
+Add professional comments following Python standards:
+- Module docstring at top with purpose, functionality overview
+- Function/class docstrings with Args, Returns, Raises sections
+- Inline comments explaining complex logic and business rules
+- Type hints where beneficial for code clarity
+- Section comments grouping related functionality
 
-Format guidelines:
-- Use """triple quotes""" for docstrings
-- Use # for inline comments
-- Keep comments concise but informative
-- Explain the purpose and logic, not obvious syntax
-- Add TODO/FIXME/NOTE comments where appropriate
-- Include parameter types and return types in docstrings
+Comment formatting rules:
+- Use # for single-line comments
+- Use """triple quotes""" for multi-line docstrings
+- Follow PEP 257 docstring conventions
+- Keep comments concise and informative
+- Focus on WHY the code does something, not obvious WHAT
 
-Respond with the fully commented Python code only. Do not include markdown code blocks or any explanatory text.
+Return the complete Python script with added comments. Ensure the output is syntactically valid Python code that can be executed without errors.
 `;
 
       const response = await openai.chat.completions.create({
@@ -2736,11 +2735,50 @@ Respond with the fully commented Python code only. Do not include markdown code 
         max_tokens: 4000
       });
 
-      const commentedCode = response.choices[0].message.content || '';
+      let commentedCode = response.choices[0].message.content || '';
+      
+      // Clean the response to ensure it's valid Python code
+      commentedCode = commentedCode.trim();
+      
+      // Remove any markdown code blocks if present
+      if (commentedCode.startsWith('```python') || commentedCode.startsWith('```py')) {
+        commentedCode = commentedCode.replace(/^```(python|py)\s*/, '').replace(/\s*```$/, '');
+      } else if (commentedCode.startsWith('```')) {
+        commentedCode = commentedCode.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      // Remove any explanatory text before or after the code
+      const lines = commentedCode.split('\n');
+      let startIndex = 0;
+      let endIndex = lines.length - 1;
+      
+      // Find the first line that looks like Python code (starts with import, def, class, #, or is indented)
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('#') || line.startsWith('"""') || line.startsWith('import ') || 
+            line.startsWith('from ') || line.startsWith('def ') || line.startsWith('class ') ||
+            line.startsWith('if ') || line.startsWith('for ') || line.startsWith('while ') ||
+            lines[i].startsWith('    ') || line.length === 0) {
+          startIndex = i;
+          break;
+        }
+      }
+      
+      // Find the last line that looks like Python code
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].trim();
+        if (line.length > 0 && !line.startsWith('Note:') && !line.startsWith('This ') && 
+            !line.startsWith('The ') && !line.includes('commented version')) {
+          endIndex = i;
+          break;
+        }
+      }
+      
+      commentedCode = lines.slice(startIndex, endIndex + 1).join('\n');
       
       console.log(`💬 [CODE COMMENTING] Script "${scriptName}" commented by user ${userId}`);
       
-      res.json({ commentedCode });
+      res.json({ commentedCode: commentedCode.trim() });
     } catch (error) {
       console.error('Code commenting error:', error);
       res.status(500).json({ 

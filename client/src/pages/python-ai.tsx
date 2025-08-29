@@ -733,6 +733,9 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [uploadMode, setUploadMode] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [commentPreview, setCommentPreview] = useState<string | null>(null);
+  const [showCommentPreview, setShowCommentPreview] = useState(false);
+  const [isCommentingLoading, setIsCommentingLoading] = useState(false);
 
   // AI Code Analysis mutation
   const analyzeCodeMutation = useMutation({
@@ -983,7 +986,7 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
                 toast({ title: 'Error', description: 'Please enter code to add comments', variant: 'destructive' });
                 return;
               }
-              // Add the commenting mutation call here - will define mutation next
+              setIsCommentingLoading(true);
               fetch('/api/python-scripts/add-comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -992,20 +995,28 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
               .then(response => response.json())
               .then(result => {
                 if (result.commentedCode) {
-                  setFormData(prev => ({ ...prev, content: result.commentedCode }));
-                  toast({ title: 'Success', description: 'Professional comments added to your code' });
+                  setCommentPreview(result.commentedCode);
+                  setShowCommentPreview(true);
                 } else {
                   throw new Error(result.error || 'Failed to add comments');
                 }
               })
               .catch(error => {
                 toast({ title: 'Error', description: error.message, variant: 'destructive' });
+              })
+              .finally(() => {
+                setIsCommentingLoading(false);
               });
             }}
+            disabled={isCommentingLoading}
             className="flex items-center space-x-2"
           >
-            <MessageSquare className="h-4 w-4" />
-            <span>Add Comments</span>
+            {isCommentingLoading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            <span>{isCommentingLoading ? 'Adding Comments...' : 'Add Comments'}</span>
           </Button>
         </div>
         <div className="flex space-x-2">
@@ -1032,6 +1043,71 @@ function CreateScriptForm({ onSubmit }: { onSubmit: (data: any) => void }) {
           </div>
         </div>
       )}
+
+      {/* Comment Preview Dialog */}
+      <Dialog open={showCommentPreview} onOpenChange={setShowCommentPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>AI Comment Preview</DialogTitle>
+            <DialogDescription>
+              Review the AI-generated comments below. New comments are highlighted.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {commentPreview && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Original vs Commented Code</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Original Code</Label>
+                    <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
+                      <code>{formData.content}</code>
+                    </pre>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">With AI Comments</Label>
+                    <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
+                      <code className="language-python">{commentPreview}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCommentPreview(false);
+                    setCommentPreview(null);
+                    toast({
+                      title: "Cancelled",
+                      description: "Comments were not applied.",
+                    });
+                  }}
+                >
+                  Reject Comments
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (commentPreview) {
+                      setFormData(prev => ({ ...prev, content: commentPreview }));
+                      setShowCommentPreview(false);
+                      setCommentPreview(null);
+                      toast({
+                        title: "Success",
+                        description: "Professional comments added to your code!",
+                      });
+                    }
+                  }}
+                >
+                  Accept Comments
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
@@ -1052,6 +1128,9 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
   const [reqInput, setReqInput] = useState('');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [commentPreview, setCommentPreview] = useState<string | null>(null);
+  const [showCommentPreview, setShowCommentPreview] = useState(false);
+  const [isCommentingLoading, setIsCommentingLoading] = useState(false);
 
   // AI Code Analysis mutation
   const analyzeCodeMutation = useMutation({
@@ -1250,6 +1329,7 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
                 toast({ title: 'Error', description: 'Please enter code to add comments', variant: 'destructive' });
                 return;
               }
+              setIsCommentingLoading(true);
               fetch('/api/python-scripts/add-comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1258,20 +1338,28 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
               .then(response => response.json())
               .then(result => {
                 if (result.commentedCode) {
-                  setFormData(prev => ({ ...prev, content: result.commentedCode }));
-                  toast({ title: 'Success', description: 'Professional comments added to your code' });
+                  setCommentPreview(result.commentedCode);
+                  setShowCommentPreview(true);
                 } else {
                   throw new Error(result.error || 'Failed to add comments');
                 }
               })
               .catch(error => {
                 toast({ title: 'Error', description: error.message, variant: 'destructive' });
+              })
+              .finally(() => {
+                setIsCommentingLoading(false);
               });
             }}
+            disabled={isCommentingLoading}
             className="flex items-center space-x-2"
           >
-            <MessageSquare className="h-4 w-4" />
-            <span>Add Comments</span>
+            {isCommentingLoading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="h-4 w-4" />
+            )}
+            <span>{isCommentingLoading ? 'Adding Comments...' : 'Add Comments'}</span>
           </Button>
         </div>
         <div className="flex space-x-2">
@@ -1298,6 +1386,71 @@ function EditScriptForm({ script, onSubmit }: { script: PythonScript; onSubmit: 
           </div>
         </div>
       )}
+
+      {/* Comment Preview Dialog */}
+      <Dialog open={showCommentPreview} onOpenChange={setShowCommentPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>AI Comment Preview</DialogTitle>
+            <DialogDescription>
+              Review the AI-generated comments below. New comments are highlighted.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {commentPreview && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Original vs Commented Code</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Original Code</Label>
+                    <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
+                      <code>{formData.content}</code>
+                    </pre>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">With AI Comments</Label>
+                    <pre className="text-sm bg-white p-3 rounded border overflow-x-auto max-h-60">
+                      <code className="language-python">{commentPreview}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCommentPreview(false);
+                    setCommentPreview(null);
+                    toast({
+                      title: "Cancelled",
+                      description: "Comments were not applied.",
+                    });
+                  }}
+                >
+                  Reject Comments
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (commentPreview) {
+                      setFormData(prev => ({ ...prev, content: commentPreview }));
+                      setShowCommentPreview(false);
+                      setCommentPreview(null);
+                      toast({
+                        title: "Success",
+                        description: "Professional comments added to your code!",
+                      });
+                    }
+                  }}
+                >
+                  Accept Comments
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
