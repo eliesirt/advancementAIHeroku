@@ -153,24 +153,33 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
 
       // Try multiple possible response structures
       if (data.transcript) {
-        // New format - direct properties
+        // New format - direct properties (Replit development)
         transcript = data.transcript;
         extractedInfo = data.extractedInfo;
         enhancedComments = data.enhancedComments || data.extractedInfo?.summary || '';
+        console.log("✅ Using direct response format");
       } else if (data.voiceRecording) {
-        // Old format - nested in voiceRecording
+        // Heroku format - nested in voiceRecording but extractedInfo is at top level
         transcript = data.voiceRecording.transcript || '';
-        extractedInfo = data.voiceRecording.extractedInfo;
-        enhancedComments = data.voiceRecording.aiSynopsis || data.voiceRecording.enhancedComments || '';
+        extractedInfo = data.extractedInfo; // extractedInfo is at top level in Heroku
+        enhancedComments = data.extractedInfo?.aiSynopsis || data.voiceRecording.enhancedComments || '';
+        console.log("✅ Using Heroku nested voiceRecording format");
       } else if (data.result) {
         // Alternative format - nested in result
         transcript = data.result.transcript || '';
         extractedInfo = data.result.extractedInfo;
         enhancedComments = data.result.enhancedComments || data.result.aiSynopsis || '';
+        console.log("✅ Using result wrapper format");
+      } else if (data.message && data.message.includes("transcript")) {
+        // Error response that might contain transcript info
+        transcript = data.message || '';
+        console.warn("⚠️ Using error message as transcript");
       } else {
-        // Fallback - use raw transcript if available
-        transcript = data.message || data.text || data.content || '';
-        console.warn("Unknown response format, using fallback transcript");
+        // Complete fallback - check all possible properties
+        transcript = data.content || data.text || data.transcription || '';
+        extractedInfo = data.extracted || data.analysis || data.info;
+        enhancedComments = data.comments || data.enhanced || data.summary || '';
+        console.warn("⚠️ Using complete fallback parsing");
       }
 
       console.log("Parsed voice data:", { 
@@ -179,7 +188,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         hasExtractedInfo: !!extractedInfo,
         extractedInfoKeys: extractedInfo ? Object.keys(extractedInfo) : [],
         enhancedCommentsLength: enhancedComments?.length || 0,
-        enhancedCommentsSample: enhancedComments?.substring(0, 50) + "..."
+        enhancedCommentsSample: enhancedComments?.substring(0, 50) + "...",
+        rawDataKeys: Object.keys(data),
+        environment: window.location.hostname.includes('herokuapp') ? 'HEROKU' : 'REPLIT'
       });
 
       // Set the processed data first
@@ -215,6 +226,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
         
         setTimeout(() => {
           console.log("🔄 Showing interaction form and hiding processing");
+          console.log("Form data being set:", {
+            transcript: transcript?.substring(0, 50),
+            extractedInfoKeys: extractedInfo ? Object.keys(extractedInfo) : 'null',
+            enhancedCommentsLength: enhancedComments?.length
+          });
           setShowInteractionForm(true);
           setShowProcessing(false);
           setProcessingComplete(false); // Reset for next time

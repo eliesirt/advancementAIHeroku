@@ -53,12 +53,25 @@ export function ProcessingOverlay({
       return;
     }
 
-    // Simply show first step as processing - no simulation
-    setCurrentStepIndex(0);
-    setCurrentSteps(dynamicSteps.map((step, index) => ({
-      ...step,
-      status: index === 0 ? 'processing' : 'pending'
-    })));
+    // Show progress through steps at realistic intervals
+    const progressThroughSteps = async () => {
+      for (let i = 0; i < dynamicSteps.length; i++) {
+        setCurrentStepIndex(i);
+        setCurrentSteps(prev => 
+          prev.map((step, index) => ({
+            ...step,
+            status: index < i ? 'complete' : index === i ? 'processing' : 'pending'
+          }))
+        );
+        
+        // Wait between steps - final step stays processing until API completes
+        if (i < dynamicSteps.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+        }
+      }
+    };
+
+    progressThroughSteps();
   }, [isVisible, dynamicSteps]);
 
   // Effect to handle immediate completion when API finishes
