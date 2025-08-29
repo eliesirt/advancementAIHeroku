@@ -56,6 +56,8 @@ export function ProcessingOverlay({
     // Show progress through steps at realistic intervals
     const progressThroughSteps = async () => {
       for (let i = 0; i < dynamicSteps.length; i++) {
+        if (!isVisible) return; // Stop if overlay was hidden
+        
         setCurrentStepIndex(i);
         setCurrentSteps(prev => 
           prev.map((step, index) => ({
@@ -82,6 +84,8 @@ export function ProcessingOverlay({
       // Animate through all steps quickly
       const completeSteps = async () => {
         for (let i = 0; i < dynamicSteps.length; i++) {
+          if (!isVisible) return; // Stop if overlay was hidden
+          
           setCurrentStepIndex(i);
           setCurrentSteps(prev => 
             prev.map((step, index) => ({
@@ -93,10 +97,12 @@ export function ProcessingOverlay({
         }
         
         // Mark all complete
-        setCurrentSteps(prev => 
-          prev.map(step => ({ ...step, status: 'complete' }))
-        );
-        setCurrentStepIndex(dynamicSteps.length - 1);
+        if (isVisible) {
+          setCurrentSteps(prev => 
+            prev.map(step => ({ ...step, status: 'complete' }))
+          );
+          setCurrentStepIndex(dynamicSteps.length - 1);
+        }
       };
       
       completeSteps();
@@ -106,6 +112,14 @@ export function ProcessingOverlay({
   if (!isVisible) {
     return null;
   }
+
+  console.log("ProcessingOverlay render:", {
+    isVisible,
+    completeImmediately,
+    currentStepIndex,
+    stepCount: currentSteps.length,
+    aiModel
+  });
 
   const getStepIcon = (step: ProcessingStep) => {
     switch (step.status) {

@@ -231,6 +231,11 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
             extractedInfoKeys: extractedInfo ? Object.keys(extractedInfo) : 'null',
             enhancedCommentsLength: enhancedComments?.length
           });
+          console.log("State values before showing form:", {
+            showInteractionForm,
+            showProcessing,
+            processingComplete
+          });
           setShowInteractionForm(true);
           setShowProcessing(false);
           setProcessingComplete(false); // Reset for next time
@@ -241,9 +246,15 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
           description: "Your voice recording has been transcribed and analyzed. Please review and submit.",
         });
       } else {
-        // Only transcript available - hide processing and show form anyway for manual AI analysis
+        // Only transcript available - show form for manual AI analysis
         console.log("⚠️ Only transcript available, showing form for manual AI analysis");
         setTimeout(() => {
+          console.log("🔄 Showing form without full AI analysis");
+          console.log("State values before showing form (partial):", {
+            showInteractionForm,
+            showProcessing,
+            processingComplete
+          });
           setShowInteractionForm(true);
           setShowProcessing(false);
           setProcessingComplete(false);
@@ -259,7 +270,9 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
     onError: (error) => {
       // Hide processing overlay on error
       setShowProcessing(false);
+      setProcessingComplete(false);
       
+      console.error("Voice recording error:", error);
       toast({
         title: "Recording Error",
         description: "Failed to save voice recording. Please try again.",
@@ -996,7 +1009,10 @@ export default function HomePage({ onDrivingModeToggle, isDrivingMode }: HomePag
       {/* Processing Overlay */}
       <ProcessingOverlay
         isVisible={showProcessing}
-        onComplete={() => setShowProcessing(false)}
+        onComplete={() => {
+          console.log("ProcessingOverlay onComplete called");
+          setShowProcessing(false);
+        }}
         aiModel={currentAiModel}
         completeImmediately={processingComplete}
       />
