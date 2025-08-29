@@ -36,11 +36,29 @@ const HEROKU_ADMIN_USER = {
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
+  
+  // Ensure sessions table exists for Heroku
+  try {
+    const { pool } = await import("./db");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        sid varchar(255) NOT NULL,
+        sess json NOT NULL,
+        expire timestamp(6) NOT NULL,
+        PRIMARY KEY (sid)
+      );
+    `);
+    console.log('✅ [HEROKU AUTH] Sessions table verified/created');
+  } catch (error) {
+    console.warn('⚠️ [HEROKU AUTH] Failed to create sessions table:', error);
+  }
+  
   app.use(getSession());
 
   // Create admin user if it doesn't exist
   try {
     await storage.upsertUser(HEROKU_ADMIN_USER);
+    console.log('✅ [HEROKU AUTH] Admin user verified/created');
   } catch (error) {
     console.warn("Failed to create admin user:", error);
   }
@@ -69,22 +87,43 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
-  // For Heroku, auto-authenticate as admin if no session exists
-  if (!req.session.user) {
-    req.session.user = HEROKU_ADMIN_USER;
-  }
-
-  // Mock the user object structure expected by the routes
-  req.user = {
-    claims: {
-      sub: req.session.user.id,
-      email: req.session.user.email,
-      first_name: req.session.user.firstName,
-      last_name: req.session.user.lastName,
+  try {
+    console.log(`🔍 [HEROKU AUTH] Authentication check for ${req.method} ${req.path}`);
+    console.log(`🔍 [HEROKU AUTH] Session exists: ${!!req.session}`);
+    console.log(`🔍 [HEROKU AUTH] Session user: ${JSON.stringify(req.session?.user)}`);
+    
+    // For Heroku, auto-authenticate as admin if no session exists
+    if (!req.session?.user) {
+      console.log('🔐 [HEROKU AUTH] Auto-authenticating user');
+      req.session.user = HEROKU_ADMIN_USER;
     }
-  };
 
-  req.isAuthenticated = () => true;
-  
-  next();
+    // Mock the user object structure expected by the routes
+    req.user = {
+      claims: {
+        sub: req.session.user.id,
+        email: req.session.user.email,
+        first_name: req.session.user.firstName,
+        last_name: req.session.user.lastName,
+      }
+    };
+
+    console.log(`✅ [HEROKU AUTH] User authenticated: ${req.user.claims.sub}`);
+    req.isAuthenticated = () => true;
+    
+    next();
+  } catch (error) {
+    console.error('🚨 [HEROKU AUTH] Authentication error:', error);
+    // For API routes, return JSON error instead of redirecting
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ 
+        error: 'Authentication failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        path: req.path,
+        timestamp: new Date().toISOString()
+      });
+    }
+    // For non-API routes, redirect to login
+    res.redirect('/api/login');
+  }
 };
