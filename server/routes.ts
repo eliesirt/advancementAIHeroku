@@ -1304,6 +1304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search term must be at least 2 characters" });
       }
 
+      const { bbecClient } = await import("./lib/soap-client");
       const constituents = await bbecClient.searchConstituent(searchTerm);
       res.json(constituents);
     } catch (error) {
@@ -1314,6 +1315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get BBEC form metadata
   app.get("/api/bbec/form-metadata", async (req, res) => {
     try {
+      const { bbecClient } = await import("./lib/soap-client");
       const metadata = await bbecClient.getInteractionFormMetadata();
       res.json(metadata);
     } catch (error) {
@@ -1329,6 +1331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Search query required' });
       }
 
+      const { bbecClient } = await import("./lib/soap-client");
       const constituents = await bbecClient.searchConstituent(q);
       res.json(constituents);
     } catch (error) {
@@ -1703,13 +1706,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔍 BUID SEARCH: Searching for user with BUID: ${buid}`);
 
-      // Import and initialize BBEC client with enhanced error handling
+      // Import and use lazy-initialized BBEC client
       const { bbecClient } = await import("./lib/soap-client");
       
-      console.log(`🔄 BUID SEARCH: Initializing BBEC client...`);
-      await bbecClient.initialize();
-      
-      console.log(`🔄 BUID SEARCH: Searching user in BBEC...`);
+      console.log(`🔄 BUID SEARCH: Searching user in BBEC (will auto-initialize)...`);
       const user = await bbecClient.searchUserByBUID(buid);
 
       if (!user) {
@@ -1757,7 +1757,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { bbecClient } = await import("./lib/soap-client");
-      await bbecClient.initialize();
 
       let constituents = await bbecClient.searchConstituentsByLastName(lastName);
 
@@ -1823,7 +1822,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { bbecClient } = await import("./lib/soap-client");
-      await bbecClient.initialize();
 
       const constituent = await bbecClient.searchUserByBUID(buid);
 
