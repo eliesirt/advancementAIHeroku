@@ -2481,23 +2481,54 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Search users by BUID
+    // Search users by BUID - Updated to use BBEC client instead of storage
     app.get("/api/users/search/:buid", async (req: any, res) => {
       try {
-        const buid = req.params.buid;
-        console.log("🔍 Searching users by BUID:", buid);
-        
-        const storage = (await import("./storage.js")).storage;
-        const user = await storage.getUserByBuid(buid);
-        
-        if (user) {
-          res.json({ success: true, user });
-        } else {
-          res.json({ success: true, user: null });
+        const { buid } = req.params;
+
+        if (!buid) {
+          return res.status(400).json({ message: "BUID is required" });
         }
+
+        console.log(`🔍 BUID SEARCH (PRODUCTION): Searching for user with BUID: ${buid}`);
+
+        // Import and use lazy-initialized BBEC client
+        const { bbecClient } = await import("./lib/soap-client");
+        
+        console.log(`🔄 BUID SEARCH (PRODUCTION): Searching user in BBEC (will auto-initialize)...`);
+        const user = await bbecClient.searchUserByBUID(buid);
+
+        if (!user) {
+          console.log(`❌ BUID SEARCH (PRODUCTION): No user found for BUID: ${buid}`);
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        console.log(`✅ BUID SEARCH (PRODUCTION): Found user:`, { uid: user.uid, name: user.name, email: user.email });
+        res.json(user);
       } catch (error) {
-        console.error('User search error:', error);
-        res.status(500).json({ message: "Failed to search users", error: (error as Error).message });
+        console.error("Error searching user by BUID (Production):", error);
+        
+        // Provide specific error messages for common issues
+        const errorMessage = (error as Error).message;
+        let userFriendlyMessage = "Failed to search user by BUID";
+        
+        if (errorMessage.includes("BLACKBAUD_API_AUTHENTICATION")) {
+          userFriendlyMessage = "Blackbaud CRM authentication not configured";
+        } else if (errorMessage.includes("Failed to initialize BBEC connection")) {
+          userFriendlyMessage = "Unable to connect to Blackbaud CRM service";
+        } else if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
+          userFriendlyMessage = "Connection timeout - Blackbaud CRM may be temporarily unavailable";
+        } else if (errorMessage.includes("ENOTFOUND") || errorMessage.includes("ECONNREFUSED")) {
+          userFriendlyMessage = "Network error - Cannot reach Blackbaud CRM";
+        }
+
+        console.error(`🚨 BUID SEARCH (PRODUCTION) FAILED: ${userFriendlyMessage} - ${errorMessage}`);
+        
+        res.status(500).json({ 
+          message: userFriendlyMessage, 
+          error: errorMessage,
+          details: "Please check your network connection and try again. If the problem persists, contact system administrator."
+        });
       }
     });
 
