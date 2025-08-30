@@ -920,11 +920,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
+    // Filter out undefined values to prevent UNDEFINED_VALUE errors
+    const cleanUpdates: Partial<User> = {};
+    
+    Object.keys(updates).forEach((key) => {
+      const value = updates[key as keyof User];
+      if (value !== undefined && value !== null) {
+        cleanUpdates[key as keyof User] = value;
+      }
+    });
+
+    console.log("🔄 DATABASE UPDATE: Cleaned updates:", cleanUpdates);
+    console.log("🔄 DATABASE UPDATE: User ID:", id);
+
     const [user] = await db
       .update(users)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...cleanUpdates, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
+    
+    if (!user) {
+      throw new Error('User not found or update failed');
+    }
+    
     return user;
   }
 

@@ -1814,24 +1814,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update user profile
-  app.patch("/api/user/profile", async (req, res) => {
+  app.patch("/api/user/profile", isAuthenticated, async (req: any, res) => {
     try {
-      const { firstName, lastName, email, buid } = req.body;
-      const userId = (req.user as any)?.id || (req.user as any)?.sub;
+      const { firstName, lastName, email, buid, bbecGuid } = req.body;
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
+      
+      console.log("📝 PROFILE UPDATE: User ID:", userId);
+      console.log("📝 PROFILE UPDATE: Data received:", { firstName, lastName, email, buid, bbecGuid });
 
-      const updatedUser = await storage.updateUser(userId, {
-        firstName,
-        lastName,
-        email,
-        buid,
-        bbecGuid: req.body.bbecGuid
-      });
+      if (!userId) {
+        return res.status(401).json({ message: "User authentication required" });
+      }
 
+      // Validate required fields
+      if (!firstName || !lastName || !email || !buid) {
+        return res.status(400).json({ 
+          message: "Missing required fields", 
+          details: "First name, last name, email, and BUID are required" 
+        });
+      }
+
+      // Prepare update data, ensuring no undefined values are passed
+      const updateData: any = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        buid: buid.trim()
+      };
+
+      // Only include bbecGuid if it's not undefined/empty
+      if (bbecGuid && bbecGuid.trim()) {
+        updateData.bbecGuid = bbecGuid.trim();
+      }
+
+      console.log("📝 PROFILE UPDATE: Final update data:", updateData);
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      console.log("✅ PROFILE UPDATE: Successfully updated user profile");
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ 
-        message: "Failed to update user profile", 
+        message: "Update Failed Unable to update profile. Please verify your BUID.", 
         error: (error as Error).message 
       });
     }
