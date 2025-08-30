@@ -1821,18 +1821,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "BUID is required" });
       }
 
+      console.log(`🔍 CONSTITUENT BUID SEARCH: Searching for constituent with BUID: ${buid}`);
+
       const { bbecClient } = await import("./lib/soap-client");
+      console.log(`🔄 CONSTITUENT BUID SEARCH: Searching constituent in BBEC (will auto-initialize)...`);
 
       const constituent = await bbecClient.searchUserByBUID(buid);
 
       // Convert the single user result to an array to match the expected format
       const result = constituent ? [constituent] : [];
+      console.log(`✅ CONSTITUENT BUID SEARCH: Found ${result.length} result(s)`);
       res.json(result);
     } catch (error) {
       console.error("Error searching constituent by BUID:", error);
+      
+      // Use same error handling as user search
+      const errorMessage = (error as Error).message;
+      let userFriendlyMessage = "Failed to search constituent by BUID";
+      
+      if (errorMessage.includes("BLACKBAUD_API_AUTHENTICATION")) {
+        userFriendlyMessage = "Blackbaud CRM authentication not configured";
+      } else if (errorMessage.includes("Failed to initialize BBEC connection")) {
+        userFriendlyMessage = "Unable to connect to Blackbaud CRM service";
+      } else if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
+        userFriendlyMessage = "Connection timeout - Blackbaud CRM may be temporarily unavailable";
+      } else if (errorMessage.includes("ENOTFOUND") || errorMessage.includes("ECONNREFUSED")) {
+        userFriendlyMessage = "Network error - Cannot reach Blackbaud CRM";
+      }
+
+      console.error(`🚨 CONSTITUENT BUID SEARCH FAILED: ${userFriendlyMessage} - ${errorMessage}`);
+      
       res.status(500).json({ 
-        message: "Failed to search constituent by BUID", 
-        error: (error as Error).message 
+        message: userFriendlyMessage, 
+        error: errorMessage,
+        details: "Please check your network connection and try again. If the problem persists, contact system administrator."
       });
     }
   });
