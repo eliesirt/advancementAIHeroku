@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { AppNavigation } from "@/components/app-navigation";
+import { DrivingMode } from "@/components/driving-mode";
 import HomePage from "./home";
 
 export default function InteractionsApp() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const [isDrivingMode, setIsDrivingMode] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -38,10 +40,55 @@ export default function InteractionsApp() {
     return null; // Will redirect
   }
 
+  const handleDrivingModeToggle = () => {
+    setIsDrivingMode(prev => !prev);
+  };
+
+  const handleDrivingModeExit = () => {
+    setIsDrivingMode(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AppNavigation appName="interactionAI" />
-      <HomePage onDrivingModeToggle={() => {}} isDrivingMode={false} />
+      <HomePage 
+        onDrivingModeToggle={handleDrivingModeToggle} 
+        isDrivingMode={isDrivingMode} 
+      />
+      
+      {/* Driving Mode Overlay */}
+      <DrivingMode
+        isActive={isDrivingMode}
+        onExit={handleDrivingModeExit}
+        onStartRecording={() => {
+          // TODO: Implement voice recording functionality for driving mode
+          toast({
+            title: "Voice Recording",
+            description: "Starting voice recording in driving mode",
+          });
+        }}
+        onStopRecording={() => {
+          // TODO: Implement stop recording functionality
+          toast({
+            title: "Voice Recording",
+            description: "Stopping voice recording",
+          });
+        }}
+        onSubmitInteraction={() => {
+          // TODO: Implement interaction submission
+          toast({
+            title: "Interaction Submit",
+            description: "Submitting interaction to Blackbaud CRM",
+          });
+        }}
+        onShowSettings={() => {
+          // TODO: Implement settings navigation in driving mode
+          toast({
+            title: "Settings",
+            description: "Opening settings panel",
+          });
+        }}
+      />
     </div>
   );
 }
