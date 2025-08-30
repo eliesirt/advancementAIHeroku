@@ -3155,7 +3155,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
 
       // Get user's AI model preference and create model order
       let response;
-      const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
+      const userId = job.userId; // Use userId from job data instead of req object
       const userPreference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
       
       // Create ordered list based on user preference
@@ -3304,7 +3304,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
   // ===== SYSTEM SETTINGS API =====
   
   // Get user's AI model preference (with fallback to system default)
-  app.get('/api/settings/ai-model-preference', async (req, res) => {
+  app.get('/api/settings/ai-model-preference', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
       
@@ -3321,7 +3321,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
   });
 
   // Set user's AI model preference
-  app.post('/api/settings/ai-model-preference', async (req, res) => {
+  app.post('/api/settings/ai-model-preference', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145";
       const { value } = req.body;
