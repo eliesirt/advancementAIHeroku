@@ -36,75 +36,107 @@ class BBECSOAPClient {
   constructor() {
     this.apiUrl = 'https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx';
     this.wsdlUrl = this.apiUrl + "?WSDL";
-    // Use the Authorization header from environment variable - add Basic prefix if not present
-    const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
-    this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
-    this.username = process.env.BLACKBAUD_USERNAME || "";
-    this.password = process.env.BLACKBAUD_PASSWORD || "";
+    // Initialize with empty values - will be loaded during initialize()
+    this.authHeader = "";
+    this.username = "";
+    this.password = "";
   }
 
-  // Method to refresh credentials from environment
+  // Method to refresh credentials from environment with enhanced Heroku support
   refreshCredentials(): void {
+    console.log('🔄 Refreshing BBEC credentials from environment...');
+    
+    // Check if we're in Heroku environment
+    const isHeroku = process.env.DYNO || process.env.HEROKU_APP_NAME;
+    if (isHeroku) {
+      console.log('🚀 Detected Heroku environment - using enhanced credential loading');
+    }
+    
     const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
     this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
     this.username = process.env.BLACKBAUD_USERNAME || "";
     this.password = process.env.BLACKBAUD_PASSWORD || "";
-    console.log('BBEC credentials refreshed from environment');
+    
+    console.log('✅ BBEC credentials loaded:', {
+      hasAuth: !!rawAuth,
+      authLength: rawAuth.length,
+      hasUsername: !!this.username,
+      hasPassword: !!this.password,
+      environment: isHeroku ? 'Heroku' : 'Local/Replit'
+    });
   }
 
   async initialize(): Promise<void> {
-    try {
-      // Check if credentials are available
-      if (!this.authHeader || this.authHeader === 'Basic ') {
-        console.warn('⚠️ BBEC credentials not available - refreshing from environment');
+    // For Heroku fast startup - add retry logic with backoff AND credential reloading
+    let lastError;
+    const maxRetries = 5; // Increased for Heroku
+    const retryDelays = [500, 1000, 2000, 5000, 10000]; // More aggressive for Heroku
+    const isHeroku = process.env.DYNO || process.env.HEROKU_APP_NAME;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        console.log(`🔄 BBEC initialization attempt ${attempt + 1}/${maxRetries} (${isHeroku ? 'Heroku' : 'Local/Replit'})`);
+        
+        // Always refresh credentials on each attempt (important for Heroku)
         this.refreshCredentials();
-      }
 
-      if (!this.authHeader || this.authHeader === 'Basic ') {
-        throw new Error('BLACKBAUD_API_AUTHENTICATION environment variable not set');
-      }
-
-      // For Heroku fast startup - add retry logic with backoff
-      let lastError;
-      const maxRetries = 3;
-      const retryDelays = [1000, 2000, 5000]; // 1s, 2s, 5s
-
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          console.log(`🔄 BBEC initialization attempt ${attempt + 1}/${maxRetries}`);
+        if (!this.authHeader || this.authHeader === 'Basic ') {
+          const errorMsg = 'BLACKBAUD_API_AUTHENTICATION environment variable not set or empty';
+          console.error(`🚨 ${errorMsg}`);
           
-          // Create SOAP client with Authorization header for WSDL access
-          const options = {
-            wsdl_headers: {
-              'Authorization': this.authHeader
-            },
-            // Add timeout for faster failure detection
-            timeout: 10000
-          };
-
-          this.client = await soap.createClientAsync(this.wsdlUrl, options);
-          this.client.addHttpHeader('Authorization', this.authHeader);
-          console.log('✅ BBEC SOAP client initialized successfully');
-          return; // Success - exit retry loop
-        } catch (error) {
-          lastError = error;
-          console.warn(`⚠️ BBEC initialization attempt ${attempt + 1} failed:`, error.message);
-          
-          // If this is the last attempt, don't wait
-          if (attempt < maxRetries - 1) {
-            console.log(`⏳ Retrying in ${retryDelays[attempt]}ms...`);
+          // In Heroku, environment variables might not be loaded yet during fast startup
+          if (isHeroku && attempt < maxRetries - 1) {
+            console.log(`⏳ Heroku fast startup detected - waiting for environment variables...`);
             await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+            continue;
+          }
+          
+          throw new Error(errorMsg);
+        }
+
+        // Create SOAP client with Authorization header for WSDL access
+        const options = {
+          wsdl_headers: {
+            'Authorization': this.authHeader
+          },
+          // Longer timeout for Heroku
+          timeout: isHeroku ? 15000 : 10000
+        };
+
+        console.log(`🌐 Connecting to BBEC WSDL: ${this.wsdlUrl}`);
+        this.client = await soap.createClientAsync(this.wsdlUrl, options);
+        this.client.addHttpHeader('Authorization', this.authHeader);
+        
+        console.log('✅ BBEC SOAP client initialized successfully');
+        return; // Success - exit retry loop
+        
+      } catch (error) {
+        lastError = error;
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.warn(`⚠️ BBEC initialization attempt ${attempt + 1} failed: ${errorMsg}`);
+        
+        // Special handling for Heroku-specific errors
+        if (isHeroku) {
+          if (errorMsg.includes('ENOTFOUND') || errorMsg.includes('ECONNREFUSED')) {
+            console.log(`🚀 Heroku network issue detected - extending retry delay`);
+          } else if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT')) {
+            console.log(`⏰ Heroku timeout detected - will retry with longer timeout`);
           }
         }
+        
+        // If this is the last attempt, don't wait
+        if (attempt < maxRetries - 1) {
+          const delay = retryDelays[attempt];
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-
-      // All retries failed
-      console.error('🚨 BBEC SOAP client initialization failed after all retries:', lastError);
-      throw new Error('Failed to initialize BBEC connection after multiple attempts: ' + (lastError as Error).message);
-    } catch (error) {
-      console.error('BBEC SOAP client initialization error:', error);
-      throw new Error('Failed to initialize BBEC connection: ' + (error as Error).message);
     }
+
+    // All retries failed
+    console.error('🚨 BBEC SOAP client initialization failed after all retries:', lastError);
+    const finalError = lastError instanceof Error ? lastError.message : 'Unknown error';
+    throw new Error(`Failed to initialize BBEC connection after ${maxRetries} attempts: ${finalError}`);
   }
 
   private async authenticate(): Promise<void> {
@@ -770,4 +802,59 @@ class BBECSOAPClient {
   }
 }
 
-export const bbecClient = new BBECSOAPClient();
+// Singleton pattern with lazy initialization for Heroku compatibility
+let bbecClientInstance: BBECSOAPClient | null = null;
+let initializationPromise: Promise<BBECSOAPClient> | null = null;
+
+export const getBbecClient = async (): Promise<BBECSOAPClient> => {
+  // If we already have an instance, return it
+  if (bbecClientInstance) {
+    return bbecClientInstance;
+  }
+
+  // If initialization is in progress, wait for it
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  // Start initialization
+  initializationPromise = (async () => {
+    console.log('🔄 Creating new BBEC client instance...');
+    const client = new BBECSOAPClient();
+    await client.initialize();
+    bbecClientInstance = client;
+    console.log('✅ BBEC client singleton created and initialized');
+    return client;
+  })();
+
+  return initializationPromise;
+};
+
+// Legacy export for backward compatibility
+export const bbecClient = {
+  async initialize() {
+    const client = await getBbecClient();
+    // Already initialized in getBbecClient
+    return;
+  },
+  async searchUserByBUID(buid: string) {
+    const client = await getBbecClient();
+    return client.searchUserByBUID(buid);
+  },
+  async searchConstituentsByLastName(lastName: string) {
+    const client = await getBbecClient();
+    return client.searchConstituentsByLastName(lastName);
+  },
+  async searchConstituent(searchTerm: string) {
+    const client = await getBbecClient();
+    return client.searchConstituent(searchTerm);
+  },
+  async submitInteraction(interaction: BBECInteractionSubmission) {
+    const client = await getBbecClient();
+    return client.submitInteraction(interaction);
+  },
+  async getFormMetadata() {
+    const client = await getBbecClient();
+    return client.getFormMetadata();
+  }
+};
