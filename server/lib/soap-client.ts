@@ -54,16 +54,53 @@ class BBECSOAPClient {
 
   async initialize(): Promise<void> {
     try {
-      // Create SOAP client with Authorization header for WSDL access
-      const options = {
-        wsdl_headers: {
-          'Authorization': this.authHeader
-        }
-      };
+      // Check if credentials are available
+      if (!this.authHeader || this.authHeader === 'Basic ') {
+        console.warn('⚠️ BBEC credentials not available - refreshing from environment');
+        this.refreshCredentials();
+      }
 
-      this.client = await soap.createClientAsync(this.wsdlUrl, options);
-      this.client.addHttpHeader('Authorization', this.authHeader);
-      console.log('BBEC SOAP client initialized successfully');
+      if (!this.authHeader || this.authHeader === 'Basic ') {
+        throw new Error('BLACKBAUD_API_AUTHENTICATION environment variable not set');
+      }
+
+      // For Heroku fast startup - add retry logic with backoff
+      let lastError;
+      const maxRetries = 3;
+      const retryDelays = [1000, 2000, 5000]; // 1s, 2s, 5s
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          console.log(`🔄 BBEC initialization attempt ${attempt + 1}/${maxRetries}`);
+          
+          // Create SOAP client with Authorization header for WSDL access
+          const options = {
+            wsdl_headers: {
+              'Authorization': this.authHeader
+            },
+            // Add timeout for faster failure detection
+            timeout: 10000
+          };
+
+          this.client = await soap.createClientAsync(this.wsdlUrl, options);
+          this.client.addHttpHeader('Authorization', this.authHeader);
+          console.log('✅ BBEC SOAP client initialized successfully');
+          return; // Success - exit retry loop
+        } catch (error) {
+          lastError = error;
+          console.warn(`⚠️ BBEC initialization attempt ${attempt + 1} failed:`, error.message);
+          
+          // If this is the last attempt, don't wait
+          if (attempt < maxRetries - 1) {
+            console.log(`⏳ Retrying in ${retryDelays[attempt]}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+          }
+        }
+      }
+
+      // All retries failed
+      console.error('🚨 BBEC SOAP client initialization failed after all retries:', lastError);
+      throw new Error('Failed to initialize BBEC connection after multiple attempts: ' + (lastError as Error).message);
     } catch (error) {
       console.error('BBEC SOAP client initialization error:', error);
       throw new Error('Failed to initialize BBEC connection: ' + (error as Error).message);
