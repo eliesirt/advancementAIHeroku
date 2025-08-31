@@ -1948,12 +1948,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.bbecPassword = bbecPassword.trim();
       }
 
-      console.log("📝 PROFILE UPDATE: Final update data:", updateData);
+      console.log("📝 PROFILE UPDATE: Final update data:", { ...updateData, bbecPassword: updateData.bbecPassword ? "[HIDDEN]" : undefined });
+      console.log("📝 PROFILE UPDATE: Environment:", process.env.NODE_ENV || 'unknown');
 
-      const updatedUser = await storage.updateUser(userId, updateData);
+      try {
+        const updatedUser = await storage.updateUser(userId, updateData);
 
-      console.log("✅ PROFILE UPDATE: Successfully updated user profile");
-      res.json(updatedUser);
+        console.log("✅ PROFILE UPDATE: Successfully updated user profile");
+        console.log("📝 PROFILE UPDATE: Updated user BBEC fields:", {
+          bbecGuid: updatedUser.bbecGuid,
+          bbecUsername: updatedUser.bbecUsername,
+          hasPassword: !!updatedUser.bbecPassword
+        });
+
+        res.json(updatedUser);
+      } catch (updateError) {
+        console.error("📝 PROFILE UPDATE ERROR:", updateError);
+        console.error("📝 PROFILE UPDATE ERROR Stack:", (updateError as Error).stack);
+        
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to update profile",
+          error: (updateError as Error).message,
+          details: "Check server logs for more information"
+        });
+      }
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ 
