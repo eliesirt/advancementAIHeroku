@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,38 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
       bbecPassword: user?.bbecPassword || "",
     },
   });
+
+  // Reset form with current user data when dialog opens or user data changes
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        buid: user.buid || "",
+        bbecGuid: user.bbecGuid || "",
+        bbecUsername: user.bbecUsername || "",
+        bbecPassword: user.bbecPassword || "",
+      });
+    }
+  }, [user, form]);
+
+  // Reset form when dialog opens
+  const handleDialogOpen = (open: boolean) => {
+    setIsOpen(open);
+    if (open && user) {
+      form.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        buid: user.buid || "",
+        bbecGuid: user.bbecGuid || "",
+        bbecUsername: user.bbecUsername || "",
+        bbecPassword: user.bbecPassword || "",
+      });
+      setSearchResult(null); // Clear any previous search results
+    }
+  };
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: UserProfileFormData) => {
@@ -165,7 +197,7 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
           <User className="h-4 w-4 mr-2" />
