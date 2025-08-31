@@ -19,6 +19,8 @@ const userProfileSchema = z.object({
   email: z.string().email("Valid email is required"),
   buid: z.string().min(1, "BUID is required"),
   bbecGuid: z.string().optional(),
+  bbecUsername: z.string().optional(),
+  bbecPassword: z.string().optional(),
 });
 
 type UserProfileFormData = z.infer<typeof userProfileSchema>;
@@ -41,6 +43,8 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
       email: user?.email || "",
       buid: user?.buid || "",
       bbecGuid: user?.bbecGuid || "",
+      bbecUsername: user?.bbecUsername || "",
+      bbecPassword: user?.bbecPassword || "",
     },
   });
 
@@ -212,6 +216,34 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
                   <FormLabel>BBEC GUID</FormLabel>
                   <FormControl>
                     <Input {...field} readOnly className="bg-gray-50" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="bbecUsername"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BBEC Username</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter BBEC username (part before @ in email)" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="bbecPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BBEC Password</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="password" placeholder="Enter BBEC password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

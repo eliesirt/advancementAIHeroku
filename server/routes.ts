@@ -1696,21 +1696,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search user by BUID
-  app.get("/api/users/search/:buid", async (req, res) => {
+  app.get("/api/users/search/:buid", isAuthenticated, async (req: any, res) => {
     try {
       const { buid } = req.params;
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
 
       if (!buid) {
         return res.status(400).json({ message: "BUID is required" });
       }
 
-      console.log(`🔍 BUID SEARCH: Searching for user with BUID: ${buid}`);
+      console.log(`🔍 BUID SEARCH: Searching for user with BUID: ${buid} (by user: ${userId})`);
 
-      // Import and use lazy-initialized BBEC client
-      const { bbecClient } = await import("./lib/soap-client");
+      // Import and use user-specific BBEC client
+      const { getUserBbecClient } = await import("./lib/soap-client");
+      const client = await getUserBbecClient(userId);
       
-      console.log(`🔄 BUID SEARCH: Searching user in BBEC (will auto-initialize)...`);
-      const user = await bbecClient.searchUserByBUID(buid);
+      console.log(`🔄 BUID SEARCH: Searching user in BBEC (with user credentials)...`);
+      const user = await client.searchUserByBUID(buid);
 
       if (!user) {
         console.log(`❌ BUID SEARCH: No user found for BUID: ${buid}`);
@@ -1726,8 +1728,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const errorMessage = (error as Error).message;
       let userFriendlyMessage = "Failed to search user by BUID";
       
-      if (errorMessage.includes("BLACKBAUD_API_AUTHENTICATION")) {
-        userFriendlyMessage = "Blackbaud CRM authentication not configured";
+      if (errorMessage.includes("BLACKBAUD_API_AUTHENTICATION") || errorMessage.includes("credentials")) {
+        userFriendlyMessage = "Blackbaud CRM credentials not configured. Please update your BBEC username and password in Settings.";
       } else if (errorMessage.includes("Failed to initialize BBEC connection")) {
         userFriendlyMessage = "Unable to connect to Blackbaud CRM service";
       } else if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
@@ -1747,18 +1749,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search constituents by last name
-  app.get("/api/constituents/search/:lastName", async (req, res) => {
+  app.get("/api/constituents/search/:lastName", isAuthenticated, async (req: any, res) => {
     try {
       const { lastName } = req.params;
       const { firstName } = req.query;
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
 
       if (!lastName) {
         return res.status(400).json({ message: "Last name is required" });
       }
 
-      const { bbecClient } = await import("./lib/soap-client");
+      console.log(`🔍 CONSTITUENT SEARCH: Searching for ${lastName} (by user: ${userId})`);
 
-      let constituents = await bbecClient.searchConstituentsByLastName(lastName);
+      const { getUserBbecClient } = await import("./lib/soap-client");
+      const client = await getUserBbecClient(userId);
+
+      let constituents = await client.searchConstituentsByLastName(lastName);
 
       // Sort by last name then first name (ascending)
       constituents.sort((a, b) => {
@@ -1862,11 +1868,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile
   app.patch("/api/user/profile", isAuthenticated, async (req: any, res) => {
     try {
-      const { firstName, lastName, email, buid, bbecGuid } = req.body;
+      const { firstName, lastName, email, buid, bbecGuid, bbecUsername, bbecPassword } = req.body;
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       
       console.log("📝 PROFILE UPDATE: User ID:", userId);
-      console.log("📝 PROFILE UPDATE: Data received:", { firstName, lastName, email, buid, bbecGuid });
+      console.log("📝 PROFILE UPDATE: Data received:", { firstName, lastName, email, buid, bbecGuid, bbecUsername, bbecPassword: bbecPassword ? "[HIDDEN]" : undefined });
 
       if (!userId) {
         return res.status(401).json({ message: "User authentication required" });
@@ -1891,6 +1897,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Only include bbecGuid if it's not undefined/empty
       if (bbecGuid && bbecGuid.trim()) {
         updateData.bbecGuid = bbecGuid.trim();
+      }
+
+      // Include BBEC credentials if provided
+      if (bbecUsername && bbecUsername.trim()) {
+        updateData.bbecUsername = bbecUsername.trim();
+      }
+
+      if (bbecPassword && bbecPassword.trim()) {
+        updateData.bbecPassword = bbecPassword.trim();
       }
 
       console.log("📝 PROFILE UPDATE: Final update data:", updateData);

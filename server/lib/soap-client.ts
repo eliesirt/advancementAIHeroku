@@ -42,9 +42,9 @@ class BBECSOAPClient {
     this.password = "";
   }
 
-  // Method to refresh credentials from environment with enhanced Heroku support
-  refreshCredentials(): void {
-    console.log('🔄 Refreshing BBEC credentials from environment...');
+  // Method to set credentials from user data or environment fallback
+  setCredentials(bbecUsername?: string, bbecPassword?: string): void {
+    console.log('🔄 Setting BBEC credentials...');
     
     // Check if we're in Heroku environment
     const isHeroku = process.env.DYNO || process.env.HEROKU_APP_NAME;
@@ -52,21 +52,37 @@ class BBECSOAPClient {
       console.log('🚀 Detected Heroku environment - using enhanced credential loading');
     }
     
-    const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
-    this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
-    this.username = process.env.BLACKBAUD_USERNAME || "";
-    this.password = process.env.BLACKBAUD_PASSWORD || "";
-    
-    console.log('✅ BBEC credentials loaded:', {
-      hasAuth: !!rawAuth,
-      authLength: rawAuth.length,
-      hasUsername: !!this.username,
-      hasPassword: !!this.password,
-      environment: isHeroku ? 'Heroku' : 'Local/Replit'
-    });
+    if (bbecUsername && bbecPassword) {
+      // Use user-provided credentials
+      this.username = bbecUsername;
+      this.password = bbecPassword;
+      // Create Base64 encoded authentication header
+      const credentials = Buffer.from(`${bbecUsername}:${bbecPassword}`).toString('base64');
+      this.authHeader = `Basic ${credentials}`;
+      
+      console.log('✅ BBEC credentials loaded from user profile:', {
+        hasUsername: !!this.username,
+        hasPassword: !!this.password,
+        environment: isHeroku ? 'Heroku' : 'Local/Replit'
+      });
+    } else {
+      // Fallback to environment variables (legacy support)
+      const rawAuth = process.env.BLACKBAUD_API_AUTHENTICATION || "";
+      this.authHeader = rawAuth.startsWith('Basic ') ? rawAuth : `Basic ${rawAuth}`;
+      this.username = process.env.BLACKBAUD_USERNAME || "";
+      this.password = process.env.BLACKBAUD_PASSWORD || "";
+      
+      console.log('⚠️ BBEC credentials loaded from environment (fallback):', {
+        hasAuth: !!rawAuth,
+        authLength: rawAuth.length,
+        hasUsername: !!this.username,
+        hasPassword: !!this.password,
+        environment: isHeroku ? 'Heroku' : 'Local/Replit'
+      });
+    }
   }
 
-  async initialize(): Promise<void> {
+  async initialize(bbecUsername?: string, bbecPassword?: string): Promise<void> {
     // For Heroku fast startup - add retry logic with backoff AND credential reloading
     let lastError;
     const maxRetries = 5; // Increased for Heroku
@@ -77,8 +93,8 @@ class BBECSOAPClient {
       try {
         console.log(`🔄 BBEC initialization attempt ${attempt + 1}/${maxRetries} (${isHeroku ? 'Heroku' : 'Local/Replit'})`);
         
-        // Always refresh credentials on each attempt (important for Heroku)
-        this.refreshCredentials();
+        // Always set credentials on each attempt (important for Heroku)
+        this.setCredentials(bbecUsername, bbecPassword);
 
         if (!this.authHeader || this.authHeader === 'Basic ') {
           const errorMsg = 'BLACKBAUD_API_AUTHENTICATION environment variable not set or empty';
@@ -802,35 +818,39 @@ class BBECSOAPClient {
   }
 }
 
-// Singleton pattern with lazy initialization for Heroku compatibility
-let bbecClientInstance: BBECSOAPClient | null = null;
-let initializationPromise: Promise<BBECSOAPClient> | null = null;
-
-export const getBbecClient = async (): Promise<BBECSOAPClient> => {
-  // If we already have an instance, return it
-  if (bbecClientInstance) {
-    return bbecClientInstance;
+// User-specific BBEC client factory
+export const getBbecClient = async (userId?: string): Promise<BBECSOAPClient> => {
+  console.log('🔄 Creating BBEC client instance...');
+  
+  let bbecUsername: string | undefined;
+  let bbecPassword: string | undefined;
+  
+  // If userId is provided, get user's BBEC credentials from database
+  if (userId) {
+    try {
+      const { storage } = await import("../storage");
+      const user = await storage.getUser(userId);
+      
+      if (user?.bbecUsername && user?.bbecPassword) {
+        bbecUsername = user.bbecUsername;
+        bbecPassword = user.bbecPassword;
+        console.log('✅ Found BBEC credentials for user:', userId);
+      } else {
+        console.log('⚠️ No BBEC credentials found for user:', userId, '- using environment fallback');
+      }
+    } catch (error) {
+      console.error('⚠️ Error fetching user BBEC credentials:', error);
+      console.log('🔄 Falling back to environment variables');
+    }
   }
-
-  // If initialization is in progress, wait for it
-  if (initializationPromise) {
-    return initializationPromise;
-  }
-
-  // Start initialization
-  initializationPromise = (async () => {
-    console.log('🔄 Creating new BBEC client instance...');
-    const client = new BBECSOAPClient();
-    await client.initialize();
-    bbecClientInstance = client;
-    console.log('✅ BBEC client singleton created and initialized');
-    return client;
-  })();
-
-  return initializationPromise;
+  
+  const client = new BBECSOAPClient();
+  await client.initialize(bbecUsername, bbecPassword);
+  console.log('✅ BBEC client created and initialized');
+  return client;
 };
 
-// Legacy export for backward compatibility
+// Legacy export for backward compatibility (uses environment credentials)
 export const bbecClient = {
   async initialize() {
     const client = await getBbecClient();
@@ -857,4 +877,9 @@ export const bbecClient = {
     const client = await getBbecClient();
     return client.getFormMetadata();
   }
+};
+
+// User-specific BBEC client factory
+export const getUserBbecClient = async (userId: string): Promise<BBECSOAPClient> => {
+  return getBbecClient(userId);
 };

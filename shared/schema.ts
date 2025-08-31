@@ -27,6 +27,8 @@ export const users = pgTable("users", {
   password: text("password"), // For local accounts
   buid: text("buid"), // Blackbaud User ID
   bbecGuid: text("bbec_guid"), // Blackbaud GUID
+  bbecUsername: text("bbec_username"), // BBEC username for API authentication
+  bbecPassword: text("bbec_password"), // BBEC password for API authentication (encrypted)
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
