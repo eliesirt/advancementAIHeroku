@@ -1102,15 +1102,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Refresh affinity tags from BBEC (manual trigger)
-  app.post("/api/affinity-tags/refresh", async (req, res) => {
+  app.post("/api/affinity-tags/refresh", isAuthenticated, async (req: any, res) => {
     try {
-      // Refresh BBEC client credentials before attempting API call
-      bbecClient.refreshCredentials();
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
+      console.log(`🔄 AFFINITY REFRESH: Starting refresh for user: ${userId}`);
+
+      // Get user-specific BBEC client
+      const { getUserBbecClient } = await import("./lib/soap-client");
+      const client = await getUserBbecClient(userId);
 
       // Clear existing affinity tags before refreshing
       await storage.clearAffinityTags();
 
-      const bbecTags = await bbecClient.getAffinityTags();
+      const bbecTags = await client.getAffinityTags();
 
       const tagsToInsert = bbecTags.map(tag => ({
         name: tag.name,
@@ -1131,10 +1135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Detailed refresh error:', error);
       const errorMessage = (error as Error).message;
 
-      if (errorMessage.includes('401') || errorMessage.includes('Authentication failed')) {
+      if (errorMessage.includes('401') || errorMessage.includes('Authentication failed') || errorMessage.includes('credentials')) {
         res.status(401).json({ 
-          message: "Authentication failed. Please update your BLACKBAUD_API_AUTHENTICATION credentials.", 
-          error: "Invalid or expired authentication credentials"
+          message: "BBEC authentication failed. Please update your BBEC username and password in Settings.", 
+          error: "Invalid or expired BBEC credentials"
         });
       } else {
         res.status(500).json({ 

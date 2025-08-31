@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, RefreshCw, CheckCircle } from "lucide-react";
+import { User, RefreshCw, CheckCircle, TestTube } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,6 +32,7 @@ interface UserProfileUpdateProps {
 export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [searchResult, setSearchResult] = useState<any>(null);
   const { toast } = useToast();
 
@@ -113,6 +114,54 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
 
   const onSubmit = (data: UserProfileFormData) => {
     updateUserMutation.mutate(data);
+  };
+
+  // Test BBEC credentials by attempting to refresh affinity tags
+  const testBbecConnection = async () => {
+    const bbecUsername = form.getValues("bbecUsername");
+    const bbecPassword = form.getValues("bbecPassword");
+
+    if (!bbecUsername || !bbecPassword) {
+      toast({
+        title: "Missing Credentials",
+        description: "Please enter both BBEC username and password before testing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsTestingConnection(true);
+    try {
+      // First update the user's credentials temporarily for testing
+      const testData = {
+        ...form.getValues(),
+        bbecUsername,
+        bbecPassword,
+      };
+
+      await apiRequest("PATCH", "/api/user/profile", testData);
+
+      // Now test the connection by attempting to refresh affinity tags
+      const response = await apiRequest("POST", "/api/affinity-tags/refresh");
+      
+      if (response.ok) {
+        toast({
+          title: "Connection Successful",
+          description: "BBEC credentials are valid and connection is working.",
+        });
+      } else {
+        throw new Error("Connection test failed");
+      }
+    } catch (error) {
+      console.error("BBEC connection test failed:", error);
+      toast({
+        title: "Connection Failed",
+        description: "Unable to connect to BBEC with these credentials. Please verify your username and password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTestingConnection(false);
+    }
   };
 
   return (
@@ -249,6 +298,36 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
                 </FormItem>
               )}
             />
+
+            {/* BBEC Connection Test */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">Test BBEC Connection</h4>
+                  <p className="text-xs text-gray-600">Verify your credentials can connect to Blackbaud CRM</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={testBbecConnection}
+                  disabled={isTestingConnection}
+                  className="ml-4"
+                >
+                  {isTestingConnection ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="h-4 w-4 mr-2" />
+                      Test Connection
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button

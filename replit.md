@@ -5,6 +5,7 @@ This is a full-stack React application with an Express backend designed for voic
 **Recent Achievement (Aug 2025)**: Successfully resolved critical Heroku production issues:
 1. **Affinity Tags**: Fixed percentage-to-decimal threshold conversion (95% → 0.950), achieving full functionality for voice processing affinity tag population in production.
 2. **Enhanced Comments**: Resolved transcript missing from enhanced comments by implementing proper response structure compatibility (`aiSynopsis` field) for Heroku environment, ensuring voice recordings include both AI synopsis and full transcript. Fixed duplicate transcript issue in Replit development by implementing smart detection logic.
+3. **User-Specific BBEC Authentication**: Migrated from environment variable authentication to user-specific BBEC credentials with database storage, visual status indicators, and connection testing functionality. Implemented comprehensive error handling and fallback mechanisms for seamless production deployment.
 
 ## User Preferences
 
@@ -32,7 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **Voice Recording System**: Utilizes WebRTC MediaRecorder for audio capture, WebKit Speech Recognition for real-time transcription, and OpenAI Whisper API for audio transcription.
 - **AI Processing Pipeline**: Integrates OpenAI Whisper for transcription and GPT-4 for structured data extraction, content enhancement, and summarization. Includes AI-powered quality assessment and customizable AI prompts for synopsis generation.
 - **Affinity Matching**: Employs a fuzzy matching system (Fuse.js) for tag suggestions, with configurable matching thresholds, improved preprocessing logic, and production-tested threshold conversion (percentage-to-decimal). Successfully operational in Heroku production environment with comprehensive fallback strategies.
-- **CRM Integration**: Achieved via SOAP API with Blackbaud CRM, including basic authentication, structured data mapping to BBEC format, and real-time constituent lookup.
+- **CRM Integration**: Achieved via SOAP API with Blackbaud CRM, including user-specific authentication with credential storage, structured data mapping to BBEC format, real-time constituent lookup, and connection testing functionality.
 - **Data Flow**: Voice input -> Real-time Transcription -> AI Processing (Whisper, GPT-4) -> Data Extraction -> Affinity Matching -> Form Population -> Validation -> CRM Submission.
 - **PythonAI Application**: Full-featured system for managing Python scripts, including database schema for script management (versions, executions, schedules, QC results) and full CRUD operations.
 - **Application Suite & Launcher**: Transformed into a multi-application suite with an "AdvancementAI" launcher page, featuring organized groupings for primary AI tools and system configuration.
