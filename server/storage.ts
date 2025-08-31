@@ -933,17 +933,52 @@ export class DatabaseStorage implements IStorage {
     console.log("🔄 DATABASE UPDATE: Cleaned updates:", cleanUpdates);
     console.log("🔄 DATABASE UPDATE: User ID:", id);
 
-    const [user] = await db
-      .update(users)
-      .set({ ...cleanUpdates, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    
-    if (!user) {
-      throw new Error('User not found or update failed');
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ ...cleanUpdates, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!user) {
+        throw new Error('User not found or update failed');
+      }
+      
+      return user;
+    } catch (error) {
+      // Handle case where BBEC columns don't exist in production
+      if (error instanceof Error && (
+        error.message.includes('bbec_username') || 
+        error.message.includes('bbec_password') ||
+        (error.message.includes('column') && error.message.includes('does not exist'))
+      )) {
+        console.log("⚠️ BBEC columns not found in database, updating without BBEC credentials");
+        
+        // Remove BBEC fields and try again
+        const fallbackUpdates = { ...cleanUpdates };
+        delete fallbackUpdates.bbecUsername;
+        delete fallbackUpdates.bbecPassword;
+        
+        console.log("🔄 FALLBACK UPDATE: Retrying without BBEC fields:", fallbackUpdates);
+        
+        const [user] = await db
+          .update(users)
+          .set({ ...fallbackUpdates, updatedAt: new Date() })
+          .where(eq(users.id, id))
+          .returning();
+
+        if (!user) {
+          throw new Error('User not found or update failed');
+        }
+
+        // Log warning about missing BBEC functionality
+        console.log("⚠️ Profile updated but BBEC credentials not saved - database migration needed");
+        return user;
+      }
+      
+      // Re-throw other errors
+      throw error;
     }
-    
-    return user;
   }
 
   async getUserWithRoles(id: string): Promise<UserWithRoles | undefined> {
