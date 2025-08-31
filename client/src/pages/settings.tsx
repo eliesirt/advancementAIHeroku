@@ -478,6 +478,8 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
     email: user?.email || '',
     bbecGuid: user?.bbecGuid || '',
     buid: user?.buid || '',
+    bbecUsername: user?.bbecUsername || '',
+    bbecPassword: user?.bbecPassword || '',
   });
 
   // Update local state if user data changes from query
@@ -488,6 +490,8 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
       email: user?.email || '',
       bbecGuid: user?.bbecGuid || '',
       buid: user?.buid || '',
+      bbecUsername: user?.bbecUsername || '',
+      bbecPassword: user?.bbecPassword || '',
     });
   }, [user]);
 
