@@ -953,6 +953,11 @@ export class DatabaseStorage implements IStorage {
         (error.message.includes('column') && error.message.includes('does not exist'))
       )) {
         console.log("⚠️ BBEC columns not found in database, updating without BBEC credentials");
+        console.log("⚠️ Original error:", error.message);
+        console.log("⚠️ Original cleanUpdates had BBEC fields:", {
+          hadUsername: 'bbecUsername' in cleanUpdates,
+          hadPassword: 'bbecPassword' in cleanUpdates
+        });
         
         // Remove BBEC fields and try again
         const fallbackUpdates = { ...cleanUpdates };
