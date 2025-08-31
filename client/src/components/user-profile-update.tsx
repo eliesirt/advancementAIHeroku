@@ -92,7 +92,15 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
         description: "Your profile has been successfully updated with BBEC data.",
       });
       setIsOpen(false);
+      // Invalidate both user query variants to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Force a small delay to allow cache invalidation to complete
+      setTimeout(() => {
+        // This will trigger the useEffect to reset the form with fresh data
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+      }, 100);
     },
     onError: () => {
       toast({
