@@ -696,9 +696,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit interaction to BBEC and remove from local database
-  app.post("/api/interactions/:id/submit-bbec", async (req, res) => {
+  app.post("/api/interactions/:id/submit-bbec", isAuthenticated, async (req: any, res) => {
     try {
       const interactionId = parseInt(req.params.id);
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
       const interaction = await storage.getInteraction(interactionId);
 
       if (!interaction) {
@@ -712,6 +713,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "User missing BBEC GUID - please update your profile in Settings" 
         });
       }
+
+      console.log(`🔄 BBEC SUBMISSION: Starting submission for interaction ${interactionId} by user: ${userId}`);
 
       // Check if interaction has constituent GUID, fallback to bbecGuid if available
       let constituentGuid = interaction.constituentGuid;
@@ -747,8 +750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Submitting interaction to BBEC:", bbecInteraction);
 
+      // Get user-specific BBEC client
+      const { getUserBbecClient } = await import("./lib/soap-client");
+      const client = await getUserBbecClient(userId);
+
       // Submit to BBEC
-      const bbecInteractionId = await bbecClient.submitInteraction(bbecInteraction);
+      const bbecInteractionId = await client.submitInteraction(bbecInteraction);
 
       // If submission successful (no error thrown), remove from local database
       const deleted = await storage.deleteInteraction(interactionId);
@@ -765,10 +772,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("BBEC submission error:", error);
-      res.status(500).json({ 
-        message: "Failed to submit interaction to BBEC", 
-        error: (error as Error).message 
-      });
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes('401') || errorMessage.includes('Authentication failed') || errorMessage.includes('credentials')) {
+        res.status(401).json({ 
+          message: "BBEC authentication failed. Please update your BBEC username and password in Settings.", 
+          error: "Invalid or expired BBEC credentials"
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to submit interaction to BBEC", 
+          error: errorMessage 
+        });
+      }
     }
   });
 
@@ -953,10 +969,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Submit interaction to BBEC
-  app.post("/api/interactions/:id/submit-bbec", async (req, res) => {
+  // Submit interaction to BBEC (alternative route)
+  app.post("/api/interactions/:id/submit-bbec-alt", isAuthenticated, async (req: any, res) => {
     try {
       const interactionId = parseInt(req.params.id);
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
       const interaction = await storage.getInteraction(interactionId);
 
       if (!interaction) {
@@ -975,8 +992,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log(`🔄 BBEC SUBMISSION (ALT): Starting submission for interaction ${interactionId} by user: ${userId}`);
+
+      // Get user-specific BBEC client
+      const { getUserBbecClient } = await import("./lib/soap-client");
+      const client = await getUserBbecClient(userId);
+
       // Submit to BBEC via SOAP API using the proper workflow
-      const bbecInteractionId = await bbecClient.submitInteraction({
+      const bbecInteractionId = await client.submitInteraction({
         constituentId: "", // Will be determined by searchConstituent
         interactionBbecGuid: interaction.bbecGuid || "",
         prospectName: interaction.prospectName || "Unknown",
@@ -1005,7 +1028,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         interaction: updatedInteraction 
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to submit to BBEC", error: (error as Error).message });
+      console.error("BBEC submission error (alt):", error);
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes('401') || errorMessage.includes('Authentication failed') || errorMessage.includes('credentials')) {
+        res.status(401).json({ 
+          message: "BBEC authentication failed. Please update your BBEC username and password in Settings.", 
+          error: "Invalid or expired BBEC credentials"
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to submit to BBEC", 
+          error: errorMessage 
+        });
+      }
     }
   });
 
