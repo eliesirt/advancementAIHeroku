@@ -17,6 +17,7 @@ import {
   Database,
   RefreshCw,
   CheckCircle,
+  XCircle,
   AlertCircle,
   Volume2,
   Shield,
@@ -74,6 +75,8 @@ type UserType = {
   email?: string | null;
   bbecGuid?: string | null;
   buid?: string | null;
+  bbecUsername?: string | null;
+  bbecPassword?: string | null;
 } | null | undefined;
 
 type AffinityTagsInfoType = {
@@ -530,11 +533,27 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
         {/* User Profile */}
         <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
           <CardHeader className="border-b border-gray-100">
-            <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
-              <div className="p-2 rounded-lg bg-red-50">
-                <User className="h-6 w-6" style={{ color: '#CC0000' }} />
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+                <div className="p-2 rounded-lg bg-red-50">
+                  <User className="h-6 w-6" style={{ color: '#CC0000' }} />
+                </div>
+                <span>User Profile</span>
               </div>
-              <span>User Profile</span>
+              {/* BBEC Credentials Status Indicator */}
+              <div className="flex items-center space-x-2">
+                {user?.bbecUsername && user?.bbecPassword ? (
+                  <div className="flex items-center space-x-1 text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-xs font-medium">BBEC Connected</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+                    <XCircle className="h-4 w-4" />
+                    <span className="text-xs font-medium">BBEC Not Configured</span>
+                  </div>
+                )}
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
