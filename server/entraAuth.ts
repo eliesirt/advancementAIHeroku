@@ -1,9 +1,10 @@
 import type { Express, RequestHandler } from "express";
-import passport from "passport";
-import { Strategy as OIDCStrategy } from "passport-openid-connect";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { nanoid } from "nanoid";
+import crypto from "crypto";
+import fetch from "node-fetch";
 
 // Shared session configuration
 export function getSession() {
@@ -38,16 +39,27 @@ interface EntraUser {
   roles?: string[];
 }
 
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  id_token: string;
+  refresh_token?: string;
+}
+
 // Helper function to extract user info from Entra claims
-function extractUserFromClaims(claims: any, tenantId: string): EntraUser {
+function extractUserFromIdToken(idToken: string, tenantId: string): EntraUser {
+  // Decode JWT payload (basic decoding without verification for demo)
+  const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
+  
   return {
-    id: claims.sub || claims.oid, // Use sub or oid (object identifier)
-    email: claims.email || claims.preferred_username || claims.upn,
-    firstName: claims.given_name || claims.name?.split(' ')[0] || 'Unknown',
-    lastName: claims.family_name || claims.name?.split(' ').slice(1).join(' ') || 'User',
-    profileImageUrl: claims.picture,
+    id: payload.sub || payload.oid, // Use sub or oid (object identifier)
+    email: payload.email || payload.preferred_username || payload.upn,
+    firstName: payload.given_name || payload.name?.split(' ')[0] || 'Unknown',
+    lastName: payload.family_name || payload.name?.split(' ').slice(1).join(' ') || 'User',
+    profileImageUrl: payload.picture,
     tenantId: tenantId,
-    roles: claims.roles || []
+    roles: payload.roles || []
   };
 }
 
@@ -74,83 +86,60 @@ function mapEntraRolesToInternal(entraRoles: string[]): string[] {
   return mappedRoles;
 }
 
+// Generate PKCE challenge
+function generatePKCEChallenge() {
+  const codeVerifier = crypto.randomBytes(32).toString('base64url');
+  const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+  return { codeVerifier, codeChallenge };
+}
+
+// Exchange authorization code for tokens
+async function exchangeCodeForTokens(
+  code: string, 
+  codeVerifier: string, 
+  tenantId: string, 
+  clientId: string, 
+  clientSecret: string,
+  redirectUri: string
+): Promise<TokenResponse> {
+  const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+  
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    code: code,
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code',
+    code_verifier: codeVerifier,
+  });
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: body,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
+  }
+
+  return await response.json() as TokenResponse;
+}
+
 export async function setupEntraAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   // Get all configured SSO providers from database
   const ssoConfigs = await storage.getSSOConfigurations();
   
-  for (const config of ssoConfigs) {
-    if (config.provider === 'entra' && config.isActive) {
-      const strategy = new OIDCStrategy({
-        name: `entra-${config.tenantId}`,
-        issuer: `https://login.microsoftonline.com/${config.tenantId}/v2.0`,
-        clientID: config.clientId,
-        clientSecret: config.clientSecret,
-        callbackURL: `${process.env.BASE_URL || 'https://localhost:5000'}/api/auth/callback/${config.tenantId}`,
-        scope: ['openid', 'profile', 'email'],
-        skipUserProfile: false
-      }, async (req: any, issuer: string, profile: any, context: any, idToken: any, accessToken: any, refreshToken: any, params: any, verified: any) => {
-        try {
-          console.log('🔐 [ENTRA AUTH] Processing login for tenant:', config.tenantId);
-          
-          const entraUser = extractUserFromClaims(idToken.claims, config.tenantId);
-          console.log('👤 [ENTRA AUTH] Extracted user:', { 
-            id: entraUser.id, 
-            email: entraUser.email, 
-            tenantId: entraUser.tenantId 
-          });
-
-          // Map Entra roles to internal roles
-          const internalRoles = mapEntraRolesToInternal(entraUser.roles || []);
-          
-          // Upsert user in our system
-          await storage.upsertUser({
-            id: entraUser.id,
-            email: entraUser.email,
-            firstName: entraUser.firstName,
-            lastName: entraUser.lastName,
-            profileImageUrl: entraUser.profileImageUrl || null,
-          });
-
-          // Ensure user has appropriate roles
-          await storage.ensureUserRoles(entraUser.id, internalRoles);
-
-          const user = {
-            claims: {
-              sub: entraUser.id,
-              email: entraUser.email,
-              first_name: entraUser.firstName,
-              last_name: entraUser.lastName,
-              tenant_id: entraUser.tenantId
-            },
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            expires_at: Math.floor(Date.now() / 1000) + (params.expires_in || 3600)
-          };
-
-          console.log('✅ [ENTRA AUTH] User authenticated successfully');
-          return verified(null, user);
-        } catch (error) {
-          console.error('🚨 [ENTRA AUTH] Authentication error:', error);
-          return verified(error, null);
-        }
-      });
-
-      passport.use(strategy);
-      console.log(`🔧 [ENTRA AUTH] Configured strategy for tenant: ${config.tenantId}`);
-    }
-  }
-
-  // Passport serialization
-  passport.serializeUser((user: any, cb) => cb(null, user));
-  passport.deserializeUser((user: any, cb) => cb(null, user));
+  console.log(`🔧 [ENTRA AUTH] Found ${ssoConfigs.length} SSO configurations`);
 
   // Dynamic login route for different tenants
-  app.get("/api/auth/login/:tenantId", async (req, res, next) => {
+  app.get("/api/auth/login/:tenantId", async (req: any, res) => {
     const { tenantId } = req.params;
     
     try {
@@ -159,10 +148,28 @@ export async function setupEntraAuth(app: Express) {
         return res.status(404).json({ error: 'SSO configuration not found or inactive' });
       }
 
-      passport.authenticate(`entra-${tenantId}`, {
-        prompt: 'select_account',
-        scope: ['openid', 'profile', 'email']
-      })(req, res, next);
+      // Generate PKCE challenge
+      const { codeVerifier, codeChallenge } = generatePKCEChallenge();
+      const state = nanoid();
+
+      // Store PKCE and state in session
+      req.session.pkceCodeVerifier = codeVerifier;
+      req.session.oauthState = state;
+      req.session.tenantId = tenantId;
+
+      // Build authorization URL
+      const authUrl = new URL(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`);
+      authUrl.searchParams.set('client_id', config.clientId);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('redirect_uri', `${process.env.BASE_URL || req.protocol + '://' + req.get('host')}/api/auth/callback/${tenantId}`);
+      authUrl.searchParams.set('scope', 'openid profile email');
+      authUrl.searchParams.set('state', state);
+      authUrl.searchParams.set('code_challenge', codeChallenge);
+      authUrl.searchParams.set('code_challenge_method', 'S256');
+      authUrl.searchParams.set('prompt', 'select_account');
+
+      console.log(`🔐 [ENTRA AUTH] Redirecting to: ${authUrl.toString()}`);
+      res.redirect(authUrl.toString());
     } catch (error) {
       console.error('🚨 [ENTRA AUTH] Login error:', error);
       res.status(500).json({ error: 'Authentication configuration error' });
@@ -170,13 +177,106 @@ export async function setupEntraAuth(app: Express) {
   });
 
   // Dynamic callback route for different tenants
-  app.get("/api/auth/callback/:tenantId", async (req, res, next) => {
+  app.get("/api/auth/callback/:tenantId", async (req: any, res) => {
     const { tenantId } = req.params;
-    
-    passport.authenticate(`entra-${tenantId}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: `/auth/error?tenant=${tenantId}`,
-    })(req, res, next);
+    const { code, state } = req.query;
+
+    try {
+      // Verify state parameter
+      if (state !== req.session.oauthState) {
+        throw new Error('Invalid state parameter');
+      }
+
+      if (!code) {
+        throw new Error('Authorization code not provided');
+      }
+
+      const config = await storage.getSSOConfiguration(tenantId);
+      if (!config || !config.isActive) {
+        throw new Error('SSO configuration not found or inactive');
+      }
+
+      // Exchange code for tokens
+      const redirectUri = `${process.env.BASE_URL || req.protocol + '://' + req.get('host')}/api/auth/callback/${tenantId}`;
+      const tokens = await exchangeCodeForTokens(
+        code as string,
+        req.session.pkceCodeVerifier,
+        tenantId,
+        config.clientId,
+        config.clientSecret,
+        redirectUri
+      );
+
+      // Extract user info from ID token
+      const entraUser = extractUserFromIdToken(tokens.id_token, tenantId);
+      console.log('👤 [ENTRA AUTH] Extracted user:', { 
+        id: entraUser.id, 
+        email: entraUser.email, 
+        tenantId: entraUser.tenantId 
+      });
+
+      // Map Entra roles to internal roles
+      const internalRoles = mapEntraRolesToInternal(entraUser.roles || []);
+      
+      // Upsert user in our system
+      await storage.upsertUser({
+        id: entraUser.id,
+        email: entraUser.email,
+        firstName: entraUser.firstName,
+        lastName: entraUser.lastName,
+        profileImageUrl: entraUser.profileImageUrl || null,
+      });
+
+      // Ensure user has appropriate roles
+      await storage.ensureUserRoles(entraUser.id, internalRoles);
+
+      // Create SSO session
+      await storage.createSSOSession({
+        userId: entraUser.id,
+        tenantId: tenantId,
+        provider: 'entra',
+        providerUserId: entraUser.id,
+        sessionData: {
+          claims: {
+            sub: entraUser.id,
+            email: entraUser.email,
+            name: `${entraUser.firstName} ${entraUser.lastName}`,
+            roles: entraUser.roles
+          },
+          tokens: {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: Math.floor(Date.now() / 1000) + tokens.expires_in
+          }
+        },
+        expiresAt: new Date(Date.now() + tokens.expires_in * 1000)
+      });
+
+      // Set user session
+      req.session.user = {
+        claims: {
+          sub: entraUser.id,
+          email: entraUser.email,
+          first_name: entraUser.firstName,
+          last_name: entraUser.lastName,
+          tenant_id: tenantId
+        },
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + tokens.expires_in
+      };
+
+      // Clear temporary session data
+      delete req.session.pkceCodeVerifier;
+      delete req.session.oauthState;
+      delete req.session.tenantId;
+
+      console.log('✅ [ENTRA AUTH] User authenticated successfully');
+      res.redirect("/");
+    } catch (error) {
+      console.error('🚨 [ENTRA AUTH] Callback error:', error);
+      res.redirect(`/auth/error?tenant=${tenantId}&error=${encodeURIComponent(error instanceof Error ? error.message : 'Authentication failed')}`);
+    }
   });
 
   // SSO provider discovery endpoint
@@ -189,7 +289,10 @@ export async function setupEntraAuth(app: Express) {
           tenantId: config.tenantId,
           provider: config.provider,
           displayName: config.displayName,
-          loginUrl: `/api/auth/login/${config.tenantId}`
+          loginUrl: `/api/auth/login/${config.tenantId}`,
+          buttonColor: config.buttonColor,
+          logoUrl: config.logoUrl,
+          loginHint: config.loginHint
         }));
       
       res.json(activeProviders);
@@ -201,9 +304,10 @@ export async function setupEntraAuth(app: Express) {
 
   // Logout route
   app.get("/api/auth/logout", (req: any, res) => {
-    const tenantId = req.user?.claims?.tenant_id;
+    const tenantId = req.session.user?.claims?.tenant_id;
     
-    req.logout((err: any) => {
+    // Destroy session
+    req.session.destroy((err: any) => {
       if (err) {
         console.error('🚨 [ENTRA AUTH] Logout error:', err);
         return res.redirect("/");
@@ -221,9 +325,10 @@ export async function setupEntraAuth(app: Express) {
 
   // Error handling route
   app.get("/auth/error", (req, res) => {
-    const tenant = req.query.tenant;
+    const { tenant, error } = req.query;
     res.status(401).json({ 
       error: 'Authentication failed', 
+      details: error || 'Unknown error',
       tenant,
       message: 'Please contact your administrator if this issue persists.',
       timestamp: new Date().toISOString()
@@ -232,29 +337,21 @@ export async function setupEntraAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
-  const user = req.user as any;
+  const user = req.session?.user;
 
-  if (!req.isAuthenticated() || !user?.claims?.sub) {
+  if (!user?.claims?.sub) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   // Check if token is expired
   if (user.expires_at && user.expires_at < Math.floor(Date.now() / 1000)) {
-    // For Entra tokens, we might want to attempt refresh
-    if (user.refresh_token && user.claims.tenant_id) {
-      try {
-        // Token refresh logic would go here
-        // For now, we'll require re-authentication
-        console.log('🔄 [ENTRA AUTH] Token expired, requiring re-authentication');
-        return res.status(401).json({ message: "Token expired" });
-      } catch (error) {
-        console.error('🚨 [ENTRA AUTH] Token refresh failed:', error);
-        return res.status(401).json({ message: "Token refresh failed" });
-      }
-    } else {
-      return res.status(401).json({ message: "Token expired" });
-    }
+    console.log('🔄 [ENTRA AUTH] Token expired, requiring re-authentication');
+    return res.status(401).json({ message: "Token expired" });
   }
+
+  // Mock req.user for compatibility with existing code
+  req.user = user;
+  req.isAuthenticated = () => true;
 
   next();
 };

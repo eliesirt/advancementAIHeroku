@@ -83,7 +83,13 @@ import {
   type SystemSetting,
   type InsertSystemSetting,
   type UserSetting,
-  type InsertUserSetting
+  type InsertUserSetting,
+  ssoConfigurations,
+  ssoSessions,
+  type SSOConfiguration,
+  type InsertSSOConfiguration,
+  type SSOSession,
+  type InsertSSOSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
@@ -253,6 +259,23 @@ export interface IStorage {
   setUserSetting(setting: InsertUserSetting): Promise<UserSetting>;
   getUserSettingValue<T>(userId: string, settingKey: string, defaultValue?: T): Promise<T>;
   getAllUserSettings(userId: string): Promise<UserSetting[]>;
+
+  // SSO Configuration methods
+  getSSOConfigurations(): Promise<SSOConfiguration[]>;
+  getSSOConfiguration(tenantId: string): Promise<SSOConfiguration | undefined>;
+  createSSOConfiguration(config: InsertSSOConfiguration): Promise<SSOConfiguration>;
+  updateSSOConfiguration(id: number, updates: Partial<InsertSSOConfiguration>): Promise<SSOConfiguration>;
+  deleteSSOConfiguration(id: number): Promise<boolean>;
+
+  // SSO Session methods
+  createSSOSession(session: InsertSSOSession): Promise<SSOSession>;
+  getSSOSession(userId: string, tenantId: string): Promise<SSOSession | undefined>;
+  updateSSOSession(id: number, updates: Partial<InsertSSOSession>): Promise<SSOSession>;
+  deleteSSOSession(id: number): Promise<boolean>;
+  cleanupExpiredSSOSessions(): Promise<void>;
+
+  // User role management for SSO
+  ensureUserRoles(userId: string, roleNames: string[]): Promise<void>;
 }
 
 export class MemStorage implements Partial<IStorage> {
@@ -1973,6 +1996,91 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUserSettings(userId: string): Promise<UserSetting[]> {
     return await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+  }
+
+  // SSO Configuration methods
+  async getSSOConfigurations(): Promise<SSOConfiguration[]> {
+    return await db.select().from(ssoConfigurations).orderBy(ssoConfigurations.displayName);
+  }
+
+  async getSSOConfiguration(tenantId: string): Promise<SSOConfiguration | undefined> {
+    const [config] = await db.select().from(ssoConfigurations).where(eq(ssoConfigurations.tenantId, tenantId));
+    return config || undefined;
+  }
+
+  async createSSOConfiguration(config: InsertSSOConfiguration): Promise<SSOConfiguration> {
+    const [result] = await db.insert(ssoConfigurations).values(config).returning();
+    return result;
+  }
+
+  async updateSSOConfiguration(id: number, updates: Partial<InsertSSOConfiguration>): Promise<SSOConfiguration> {
+    const [result] = await db
+      .update(ssoConfigurations)
+      .set({ ...updates, updatedAt: sql`NOW()` })
+      .where(eq(ssoConfigurations.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteSSOConfiguration(id: number): Promise<boolean> {
+    const result = await db.delete(ssoConfigurations).where(eq(ssoConfigurations.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // SSO Session methods
+  async createSSOSession(session: InsertSSOSession): Promise<SSOSession> {
+    const [result] = await db.insert(ssoSessions).values(session).returning();
+    return result;
+  }
+
+  async getSSOSession(userId: string, tenantId: string): Promise<SSOSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(ssoSessions)
+      .where(and(eq(ssoSessions.userId, userId), eq(ssoSessions.tenantId, tenantId)))
+      .orderBy(desc(ssoSessions.lastUsed))
+      .limit(1);
+    return session || undefined;
+  }
+
+  async updateSSOSession(id: number, updates: Partial<InsertSSOSession>): Promise<SSOSession> {
+    const [result] = await db
+      .update(ssoSessions)
+      .set(updates)
+      .where(eq(ssoSessions.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteSSOSession(id: number): Promise<boolean> {
+    const result = await db.delete(ssoSessions).where(eq(ssoSessions.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async cleanupExpiredSSOSessions(): Promise<void> {
+    await db.delete(ssoSessions).where(sql`expires_at < NOW()`);
+  }
+
+  // User role management for SSO
+  async ensureUserRoles(userId: string, roleNames: string[]): Promise<void> {
+    // Get existing user roles
+    const existingRoles = await this.getUserRoles(userId);
+    const existingRoleNames = existingRoles.map(role => role.name);
+
+    // Find roles to add
+    const rolesToAdd = roleNames.filter(name => !existingRoleNames.includes(name));
+
+    // Add missing roles
+    for (const roleName of rolesToAdd) {
+      const roleList = await db.select().from(roles).where(eq(roles.name, roleName));
+      if (roleList.length > 0) {
+        const role = roleList[0];
+        await this.assignUserRole(userId, role.id);
+      }
+    }
+
+    // Note: We don't remove existing roles to avoid accidentally removing permissions
+    // If role removal is needed, it should be done explicitly via admin interface
   }
 }
 

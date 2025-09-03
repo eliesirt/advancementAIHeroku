@@ -17,12 +17,29 @@ const execAsync = promisify(exec);
 
 // Dynamic auth import function
 async function getAuthModule() {
+  // Check if SSO is configured and enabled
+  try {
+    const ssoConfigs = await storage.getSSOConfigurations();
+    const activeSSOConfigs = ssoConfigs.filter(config => config.isActive);
+    
+    // If SSO is configured and active, use Entra auth
+    if (activeSSOConfigs.length > 0) {
+      console.log(`🔐 [AUTH] Using SSO authentication with ${activeSSOConfigs.length} provider(s)`);
+      return await import("./entraAuth");
+    }
+  } catch (error) {
+    console.warn('🔐 [AUTH] Failed to check SSO configuration, falling back to default auth:', error);
+  }
+
+  // Fall back to environment-based authentication
   const isHerokuDeployment = process.env.NODE_ENV === 'production' && 
     (process.env.HEROKU_APP_NAME || !process.env.REPLIT_DOMAINS || !process.env.REPL_ID);
 
   if (isHerokuDeployment) {
+    console.log('🔐 [AUTH] Using Heroku authentication');
     return await import("./herokuAuth");
   } else {
+    console.log('🔐 [AUTH] Using Replit authentication');
     return await import("./replitAuth");
   }
 }
@@ -2559,6 +2576,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Role permission assignment error:", error);
       res.status(500).json({ message: "Failed to assign application permissions", error: (error as Error).message });
+    }
+  });
+
+  // SSO Configuration Management API Routes (Admin Only)
+
+  // Get all SSO configurations (admin only)
+  app.get('/api/admin/sso-configurations', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const configs = await storage.getSSOConfigurations();
+      // Don't send client secrets to frontend
+      const publicConfigs = configs.map(config => ({
+        ...config,
+        clientSecret: config.clientSecret ? '***masked***' : null
+      }));
+      res.json(publicConfigs);
+    } catch (error) {
+      console.error("Error fetching SSO configurations:", error);
+      res.status(500).json({ message: "Failed to fetch SSO configurations", error: (error as Error).message });
+    }
+  });
+
+  // Get specific SSO configuration (admin only)
+  app.get('/api/admin/sso-configurations/:tenantId', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { tenantId } = req.params;
+      const config = await storage.getSSOConfiguration(tenantId);
+      if (!config) {
+        return res.status(404).json({ message: "SSO configuration not found" });
+      }
+      // Don't send client secret to frontend
+      const publicConfig = {
+        ...config,
+        clientSecret: config.clientSecret ? '***masked***' : null
+      };
+      res.json(publicConfig);
+    } catch (error) {
+      console.error("Error fetching SSO configuration:", error);
+      res.status(500).json({ message: "Failed to fetch SSO configuration", error: (error as Error).message });
+    }
+  });
+
+  // Create new SSO configuration (admin only)
+  app.post('/api/admin/sso-configurations', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const adminId = req.user.claims.sub;
+      const configData = {
+        ...req.body,
+        createdBy: adminId
+      };
+
+      const newConfig = await storage.createSSOConfiguration(configData);
+      // Don't send client secret back
+      const publicConfig = {
+        ...newConfig,
+        clientSecret: newConfig.clientSecret ? '***masked***' : null
+      };
+      res.json(publicConfig);
+    } catch (error) {
+      console.error("Error creating SSO configuration:", error);
+      res.status(500).json({ message: "Failed to create SSO configuration", error: (error as Error).message });
+    }
+  });
+
+  // Update SSO configuration (admin only)
+  app.patch('/api/admin/sso-configurations/:id', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      // If clientSecret is masked, don't update it
+      if (updates.clientSecret === '***masked***') {
+        delete updates.clientSecret;
+      }
+
+      const updatedConfig = await storage.updateSSOConfiguration(parseInt(id), updates);
+      // Don't send client secret back
+      const publicConfig = {
+        ...updatedConfig,
+        clientSecret: updatedConfig.clientSecret ? '***masked***' : null
+      };
+      res.json(publicConfig);
+    } catch (error) {
+      console.error("Error updating SSO configuration:", error);
+      res.status(500).json({ message: "Failed to update SSO configuration", error: (error as Error).message });
+    }
+  });
+
+  // Delete SSO configuration (admin only)
+  app.delete('/api/admin/sso-configurations/:id', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteSSOConfiguration(parseInt(id));
+      res.json({ success });
+    } catch (error) {
+      console.error("Error deleting SSO configuration:", error);
+      res.status(500).json({ message: "Failed to delete SSO configuration", error: (error as Error).message });
+    }
+  });
+
+  // Test SSO configuration (admin only)
+  app.post('/api/admin/sso-configurations/:id/test', isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const config = await storage.getSSOConfiguration(id);
+      
+      if (!config) {
+        return res.status(404).json({ message: "SSO configuration not found" });
+      }
+
+      // Test by checking the OIDC discovery endpoint
+      const discoveryUrl = `https://login.microsoftonline.com/${config.tenantId}/v2.0/.well-known/openid_configuration`;
+      
+      const response = await fetch(discoveryUrl);
+      if (!response.ok) {
+        throw new Error(`Discovery endpoint returned ${response.status}`);
+      }
+
+      const discoveryData = await response.json();
+      
+      res.json({
+        status: 'success',
+        message: 'SSO configuration is valid',
+        issuer: discoveryData.issuer,
+        authorizationEndpoint: discoveryData.authorization_endpoint,
+        tokenEndpoint: discoveryData.token_endpoint
+      });
+    } catch (error) {
+      console.error("Error testing SSO configuration:", error);
+      res.status(500).json({ 
+        status: 'error',
+        message: "SSO configuration test failed", 
+        error: (error as Error).message 
+      });
     }
   });
 
