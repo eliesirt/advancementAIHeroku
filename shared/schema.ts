@@ -451,12 +451,55 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// SSO configuration for multiple identity providers
+export const ssoConfigurations = pgTable("sso_configurations", {
+  id: serial("id").primaryKey(),
+  tenantId: text("tenant_id").notNull().unique(), // Organization identifier
+  provider: text("provider").notNull(), // 'entra', 'saml', 'okta', etc.
+  displayName: text("display_name").notNull(),
+  clientId: text("client_id").notNull(),
+  clientSecret: text("client_secret").notNull(), // Encrypted in production
+  issuerUrl: text("issuer_url"), // For OIDC providers
+  metadataUrl: text("metadata_url"), // For SAML providers
+  certificateData: text("certificate_data"), // For SAML certificate validation
+  domainHints: text("domain_hints").array().default([]), // Email domains that should use this provider
+  isActive: boolean("is_active").default(true),
+  autoProvisionUsers: boolean("auto_provision_users").default(true),
+  defaultRole: text("default_role").default("User"), // Role assigned to new SSO users
+  roleClaimPath: text("role_claim_path"), // JSON path to extract roles from claims
+  groupClaimPath: text("group_claim_path"), // JSON path to extract groups from claims
+  roleMappings: jsonb("role_mappings"), // Map SSO roles/groups to internal roles
+  additionalScopes: text("additional_scopes").array().default([]), // Extra OIDC scopes
+  loginHint: text("login_hint"), // Hint text for login button
+  buttonColor: text("button_color").default("#0078d4"), // Custom button color
+  logoUrl: text("logo_url"), // Organization logo for login button
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// SSO user sessions for tracking which provider authenticated the user
+export const ssoSessions = pgTable("sso_sessions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tenantId: text("tenant_id").notNull(),
+  provider: text("provider").notNull(),
+  providerUserId: text("provider_user_id").notNull(), // User ID from the SSO provider
+  sessionData: jsonb("session_data"), // Store claims, tokens, etc.
+  lastUsed: timestamp("last_used").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userTenantIndex: index("sso_sessions_user_tenant_idx").on(table.userId, table.tenantId),
+}));
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
   interactions: many(interactions),
   voiceRecordings: many(voiceRecordings),
   aiPromptSettings: many(aiPromptSettings),
+  ssoSessions: many(ssoSessions),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -574,6 +617,20 @@ export const itineraryTravelSegmentsRelations = relations(itineraryTravelSegment
 export const aiJobsRelations = relations(aiJobs, ({ one }) => ({
   user: one(users, {
     fields: [aiJobs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const ssoConfigurationsRelations = relations(ssoConfigurations, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [ssoConfigurations.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const ssoSessionsRelations = relations(ssoSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [ssoSessions.userId],
     references: [users.id],
   }),
 }));
@@ -746,6 +803,18 @@ export const insertUserSettingSchema = createInsertSchema(userSettings).omit({
   updatedAt: true,
 });
 
+// SSO Configuration schemas
+export const insertSSOConfigurationSchema = createInsertSchema(ssoConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSSOSessionSchema = createInsertSchema(ssoSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -821,6 +890,12 @@ export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 export type UserSetting = typeof userSettings.$inferSelect;
 export type InsertUserSetting = z.infer<typeof insertUserSettingSchema>;
+
+// SSO Configuration types
+export type SSOConfiguration = typeof ssoConfigurations.$inferSelect;
+export type InsertSSOConfiguration = z.infer<typeof insertSSOConfigurationSchema>;
+export type SSOSession = typeof ssoSessions.$inferSelect;
+export type InsertSSOSession = z.infer<typeof insertSSOSessionSchema>;
 
 // Extended types for UI
 export interface UserWithRoles extends User {
