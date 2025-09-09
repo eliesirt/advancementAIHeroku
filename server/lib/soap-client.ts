@@ -741,6 +741,25 @@ class BBECSOAPClient {
 
   private parseSubmissionResponse(soapResponse: string): string {
     try {
+      console.log('🔍 Parsing BBEC submission response...');
+      console.log('Response preview:', soapResponse.substring(0, 500));
+
+      // Check for SOAP faults first
+      if (soapResponse.includes('<soap:Fault>') || soapResponse.includes('faultstring')) {
+        const faultMatch = soapResponse.match(/<faultstring>(.*?)<\/faultstring>/);
+        const errorMessage = faultMatch ? faultMatch[1] : 'Unknown SOAP fault';
+        console.error('🚨 BBEC SOAP fault detected:', errorMessage);
+        throw new Error(`BBEC submission failed: ${errorMessage}`);
+      }
+
+      // Check for BBEC API errors
+      if (soapResponse.includes('<ErrorMessage>') || soapResponse.includes('ErrorCode')) {
+        const errorMatch = soapResponse.match(/<ErrorMessage>(.*?)<\/ErrorMessage>/);
+        const errorMessage = errorMatch ? errorMatch[1] : 'Unknown BBEC error';
+        console.error('🚨 BBEC API error detected:', errorMessage);
+        throw new Error(`BBEC submission failed: ${errorMessage}`);
+      }
+
       // Extract the interaction ID from the submission response
       const idMatch = soapResponse.match(/<GUID>([^<]+)<\/GUID>/);
       if (!idMatch && soapResponse.includes('<GUID>')) {
@@ -750,7 +769,9 @@ class BBECSOAPClient {
           if (line.includes('<GUID>') && line.includes('</GUID>')) {
             const singleLineMatch = line.match(/<GUID>([^<]+)<\/GUID>/);
             if (singleLineMatch) {
-              return singleLineMatch[1].trim();
+              const guid = singleLineMatch[1].trim();
+              console.log('✅ BBEC interaction ID extracted:', guid);
+              return guid;
             }
           }
         }
@@ -759,16 +780,23 @@ class BBECSOAPClient {
       const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
 
       if (idMatch) {
-        return idMatch[1].trim();
+        const guid = idMatch[1].trim();
+        console.log('✅ BBEC interaction ID extracted:', guid);
+        return guid;
       } else if (recordIdMatch) {
-        return recordIdMatch[1].trim();
+        const recordId = recordIdMatch[1].trim();
+        console.log('✅ BBEC record ID extracted:', recordId);
+        return recordId;
       }
 
-      // If no ID found, generate a temporary one
-      return `temp_${Date.now()}`;
+      // If no valid ID found in response, this indicates a submission failure
+      console.error('🚨 No valid BBEC ID found in response - submission likely failed');
+      console.error('Full response for debugging:', soapResponse);
+      throw new Error('BBEC submission failed: No interaction ID returned from BBEC API');
     } catch (error) {
-      console.error('Error parsing submission response:', error);
-      return `temp_${Date.now()}`;
+      console.error('🚨 Error parsing BBEC submission response:', error);
+      // Don't return fake IDs - throw the error to indicate failure
+      throw error;
     }
   }
 
