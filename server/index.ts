@@ -1759,25 +1759,58 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // User profile endpoints
+    // User profile endpoints - REAL DATABASE UPDATE
     app.patch("/api/user/profile", async (req: any, res) => {
       try {
-        const updatedProfile = {
-          id: "42195145",
-          email: "elsirt@gmail.com",
-          firstName: req.body.firstName || "Administrator",
-          lastName: req.body.lastName || "User",
-          buid: req.body.buid || "ADMIN001",
-          bbecGuid: req.body.bbecGuid || "ADMIN-GUID-001",
-          updatedAt: new Date().toISOString()
+        const { firstName, lastName, email, buid, bbecGuid, bbecUsername, bbecPassword } = req.body;
+        const userId = "42195145"; // Heroku admin user ID
+        
+        console.log("🔄 [HEROKU PRODUCTION] Profile update request:", { 
+          userId,
+          changes: Object.keys(req.body).filter(key => req.body[key] !== undefined)
+        });
+
+        // Prepare update data
+        const updateData = {
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          email: email || undefined,
+          buid: buid || undefined,
+          bbecGuid: bbecGuid || undefined,
+          bbecUsername: bbecUsername || undefined,
+          bbecPassword: bbecPassword || undefined,
         };
 
-        console.log("👤 User profile updated:", { changes: Object.keys(req.body) });
-        res.json(updatedProfile);
+        // Remove undefined values
+        Object.keys(updateData).forEach(key => {
+          if (updateData[key] === undefined) {
+            delete updateData[key];
+          }
+        });
+
+        console.log("🔄 [HEROKU PRODUCTION] Updating user in database:", updateData);
+
+        // Update user in database
+        const updatedUser = await storage.updateUser(userId, updateData);
+
+        console.log("✅ [HEROKU PRODUCTION] User profile updated successfully:", {
+          id: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          buid: updatedUser.buid,
+          bbecGuid: updatedUser.bbecGuid,
+          hasUsername: !!updatedUser.bbecUsername,
+          hasPassword: !!updatedUser.bbecPassword
+        });
+
+        res.json(updatedUser);
         
       } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({ message: "Failed to update profile", error: (error as Error).message });
+        console.error('❌ [HEROKU PRODUCTION] Profile update error:', error);
+        res.status(500).json({ 
+          message: "Failed to update profile", 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
       }
     });
 
