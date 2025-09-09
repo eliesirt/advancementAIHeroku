@@ -92,15 +92,23 @@ export function UserProfileUpdate({ user }: UserProfileUpdateProps) {
         description: "Your profile has been successfully updated with BBEC data.",
       });
       setIsOpen(false);
-      // Invalidate both user query variants to ensure fresh data
+      
+      // Aggressively clear ALL user-related caches
+      queryClient.removeQueries({ queryKey: ["/api/user"] });
+      queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
-      // Force a small delay to allow cache invalidation to complete
+      // Force immediate refetch with stale data
       setTimeout(() => {
-        // This will trigger the useEffect to reset the form with fresh data
-        queryClient.refetchQueries({ queryKey: ["/api/user"] });
-      }, 100);
+        queryClient.refetchQueries({ queryKey: ["/api/user"], stale: true });
+        queryClient.refetchQueries({ queryKey: ["/api/auth/user"], stale: true });
+      }, 50);
+      
+      // Trigger window reload as fallback for persistent cache issues
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     },
     onError: () => {
       toast({

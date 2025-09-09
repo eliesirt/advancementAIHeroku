@@ -1,0 +1,44 @@
+2025-09-09T20:31:20.975494+00:00 app[web.1]: 🌐 Connecting to BBEC WSDL: https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx?WSDL
+2025-09-09T20:31:20.976427+00:00 app[web.1]: ✅ BBEC SOAP client initialized successfully
+2025-09-09T20:31:20.976452+00:00 app[web.1]: ✅ BBEC client created and initialized
+2025-09-09T20:31:27.025494+00:00 heroku[router]: at=info method=GET path="/api/users/search/U029480520" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=3d3027bb-5419-00bc-f54c-7185c0e1cbac fwd="73.253.249.113" dyno=web.1 connect=0ms service=6052ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:27.024338+00:00 app[web.1]: User search response: <?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><AdHocQueryProcessReply RecordTypeID="29128316-b0c6-46eb-9a8e-8ff8cfbe4dc4" xmlns="Blackbaud.AppFx.WebService.API.1"><Sql>select  distinct 	[V_QUERY_CONSTITUENT].[LOOKUPID] as [uid],
+2025-09-09T20:31:27.024357+00:00 app[web.1]: 	[V_QUERY_CONSTITUENT].[NAME] as [name],
+2025-09-09T20:31:27.024358+00:00 app[web.1]: 	[V_QUERY_CONSTITUENT\ DAR\Email Addresses].[PrimaryEmail] as [email],
+2025-09-09T20:31:27.024358+00:00 app[web.1]: 	[V_QUERY_CONSTITUENT].[FIRSTNAME] as [first_name],
+2025-09-09T20:31:27.024359+00:00 app[web.1]: 	[V_QUERY_CONSTITUENT].[KEYNAME] as [last_name],
+2025-09-09T20:31:27.024359+00:00 app[web.1]: 	[V_QUERY_CONSTITUENT].[ID] as [guid],
+2025-09-09T20:31:27.024359+00:00 app[web.1]: [V_QUERY_CONSTITUENT].[ID] as [QUERYRECID]
+2025-09-09T20:31:27.024359+00:00 app[web.1]: from [dbo].[V_QUERY_CONSTITUENT] as [V_QUERY_CONSTITUENT]
+2025-09-09T20:31:27.024361+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_DAR_NODE] as [V_QUERY_CONSTITUENT\ DAR] on [V_QUERY_CONSTITUENT].[ID] = [V_QUERY_CONSTITUENT\ DAR].[ID]
+2025-09-09T20:31:27.024362+00:00 app[web.1]: left outer join [dbo].[USR_V_QUERY_EMAILS_NODE] as [V_QUERY_CONSTITUENT\ DAR\Email Addresses] on [V_QUERY_CONSTITUENT\ DAR].[ID] = [V_QUERY_CONSTITUENT\ DAR\Email Addresses].[ID]
+2025-09-09T20:31:27.024374+00:00 app[web.1]: where [V_QUERY_CONSTITUENT].[LOOKUPID] = N'U029480520'
+2025-09-09T20:31:27.024375+00:00 app[web.1]: 
+2025-09-09T20:31:27.024377+00:00 app[web.1]: </Sql><Output RowCount="1" LastUpdated="0001-01-01T00:00:00"><Fields><f Name="uid" FieldID="LOOKUPID" UniqueName="V_QUERY_CONSTITUENT\LOOKUPID" /><f Name="name" FieldID="NAME" UniqueName="V_QUERY_CONSTITUENT\NAME" /><f Name="email" DataType="EmailAddress" FieldID="PrimaryEmail" UniqueName="V_QUERY_CONSTITUENT\ DAR\Email Addresses\PrimaryEmail" /><f Name="first_name" FieldID="FIRSTNAME" UniqueName="V_QUERY_CONSTITUENT\FIRSTNAME" /><f Name="last_name" FieldID="KEYNAME" UniqueName="V_QUERY_CONSTITUENT\KEYNAME" /><f Name="guid" DataType="Guid" FieldID="ID" UniqueName="V_QUERY_CONSTITUENT\ID" /><f Name="QUERYRECID" DataType="Guid" IsPrimaryKey="true" FieldID="QUERYRECID" /></Fields><Rows><r><Values><v>U029480520</v><v>Elly A. Sirotta</v><v>elsirt@gmail.com</v><v>Elly</v><v>Sirotta</v><v>34e0c896-76b2-4041-b035-6591356ca1ad</v><v>34e0c896-76b2-4041-b035-6591356ca1ad</v></Values></r></Rows></Output><HasEncryptedFields>false</HasEncryptedFields><MartKey /><QueryWasCancelled>false</QueryWasCancelled></AdHocQueryProcessReply></soap:Body></soap:Envelope>
+2025-09-09T20:31:27.024775+00:00 app[web.1]: ✅ BUID SEARCH (PRODUCTION): Found user: {
+2025-09-09T20:31:27.024776+00:00 app[web.1]:   uid: 'U029480520',
+2025-09-09T20:31:27.024777+00:00 app[web.1]:   name: 'Elly A. Sirotta',
+2025-09-09T20:31:27.024777+00:00 app[web.1]:   email: 'elsirt@gmail.com'
+2025-09-09T20:31:27.024777+00:00 app[web.1]: }
+2025-09-09T20:31:27.025397+00:00 app[web.1]: [production] GET /api/users/search/U029480520 304 in 6052ms :: {"uid":"U029480520","name":"E…
+2025-09-09T20:31:36.861496+00:00 heroku[router]: at=info method=PATCH path="/api/user/profile" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=d76f2a0a-d604-ee17-97b6-9a8e3be0118c fwd="73.253.249.113" dyno=web.1 connect=0ms service=12ms status=200 bytes=193 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:36.892222+00:00 heroku[router]: at=info method=GET path="/api/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=81a95433-20e0-cfda-a7ca-f5555af99036 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:36.899882+00:00 heroku[router]: at=info method=GET path="/api/auth/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=7d037f01-b314-aee3-5225-14797535a857 fwd="73.253.249.113" dyno=web.1 connect=1ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:36.986852+00:00 heroku[router]: at=info method=GET path="/api/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=7337e87c-7c88-8450-c6d9-d110b20f0712 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:36.860064+00:00 app[web.1]: 👤 User profile updated: {
+2025-09-09T20:31:36.860096+00:00 app[web.1]:   changes: [
+2025-09-09T20:31:36.860097+00:00 app[web.1]:     'firstName',
+2025-09-09T20:31:36.860098+00:00 app[web.1]:     'lastName',
+2025-09-09T20:31:36.860098+00:00 app[web.1]:     'email',
+2025-09-09T20:31:36.860098+00:00 app[web.1]:     'buid',
+2025-09-09T20:31:36.860099+00:00 app[web.1]:     'bbecGuid',
+2025-09-09T20:31:36.860099+00:00 app[web.1]:     'bbecUsername',
+2025-09-09T20:31:36.860099+00:00 app[web.1]:     'bbecPassword'
+2025-09-09T20:31:36.860100+00:00 app[web.1]:   ]
+2025-09-09T20:31:36.860100+00:00 app[web.1]: }
+2025-09-09T20:31:36.864132+00:00 app[web.1]: [production] PATCH /api/user/profile 200 in 3ms :: {"id":"42195145","email":"elsirt@gmail.co…
+2025-09-09T20:31:36.892145+00:00 app[web.1]: [production] GET /api/user 304 in 1ms :: {"id":"42195145","email":"elsirt@gmail.com","firstN…
+2025-09-09T20:31:36.899890+00:00 app[web.1]: [production] GET /api/auth/user 304 in 1ms :: {"id":"42195145","email":"elsirt@gmail.com","f…
+2025-09-09T20:31:36.986916+00:00 app[web.1]: [production] GET /api/user 304 in 0ms :: {"id":"42195145","email":"elsirt@gmail.com","firstN…
+2025-09-09T20:31:44.227537+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=668bd75d-b8b3-e22b-409a-41dd4e5b47aa fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:31:44.227592+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
