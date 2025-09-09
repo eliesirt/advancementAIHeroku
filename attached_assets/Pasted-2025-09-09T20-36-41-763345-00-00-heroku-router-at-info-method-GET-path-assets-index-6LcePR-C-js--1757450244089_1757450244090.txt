@@ -1,0 +1,39 @@
+2025-09-09T20:36:41.763345+00:00 heroku[router]: at=info method=GET path="/assets/index-6LcePR-C.js" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=1f44aff4-1f92-f6ef-d8fd-02684aa007c3 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.763526+00:00 heroku[router]: at=info method=GET path="/assets/index-BcsWWjV7.css" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=a8b310aa-76e8-e612-480d-582642f1bc9a fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.816520+00:00 heroku[router]: at=info method=GET path="/favicon.ico" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=8cbce63d-3551-96f8-8ddd-a395312974ab fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.800116+00:00 heroku[router]: at=info method=GET path="/api/auth/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=acb91fd8-1429-4458-6234-d225e507a2b2 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.845764+00:00 heroku[router]: at=info method=GET path="/bu-logo.svg" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=2dd08e04-1eae-8858-8440-2792395de65d fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.853526+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=3362cf60-f394-e7cf-1160-6414075be96b fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.855384+00:00 heroku[router]: at=info method=GET path="/api/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=4dfd817c-aac9-71a1-4eaa-75ff4b71355e fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.891338+00:00 heroku[router]: at=info method=GET path="/api/ai-prompt-settings" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=14301a59-4189-103c-4438-5c0983f0db08 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=404 bytes=33 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.873668+00:00 heroku[router]: at=info method=GET path="/api/bbec/form-metadata" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=00e1cb7b-5d95-8d66-a5f9-90bafbe610e8 fwd="73.253.249.113" dyno=web.1 connect=0ms service=18ms status=500 bytes=107 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:42.032691+00:00 heroku[router]: at=info method=GET path="/api/settings/ai-model-preference" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=1dbfd942-64bb-ce72-dbe3-fedb1c3c7eb5 fwd="73.253.249.113" dyno=web.1 connect=0ms service=160ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:42.036559+00:00 heroku[router]: at=info method=GET path="/api/affinity-tags" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=39c14682-7b58-f6e6-a296-9dfe4dbacdbb fwd="73.253.249.113" dyno=web.1 connect=0ms service=176ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:41.799931+00:00 app[web.1]: [production] GET /api/auth/user 304 in 1ms :: {"id":"42195145","email":"elsirt@gmail.com","f…
+2025-09-09T20:36:41.815783+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /favicon.ico
+2025-09-09T20:36:41.853488+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
+2025-09-09T20:36:41.855206+00:00 app[web.1]: [production] GET /api/user 304 in 1ms :: {"id":"42195145","email":"elsirt@gmail.com","firstN…
+2025-09-09T20:36:41.855960+00:00 app[web.1]: 📋 [PRODUCTION] Getting BBEC form metadata for connection status
+2025-09-09T20:36:41.856537+00:00 app[web.1]: 🔄 Creating BBEC client instance...
+2025-09-09T20:36:41.856553+00:00 app[web.1]: 🔄 BBEC initialization attempt 1/5 (Heroku)
+2025-09-09T20:36:41.856560+00:00 app[web.1]: 🔄 Setting BBEC credentials...
+2025-09-09T20:36:41.856572+00:00 app[web.1]: 🚀 Detected Heroku environment - using enhanced credential loading
+2025-09-09T20:36:41.856658+00:00 app[web.1]: ⚠️ BBEC credentials loaded from environment (fallback): {
+2025-09-09T20:36:41.856658+00:00 app[web.1]:   hasAuth: true,
+2025-09-09T20:36:41.856659+00:00 app[web.1]:   authLength: 40,
+2025-09-09T20:36:41.856659+00:00 app[web.1]:   hasUsername: false,
+2025-09-09T20:36:41.856659+00:00 app[web.1]:   hasPassword: false,
+2025-09-09T20:36:41.856659+00:00 app[web.1]:   environment: 'Heroku'
+2025-09-09T20:36:41.856660+00:00 app[web.1]: }
+2025-09-09T20:36:41.856673+00:00 app[web.1]: 🌐 Connecting to BBEC WSDL: https://crm30656d.sky.blackbaud.com/30656d/Appfxwebservice.asmx?WSDL
+2025-09-09T20:36:41.858205+00:00 app[web.1]: ✅ BBEC SOAP client initialized successfully
+2025-09-09T20:36:41.858223+00:00 app[web.1]: ✅ BBEC client created and initialized
+2025-09-09T20:36:41.872831+00:00 app[web.1]: ❌ [PRODUCTION] BBEC form metadata failed: TypeError: bbecClient.getInteractionFormMetadata is not a function
+2025-09-09T20:36:41.872832+00:00 app[web.1]:     at <anonymous> (/app/server/index.ts:1779:43)
+2025-09-09T20:36:41.872833+00:00 app[web.1]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-09-09T20:36:41.873458+00:00 app[web.1]: [production] GET /api/bbec/form-metadata 500 in 18ms :: {"message":"Failed to get form metad…
+2025-09-09T20:36:41.891135+00:00 app[web.1]: [production] GET /api/ai-prompt-settings 404 in 1ms :: {"message":"API route not found"}
+2025-09-09T20:36:42.032441+00:00 app[web.1]: [production] GET /api/settings/ai-model-preference 304 in 159ms :: {"value":"gpt-5","descrip…
+2025-09-09T20:36:42.036738+00:00 app[web.1]: [production] GET /api/affinity-tags 304 in 161ms :: [{"id":2759,"name":"Academic Speech, Lan…
+2025-09-09T20:36:42.055366+00:00 heroku[router]: at=info method=GET path="/api/affinity-tags/info" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=1373991c-e9c7-a023-ed6d-8f9e47adff97 fwd="73.253.249.113" dyno=web.1 connect=0ms service=198ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-09T20:36:42.055250+00:00 app[web.1]: [production] GET /api/affinity-tags/info 304 in 181ms :: {"total":248,"totalTags":248,"lastR…

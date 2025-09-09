@@ -197,18 +197,74 @@ app.get('/health', (req, res) => {
     });
     
     // Immediate auth status route  
-    app.get("/api/auth/user", (req: any, res) => {
-      if (!req.session.user) {
-        req.session.user = HEROKU_ADMIN_USER;
+    app.get("/api/auth/user", async (req: any, res) => {
+      try {
+        if (!req.session.user) {
+          req.session.user = HEROKU_ADMIN_USER;
+        }
+        
+        // Fetch fresh user data from database instead of using cached session data
+        const userId = req.session.user.id;
+        const freshUser = await storage.getUser(userId);
+        
+        if (freshUser) {
+          // Update session with fresh data
+          req.session.user = {
+            ...req.session.user,
+            firstName: freshUser.firstName,
+            lastName: freshUser.lastName,
+            email: freshUser.email,
+            buid: freshUser.buid,
+            bbecGuid: freshUser.bbecGuid,
+            bbecUsername: freshUser.bbecUsername,
+            bbecPassword: freshUser.bbecPassword
+          };
+          
+          console.log("🔄 [HEROKU AUTH] Fresh user data loaded from database:", {
+            id: freshUser.id,
+            firstName: freshUser.firstName,
+            lastName: freshUser.lastName,
+            buid: freshUser.buid,
+            bbecGuid: freshUser.bbecGuid,
+            hasUsername: !!freshUser.bbecUsername,
+            hasPassword: !!freshUser.bbecPassword
+          });
+          
+          res.json({
+            id: freshUser.id,
+            email: freshUser.email,
+            firstName: freshUser.firstName,
+            lastName: freshUser.lastName,
+            buid: freshUser.buid,
+            bbecGuid: freshUser.bbecGuid,
+            bbecUsername: freshUser.bbecUsername,
+            bbecPassword: freshUser.bbecPassword,
+            profileImageUrl: freshUser.profileImageUrl || req.session.user.profileImageUrl,
+            roles: [{ name: "Administrator" }] // Mock admin role
+          });
+        } else {
+          // Fallback to session data if user not found in database
+          res.json({
+            id: req.session.user.id,
+            email: req.session.user.email,
+            firstName: req.session.user.firstName,
+            lastName: req.session.user.lastName,
+            profileImageUrl: req.session.user.profileImageUrl,
+            roles: [{ name: "Administrator" }] // Mock admin role
+          });
+        }
+      } catch (error) {
+        console.error("❌ [HEROKU AUTH] Error fetching fresh user data:", error);
+        // Fallback to session data on error
+        res.json({
+          id: req.session.user.id,
+          email: req.session.user.email,
+          firstName: req.session.user.firstName,
+          lastName: req.session.user.lastName,
+          profileImageUrl: req.session.user.profileImageUrl,
+          roles: [{ name: "Administrator" }] // Mock admin role
+        });
       }
-      res.json({
-        id: req.session.user.id,
-        email: req.session.user.email,
-        firstName: req.session.user.firstName,
-        lastName: req.session.user.lastName,
-        profileImageUrl: req.session.user.profileImageUrl,
-        roles: [{ name: "Administrator" }] // Mock admin role
-      });
     });
     
     // Immediate applications endpoint (matches real seed data)
