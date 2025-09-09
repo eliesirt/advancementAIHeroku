@@ -154,6 +154,9 @@ app.get('/health', (req, res) => {
     // HEROKU FAST STARTUP MODE
     console.log("🚀 HEROKU: Using ultra-fast startup mode...");
     
+    // Import storage for user data access
+    const { storage } = await import("./storage");
+    
     // Initialize fallbacks immediately for static serving
     await setupFallbacks();
     
