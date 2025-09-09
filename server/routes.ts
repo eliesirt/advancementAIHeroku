@@ -1972,13 +1972,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const updatedUser = await storage.updateUser(userId, updateData);
 
         console.log("✅ PROFILE UPDATE: Successfully updated user profile");
-        console.log("📝 PROFILE UPDATE: Updated user BBEC fields:", {
+        console.log("📝 PROFILE UPDATE: Updated user data:", {
+          id: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          buid: updatedUser.buid,
           bbecGuid: updatedUser.bbecGuid,
           bbecUsername: updatedUser.bbecUsername,
           hasPassword: !!updatedUser.bbecPassword
         });
 
-        res.json(updatedUser);
+        // Ensure we return a complete user object with all required fields
+        const completeUser = {
+          ...updatedUser,
+          // Ensure critical fields are present
+          firstName: updatedUser.firstName || updateData.firstName || '',
+          lastName: updatedUser.lastName || updateData.lastName || '',
+          buid: updatedUser.buid || updateData.buid || '',
+          bbecGuid: updatedUser.bbecGuid || updateData.bbecGuid || null
+        };
+
+        console.log("📝 PROFILE UPDATE: Returning complete user:", {
+          id: completeUser.id,
+          firstName: completeUser.firstName,
+          lastName: completeUser.lastName,
+          buid: completeUser.buid,
+          bbecGuid: completeUser.bbecGuid
+        });
+
+        res.json(completeUser);
       } catch (updateError) {
         console.error("📝 PROFILE UPDATE ERROR:", updateError);
         console.error("📝 PROFILE UPDATE ERROR Stack:", (updateError as Error).stack);

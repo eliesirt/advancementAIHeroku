@@ -761,16 +761,31 @@ class BBECSOAPClient {
       }
 
       // Extract the interaction ID from the submission response
-      const idMatch = soapResponse.match(/<GUID>([^<]+)<\/GUID>/);
-      if (!idMatch && soapResponse.includes('<GUID>')) {
-        // Fallback for multiline GUID extraction
+      // Check for <ID> tags first (DataFormSaveReply format)
+      const idMatch = soapResponse.match(/<ID>([^<]+)<\/ID>/);
+      if (idMatch) {
+        const interactionId = idMatch[1].trim();
+        console.log('✅ BBEC interaction ID extracted (ID tag):', interactionId);
+        return interactionId;
+      }
+
+      // Check for <GUID> tags (alternative format)
+      const guidMatch = soapResponse.match(/<GUID>([^<]+)<\/GUID>/);
+      if (guidMatch) {
+        const guid = guidMatch[1].trim();
+        console.log('✅ BBEC interaction ID extracted (GUID tag):', guid);
+        return guid;
+      }
+
+      // Fallback for multiline GUID extraction
+      if (soapResponse.includes('<GUID>')) {
         const lines = soapResponse.split('\n');
         for (const line of lines) {
           if (line.includes('<GUID>') && line.includes('</GUID>')) {
             const singleLineMatch = line.match(/<GUID>([^<]+)<\/GUID>/);
             if (singleLineMatch) {
               const guid = singleLineMatch[1].trim();
-              console.log('✅ BBEC interaction ID extracted:', guid);
+              console.log('✅ BBEC interaction ID extracted (multiline GUID):', guid);
               return guid;
             }
           }
@@ -778,12 +793,7 @@ class BBECSOAPClient {
       }
 
       const recordIdMatch = soapResponse.match(/<RecordID[^>]*>(.*?)<\/RecordID>/);
-
-      if (idMatch) {
-        const guid = idMatch[1].trim();
-        console.log('✅ BBEC interaction ID extracted:', guid);
-        return guid;
-      } else if (recordIdMatch) {
+      if (recordIdMatch) {
         const recordId = recordIdMatch[1].trim();
         console.log('✅ BBEC record ID extracted:', recordId);
         return recordId;
