@@ -957,9 +957,13 @@ export class DatabaseStorage implements IStorage {
     console.log("🔄 DATABASE UPDATE: User ID:", id);
 
     try {
+      // Use Drizzle's update method with proper field mapping
       const [user] = await db
         .update(users)
-        .set({ ...cleanUpdates, updatedAt: new Date() })
+        .set({ 
+          ...cleanUpdates, 
+          updatedAt: new Date() 
+        })
         .where(eq(users.id, id))
         .returning();
       
@@ -967,20 +971,33 @@ export class DatabaseStorage implements IStorage {
         throw new Error('User not found or update failed');
       }
       
+      console.log("✅ DATABASE UPDATE: Successfully updated user:", {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        buid: user.buid,
+        bbecGuid: user.bbecGuid,
+        hasUsername: !!user.bbecUsername,
+        hasPassword: !!user.bbecPassword
+      });
+      
       return user;
     } catch (error) {
-      // Handle case where BBEC columns don't exist in production
+      console.error("❌ DATABASE UPDATE ERROR:", error);
+      console.error("❌ DATABASE UPDATE ERROR Details:", {
+        userId: id,
+        updateFields: Object.keys(cleanUpdates),
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      // Handle case where BBEC columns might still cause issues
       if (error instanceof Error && (
         error.message.includes('bbec_username') || 
         error.message.includes('bbec_password') ||
         (error.message.includes('column') && error.message.includes('does not exist'))
       )) {
-        console.log("⚠️ BBEC columns not found in database, updating without BBEC credentials");
+        console.log("⚠️ BBEC columns issue detected, trying fallback update");
         console.log("⚠️ Original error:", error.message);
-        console.log("⚠️ Original cleanUpdates had BBEC fields:", {
-          hadUsername: 'bbecUsername' in cleanUpdates,
-          hadPassword: 'bbecPassword' in cleanUpdates
-        });
         
         // Remove BBEC fields and try again
         const fallbackUpdates = { ...cleanUpdates };
@@ -989,19 +1006,23 @@ export class DatabaseStorage implements IStorage {
         
         console.log("🔄 FALLBACK UPDATE: Retrying without BBEC fields:", fallbackUpdates);
         
-        const [user] = await db
-          .update(users)
-          .set({ ...fallbackUpdates, updatedAt: new Date() })
-          .where(eq(users.id, id))
-          .returning();
+        try {
+          const [user] = await db
+            .update(users)
+            .set({ ...fallbackUpdates, updatedAt: new Date() })
+            .where(eq(users.id, id))
+            .returning();
 
-        if (!user) {
-          throw new Error('User not found or update failed');
+          if (!user) {
+            throw new Error('User not found or fallback update failed');
+          }
+
+          console.log("⚠️ Profile updated with fallback (no BBEC credentials saved)");
+          return user;
+        } catch (fallbackError) {
+          console.error("❌ FALLBACK UPDATE ALSO FAILED:", fallbackError);
+          throw fallbackError;
         }
-
-        // Log warning about missing BBEC functionality
-        console.log("⚠️ Profile updated but BBEC credentials not saved - database migration needed");
-        return user;
       }
       
       // Re-throw other errors
