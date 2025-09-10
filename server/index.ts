@@ -2043,26 +2043,7 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // BBEC/CRM integration endpoints
-    app.post("/api/interactions/:id/submit-bbec", async (req: any, res) => {
-      try {
-        const id = req.params.id;
-        
-        const submissionResult = {
-          success: true,
-          bbecId: `BBEC-${Date.now()}`,
-          message: "Interaction successfully submitted to Blackbaud CRM",
-          submittedAt: new Date().toISOString()
-        };
-
-        console.log("📤 Interaction submitted to BBEC:", { id });
-        res.json(submissionResult);
-        
-      } catch (error) {
-        console.error('BBEC submission error:', error);
-        res.status(500).json({ message: "Failed to submit to BBEC", error: (error as Error).message });
-      }
-    });
+    // BBEC/CRM integration endpoints - REMOVED MOCK VERSION, USING REAL ONE BELOW
 
     app.get("/api/constituents/search", async (req: any, res) => {
       try {
