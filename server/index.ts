@@ -1071,7 +1071,7 @@ app.get('/health', (req, res) => {
         console.log("🔄 [HEROKU PRODUCTION] Fetching user data from database:", userId);
         
         // Fetch real user data from database
-        const user = await storage.getUserById(userId);
+        const user = await storage.getUser(userId);
         
         if (!user) {
           console.error("❌ [HEROKU PRODUCTION] User not found in database:", userId);
