@@ -1064,16 +1064,51 @@ app.get('/health', (req, res) => {
       }
     });
 
-    app.get("/api/user", (req: any, res) => {
-      res.json({
-        id: "42195145",
-        email: "elsirt@gmail.com",
-        firstName: "Administrator",
-        lastName: "User",
-        fullName: "Administrator User",
-        buid: "ADMIN001",
-        bbecGuid: "ADMIN-GUID-001"
-      });
+    app.get("/api/user", async (req: any, res) => {
+      try {
+        const userId = "42195145"; // Heroku admin user ID
+        
+        console.log("🔄 [HEROKU PRODUCTION] Fetching user data from database:", userId);
+        
+        // Fetch real user data from database
+        const user = await storage.getUserById(userId);
+        
+        if (!user) {
+          console.error("❌ [HEROKU PRODUCTION] User not found in database:", userId);
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        console.log("✅ [HEROKU PRODUCTION] User data loaded from database:", {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          buid: user.buid,
+          bbecGuid: user.bbecGuid,
+          hasUsername: !!user.bbecUsername,
+          hasPassword: !!user.bbecPassword
+        });
+
+        // Return real database data
+        res.json({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          fullName: `${user.firstName} ${user.lastName}`,
+          buid: user.buid,
+          bbecGuid: user.bbecGuid,
+          bbecUsername: user.bbecUsername,
+          bbecPassword: user.bbecPassword,
+          updatedAt: user.updatedAt
+        });
+        
+      } catch (error) {
+        console.error('❌ [HEROKU PRODUCTION] Failed to fetch user data:', error);
+        res.status(500).json({ 
+          message: "Failed to fetch user data", 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
     });
 
     // GET interactions endpoints - using real database
