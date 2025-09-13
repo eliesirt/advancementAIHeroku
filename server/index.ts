@@ -2189,6 +2189,139 @@ app.get('/health', (req, res) => {
 
     console.log("✅ AI Jobs async processing routes added to production server");
 
+    // Portfolio Refresh API endpoints
+    console.log("📁 Setting up portfolio refresh endpoints...");
+    
+    // Single prospect refresh endpoint with 202 Accepted pattern
+    app.post('/api/portfolio/refresh/:prospectId', async (req: any, res) => {
+      try {
+        const { prospectId } = req.params;
+        
+        console.log(`🔄 [Portfolio] Refresh initiated for prospect ID: ${prospectId}`);
+        
+        // 1. Send immediate 202 Accepted response to client
+        res.status(202).json({ 
+          message: 'Refresh process initiated for prospect.',
+          prospectId,
+          timestamp: new Date().toISOString()
+        });
+        
+        // 2. Execute background tasks (fire and forget)
+        console.log(`🔥 [Portfolio] Starting background data fetch for prospect: ${prospectId}`);
+        
+        // Import and execute BBEC service functions without awaiting
+        const bbecService = await import('./services/bbecDataService.js');
+        
+        // Execute all four data fetching operations in background
+        bbecService.fetchInteractions(prospectId).catch(error => 
+          console.error(`❌ [Portfolio] Interactions fetch failed for ${prospectId}:`, error)
+        );
+        
+        bbecService.fetchDonationSummary(prospectId).catch(error => 
+          console.error(`❌ [Portfolio] Donation summary fetch failed for ${prospectId}:`, error)
+        );
+        
+        bbecService.fetchResearchNotes(prospectId).catch(error => 
+          console.error(`❌ [Portfolio] Research notes fetch failed for ${prospectId}:`, error)
+        );
+        
+        bbecService.fetchSolicitationPlans(prospectId).catch(error => 
+          console.error(`❌ [Portfolio] Solicitation plans fetch failed for ${prospectId}:`, error)
+        );
+        
+        console.log(`✅ [Portfolio] Background tasks initiated for prospect: ${prospectId}`);
+        
+      } catch (error) {
+        console.error('❌ [Portfolio] Refresh endpoint error:', error);
+        res.status(500).json({ 
+          message: 'Failed to initiate refresh process', 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
+
+    // Mock endpoints for existing portfolio functionality compatibility
+    app.get('/api/prospects', async (req: any, res) => {
+      try {
+        // Return mock prospect data for now - TODO: Replace with real database calls
+        console.log('📋 [Portfolio] Fetching prospects list');
+        res.json([
+          {
+            id: 1,
+            fullName: "John Smith",
+            email: "john.smith@example.com",
+            employer: "Tech Corp",
+            occupation: "CEO",
+            prospectRating: "Leadership",
+            lifetimeGiving: 50000,
+            lastContactDate: "2024-01-15",
+            stage: "Cultivation",
+            spouse: "Jane Smith",
+            badges: [],
+            aiSummary: null,
+            aiNextActions: null
+          },
+          {
+            id: 2,
+            fullName: "Emily Johnson",
+            email: "emily.johnson@example.com",
+            employer: "University Hospital",
+            occupation: "Surgeon",
+            prospectRating: "Principal",
+            lifetimeGiving: 25000,
+            lastContactDate: "2024-02-20",
+            stage: "Solicitation",
+            spouse: null,
+            badges: [],
+            aiSummary: null,
+            aiNextActions: null
+          }
+        ]);
+      } catch (error) {
+        console.error('❌ [Portfolio] Error fetching prospects:', error);
+        res.status(500).json({ 
+          message: 'Failed to fetch prospects', 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
+
+    app.post('/api/prospects/refresh-all', async (req: any, res) => {
+      try {
+        console.log('🔄 [Portfolio] Refresh all prospects initiated');
+        res.status(202).json({ 
+          message: 'Refresh process initiated for all prospects.',
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('❌ [Portfolio] Refresh all error:', error);
+        res.status(500).json({ 
+          message: 'Failed to initiate refresh all process', 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
+
+    app.post('/api/prospects/:id/refresh', async (req: any, res) => {
+      try {
+        const prospectId = req.params.id;
+        console.log(`🔄 [Portfolio] Individual prospect refresh for ID: ${prospectId}`);
+        res.status(202).json({ 
+          message: 'Refresh process initiated for prospect.',
+          prospectId,
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('❌ [Portfolio] Individual refresh error:', error);
+        res.status(500).json({ 
+          message: 'Failed to initiate refresh process', 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
+
+    console.log("📁 Portfolio refresh endpoints configured successfully");
+
     console.log("✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately");
     
     // CRITICAL: Add Google Places API routes immediately in production
