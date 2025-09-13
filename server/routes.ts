@@ -2812,6 +2812,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Portfolio Refresh API - Fire and forget pattern with 202 Accepted
+  app.post('/api/portfolio/refresh/:prospectId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prospectId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      console.log(`🔄 [Portfolio Routes] Refresh initiated for prospect ID: ${prospectId} by user: ${userId}`);
+      
+      // 1. Send immediate 202 Accepted response (fire-and-forget pattern)
+      res.status(202).json({ 
+        message: 'Refresh process initiated for prospect.',
+        prospectId,
+        timestamp: new Date().toISOString(),
+        status: 'processing'
+      });
+      
+      // 2. Execute background BBEC data fetch operations without awaiting
+      console.log(`🔥 [Portfolio Routes] Starting background data fetch for prospect: ${prospectId}`);
+      
+      // Import BBEC service and execute all four data fetching operations in background
+      const bbecService = await import('./services/bbecDataService.js');
+      
+      // Fire all four operations simultaneously in the background
+      Promise.allSettled([
+        bbecService.fetchInteractions(prospectId),
+        bbecService.fetchDonationSummary(prospectId),
+        bbecService.fetchResearchNotes(prospectId),
+        bbecService.fetchSolicitationPlans(prospectId)
+      ]).then((results) => {
+        console.log(`✅ [Portfolio Routes] Background processing completed for prospect ${prospectId}`);
+        results.forEach((result, index) => {
+          const operations = ['fetchInteractions', 'fetchDonationSummary', 'fetchResearchNotes', 'fetchSolicitationPlans'];
+          if (result.status === 'rejected') {
+            console.error(`❌ [Portfolio Routes] ${operations[index]} failed for ${prospectId}:`, result.reason);
+          } else {
+            console.log(`✅ [Portfolio Routes] ${operations[index]} completed for ${prospectId}`);
+          }
+        });
+      }).catch((error) => {
+        console.error(`❌ [Portfolio Routes] Critical error in background processing for ${prospectId}:`, error);
+      });
+      
+      console.log(`✅ [Portfolio Routes] 202 response sent, background tasks initiated for prospect: ${prospectId}`);
+      
+    } catch (error) {
+      console.error('❌ [Portfolio Routes] Refresh endpoint error:', error);
+      res.status(500).json({ 
+        message: 'Failed to initiate refresh process', 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
   // Itinerary routes
   app.get('/api/itineraries', isAuthenticated, async (req: any, res) => {
     try {

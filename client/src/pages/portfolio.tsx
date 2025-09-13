@@ -24,6 +24,8 @@ export default function PortfolioPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiNextActionsLoading, setAiNextActionsLoading] = useState(false);
+  const [refreshingProspects, setRefreshingProspects] = useState<Set<number>>(new Set());
+  const [refreshingAll, setRefreshingAll] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -34,47 +36,85 @@ export default function PortfolioPage() {
     retry: false,
   });
 
-  // Refresh all prospects mutation
-  const refreshAllMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/prospects/refresh-all', 'POST');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/prospects'] });
+  // Refresh individual prospect with loading state
+  const refreshProspect = async (prospectId: number) => {
+    try {
+      setRefreshingProspects(prev => new Set(prev).add(prospectId));
+      
+      // Use the new portfolio refresh endpoint
+      const response = await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
+      
       toast({
-        title: "Success",
-        description: "All prospect data has been refreshed",
+        title: "Refresh Started",
+        description: `Data refresh initiated for prospect. This may take a few moments.`,
       });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error", 
-        description: "Failed to refresh prospect data",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Refresh single prospect mutation
-  const refreshProspectMutation = useMutation({
-    mutationFn: async (prospectId: number) => {
-      return apiRequest(`/api/prospects/${prospectId}/refresh`, 'POST');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/prospects'] });
-      toast({
-        title: "Success",
-        description: "Prospect data refreshed",
-      });
-    },
-    onError: () => {
+      
+      console.log(`🔄 Portfolio refresh response for ${prospectId}:`, response);
+    } catch (error) {
+      console.error(`❌ Portfolio refresh failed for ${prospectId}:`, error);
       toast({
         title: "Error",
-        description: "Failed to refresh prospect data", 
+        description: "Failed to start refresh process", 
         variant: "destructive",
       });
-    },
-  });
+    } finally {
+      // Remove loading state after a delay to show user that process started
+      setTimeout(() => {
+        setRefreshingProspects(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(prospectId);
+          return newSet;
+        });
+      }, 2000);
+    }
+  };
+
+  // Refresh all prospects with sequential processing
+  const refreshAllProspects = async () => {
+    try {
+      setRefreshingAll(true);
+      
+      const prospectIds = prospects.map(p => p.id);
+      console.log(`🔄 Starting sequential refresh for ${prospectIds.length} prospects`);
+      
+      // Process prospects one by one to prevent server overload
+      for (const prospectId of prospectIds) {
+        try {
+          setRefreshingProspects(prev => new Set(prev).add(prospectId));
+          
+          console.log(`🔄 Processing prospect ${prospectId}...`);
+          await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
+          
+          // Small delay between requests
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (error) {
+          console.error(`❌ Failed to refresh prospect ${prospectId}:`, error);
+        } finally {
+          setRefreshingProspects(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(prospectId);
+            return newSet;
+          });
+        }
+      }
+      
+      toast({
+        title: "Bulk Refresh Complete",
+        description: `Refresh process initiated for all ${prospectIds.length} prospects.`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Bulk refresh error:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to start bulk refresh process",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingAll(false);
+    }
+  };
 
   // Filtered and sorted prospects
   const filteredProspects = useMemo(() => {
@@ -271,12 +311,13 @@ export default function PortfolioPage() {
                     <span>Prospect Portfolio</span>
                   </CardTitle>
                   <Button 
-                    onClick={() => refreshAllMutation.mutate()}
-                    disabled={refreshAllMutation.isPending}
+                    onClick={() => refreshAllProspects()}
+                    disabled={refreshingAll}
                     className="bg-red-600 hover:bg-red-700"
+                    data-testid="button-refresh-all"
                   >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshAllMutation.isPending ? 'animate-spin' : ''}`} />
-                    Refresh All
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshingAll ? 'animate-spin' : ''}`} />
+                    {refreshingAll ? 'Refreshing...' : 'Refresh All'}
                   </Button>
                 </div>
                 
@@ -405,11 +446,12 @@ export default function PortfolioPage() {
                               variant="outline"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                refreshProspectMutation.mutate(prospect.id);
+                                refreshProspect(prospect.id);
                               }}
-                              disabled={refreshProspectMutation.isPending}
+                              disabled={refreshingProspects.has(prospect.id) || refreshingAll}
+                              data-testid={`button-refresh-${prospect.id}`}
                             >
-                              <RefreshCw className={`h-3 w-3 ${refreshProspectMutation.isPending ? 'animate-spin' : ''}`} />
+                              <RefreshCw className={`h-3 w-3 ${refreshingProspects.has(prospect.id) || refreshingAll ? 'animate-spin' : ''}`} />
                             </Button>
                           </TableCell>
                         </TableRow>
