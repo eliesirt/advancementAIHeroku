@@ -1,0 +1,81 @@
+"Enhance the portfolioAI feature by implementing end-to-end data refresh functionality. The frontend will manage all refresh orchestration. This involves adding UI buttons, creating a single backend API endpoint for individual prospect refreshes, and setting up placeholder service functions for future BBEC API integration. Ensure all code is compatible with both the Replit dev environment and the Heroku production deployment."
+
+Frontend Implementation (React/Vite)
+Locate the main component for the prospect list within the portfolioAI feature.
+
+Add an Individual "Refresh" Button to each prospect's row in the list.
+
+Use a compact icon button (e.g., a refresh/sync icon).
+
+When clicked, this button should trigger a POST request to a new /api/portfolio/refresh/:prospectId endpoint, using the unique ID for that prospect.
+
+Implement a row-specific loading state (e.g., replace the icon with a spinner) while its data is being refreshed.
+
+Add a "Refresh All Prospects" Button above the prospect list.
+
+When this button is clicked, it should perform a client-side iteration over all prospects currently displayed in the list.
+
+Logic:
+
+First, put the "Refresh All" button into a disabled/loading state.
+
+Get the array of all prospect IDs from the component's state.
+
+Using a sequential loop (e.g., a for...of loop), iterate through each prospectId.
+
+Inside the loop, await a POST request to the /api/portfolio/refresh/:prospectId endpoint for the current prospect. This ensures requests are sent one after another, preventing server overload.
+
+(Optional but recommended) As each prospect is being processed in the loop, trigger the row-specific loading state for that prospect's row.
+
+After the loop completes, deactivate the "Refresh All" button's loading state and display a confirmation message (e.g., a toast notification) like "All prospects have been queued for refresh."
+
+Backend Implementation (Express.js/TypeScript)
+Create a Single API Endpoint: In the main Express server file (server/index.ts or the relevant router file), define one new POST endpoint for refreshing a single prospect:
+
+Single Prospect Refresh: app.post('/api/portfolio/refresh/:prospectId', async (req, res) => { ... });
+
+Implement Endpoint Logic:
+
+This endpoint must be designed for asynchronous background processing. It should respond immediately to the client to avoid frontend timeouts while the data fetching happens in the background.
+
+Return a 202 Accepted status code with a simple JSON message like { message: 'Refresh process initiated for prospect.' }.
+
+After responding, trigger the four data-fetching operations for the prospectId received from the URL parameters.
+
+Create a Placeholder Service: To prepare for the actual BBEC integration, create a new service file: server/services/bbecDataService.ts.
+
+Inside this file, define and export four asynchronous placeholder functions. These functions will only contain console.log statements for now, simulating the future API calls for the four required data dimensions:
+
+TypeScript
+
+// server/services/bbecDataService.ts
+export const fetchInteractions = async (prospectId: string): Promise<any> => { /* ... */ };
+export const fetchDonationSummary = async (prospectId: string): Promise<any> => { /* ... */ };
+export const fetchResearchNotes = async (prospectId: string): Promise<any> => { /* ... */ };
+export const fetchSolicitationPlans = async (prospectId: string): Promise<any> => { /* ... */ };
+Integrate Service with Endpoint:
+
+In your Express endpoint, import and call these four placeholder service functions.
+
+Crucially, do not await these functions in the request handler. This ensures the immediate 202 response is sent to the client. The service functions will run in the background.
+
+TypeScript
+
+import * as bbecService from './services/bbecDataService';
+
+app.post('/api/portfolio/refresh/:prospectId', (req, res) => {
+  const { prospectId } = req.params;
+
+  // 1. Send immediate response to client
+  res.status(202).json({ message: 'Refresh process initiated.' });
+
+  // 2. Execute background tasks (fire and forget)
+  bbecService.fetchInteractions(prospectId);
+  bbecService.fetchDonationSummary(prospectId);
+  bbecService.fetchResearchNotes(prospectId);
+  bbecService.fetchSolicitationPlans(prospectId);
+});
+Heroku Compatibility & Startup
+Ensure the new bbecDataService.ts module is correctly imported into the server so it's included in the fast startup routine for the Heroku production environment.
+
+The new API endpoint must be defined within the existing Express app instance to be correctly served by Heroku's dynos.
