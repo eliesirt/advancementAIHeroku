@@ -33,7 +33,7 @@ export default function PortfolioPage() {
   // Sync prospects from BBEC mutation
   const syncProspectsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/prospects/sync-from-bbec', 'POST');
+      return await apiRequest('POST', '/api/prospects/sync-from-bbec');
     },
     onSuccess: (data) => {
       console.log('✅ [Portfolio] Prospects synced from BBEC:', data);
