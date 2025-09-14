@@ -1553,11 +1553,17 @@ export class DatabaseStorage implements IStorage {
     const prospectsData = await query.orderBy(desc(prospects.updatedAt));
 
     return Promise.all(prospectsData.map(async (prospect) => {
-      const [prospectManager, relationships, events, badges] = await Promise.all([
+      const [prospectManager, relationships, events, badges, bbecInteractionsCount] = await Promise.all([
         prospect.prospectManagerId ? this.getUser(prospect.prospectManagerId) : undefined,
         this.getProspectRelationships(prospect.id),
         this.getProspectEvents(prospect.id),
-        this.getProspectBadges(prospect.id)
+        this.getProspectBadges(prospect.id),
+        // Count BBEC interactions for this prospect using constituentGuid or bbecGuid
+        prospect.constituentGuid || prospect.bbecGuid ? 
+          db.select({ count: sql<number>`count(*)` })
+            .from(bbecInteractions)
+            .where(eq(bbecInteractions.constituentId, prospect.constituentGuid || prospect.bbecGuid!))
+            .then(result => result[0]?.count || 0) : 0
       ]);
 
       return {
@@ -1565,7 +1571,8 @@ export class DatabaseStorage implements IStorage {
         prospectManager: prospectManager,
         relationships,
         events,
-        badges
+        badges,
+        totalInteractions: bbecInteractionsCount
       };
     }));
   }
