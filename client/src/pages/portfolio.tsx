@@ -24,11 +24,19 @@ export default function PortfolioPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiNextActionsLoading, setAiNextActionsLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiNextActions, setAiNextActions] = useState<string | null>(null);
   const [refreshingProspects, setRefreshingProspects] = useState<Set<number>>(new Set());
   const [refreshingAll, setRefreshingAll] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Clear AI results when prospect changes
+  useEffect(() => {
+    setAiSummary(null);
+    setAiNextActions(null);
+  }, [selectedProspect]);
 
   // Sync prospects from BBEC mutation
   const syncProspectsMutation = useMutation({
@@ -642,15 +650,45 @@ export default function PortfolioPage() {
                         </div>
                       )}
 
-                      {selectedProspect.aiSummary ? (
-                        <div>
+                      {aiSummary ? (
+                        <div data-testid="ai-summary-result">
                           <p className="text-gray-500 text-sm mb-2">AI Summary</p>
-                          <p className="text-sm leading-relaxed">{selectedProspect.aiSummary}</p>
+                          <p className="text-sm leading-relaxed">{aiSummary}</p>
                         </div>
                       ) : (
                         <Button 
                           className="w-full mt-4 bg-red-600 hover:bg-red-700"
                           disabled={aiSummaryLoading}
+                          data-testid="button-generate-ai-summary"
+                          onClick={async () => {
+                            if (!selectedProspect) return;
+                            
+                            setAiSummaryLoading(true);
+                            try {
+                              const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-summary`);
+                              
+                              // Validate response structure
+                              if (!response || typeof response.summary !== 'string') {
+                                throw new Error('Invalid response format from AI service');
+                              }
+                              
+                              setAiSummary(response.summary);
+                              toast({
+                                title: "AI Summary Generated",
+                                description: "The prospect summary has been generated successfully.",
+                              });
+                            } catch (error: any) {
+                              console.error('Failed to generate AI summary:', error);
+                              const errorMessage = error?.message || 'Failed to generate AI summary. Please try again.';
+                              toast({
+                                title: "Error",
+                                description: errorMessage,
+                                variant: "destructive",
+                              });
+                            } finally {
+                              setAiSummaryLoading(false);
+                            }
+                          }}
                         >
                           {aiSummaryLoading ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
@@ -673,10 +711,10 @@ export default function PortfolioPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    {selectedProspect.aiNextActions ? (
-                      <div className="prose prose-sm">
+                    {aiNextActions ? (
+                      <div className="prose prose-sm" data-testid="ai-next-actions-result">
                         <div className="whitespace-pre-line text-sm leading-relaxed">
-                          {selectedProspect.aiNextActions}
+                          {aiNextActions}
                         </div>
                       </div>
                     ) : (
@@ -685,6 +723,36 @@ export default function PortfolioPage() {
                         <Button 
                           className="bg-red-600 hover:bg-red-700"
                           disabled={aiNextActionsLoading}
+                          data-testid="button-generate-next-actions"
+                          onClick={async () => {
+                            if (!selectedProspect) return;
+                            
+                            setAiNextActionsLoading(true);
+                            try {
+                              const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-next-actions`);
+                              
+                              // Validate response structure
+                              if (!response || typeof response.nextActions !== 'string') {
+                                throw new Error('Invalid response format from AI service');
+                              }
+                              
+                              setAiNextActions(response.nextActions);
+                              toast({
+                                title: "Next Actions Generated",
+                                description: "AI-powered next actions have been generated successfully.",
+                              });
+                            } catch (error: any) {
+                              console.error('Failed to generate next actions:', error);
+                              const errorMessage = error?.message || 'Failed to generate next actions. Please try again.';
+                              toast({
+                                title: "Error", 
+                                description: errorMessage,
+                                variant: "destructive",
+                              });
+                            } finally {
+                              setAiNextActionsLoading(false);
+                            }
+                          }}
                         >
                           {aiNextActionsLoading ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />

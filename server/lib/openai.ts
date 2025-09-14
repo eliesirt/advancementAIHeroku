@@ -5,10 +5,14 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// Using GPT-4o for stability - GPT-5 may require different API endpoints
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR
 });
+
+if (!openai.apiKey || openai.apiKey === "default_key") {
+  throw new Error("OPENAI_API_KEY environment variable is required");
+}
 
 export interface ExtractedInteractionInfo {
   prospectName?: string;
@@ -130,7 +134,7 @@ Important: Leave suggestedAffinityTags as an empty array. The system will match 
 `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -171,7 +175,7 @@ Important: Leave suggestedAffinityTags as an empty array. The system will match 
 export async function generateConciseSummary(transcript: string): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
@@ -239,7 +243,7 @@ Keep the narrative portion brief and focused - maximum 3 sentences before the bu
       : defaultPrompt;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
@@ -343,7 +347,7 @@ export async function evaluateInteractionQuality(
 ): Promise<InteractionQualityAssessment> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",

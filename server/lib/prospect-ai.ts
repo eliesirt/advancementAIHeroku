@@ -24,7 +24,7 @@ Please provide a concise but comprehensive summary (3-4 paragraphs) that include
 Focus on actionable insights that would help a fundraiser build stronger relationships.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // Using GPT-4o for stable API compatibility
       messages: [{ role: "user", content: prompt }],
       max_tokens: 800,
       temperature: 0.7,
@@ -63,7 +63,7 @@ Please provide 4-5 specific, actionable next steps prioritized by importance. Ea
 Format as a bulleted list with clear, actionable items.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // Using GPT-4o for stable API compatibility
       messages: [{ role: "user", content: prompt }],
       max_tokens: 600,
       temperature: 0.8,
