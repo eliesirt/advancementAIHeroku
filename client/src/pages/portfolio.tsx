@@ -76,7 +76,7 @@ export default function PortfolioPage() {
       setRefreshingProspects(prev => new Set(prev).add(prospectId));
       
       // Use the new portfolio refresh endpoint
-      const response = await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
+      const response = await apiRequest('POST', `/api/portfolio/refresh/${prospectId}`);
       
       toast({
         title: "Refresh Started",
@@ -117,7 +117,7 @@ export default function PortfolioPage() {
           setRefreshingProspects(prev => new Set(prev).add(prospectId));
           
           console.log(`🔄 Processing prospect ${prospectId}...`);
-          await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
+          await apiRequest('POST', `/api/portfolio/refresh/${prospectId}`);
           
           // Small delay between requests
           await new Promise(resolve => setTimeout(resolve, 500));
