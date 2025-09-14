@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -107,6 +107,31 @@ export const interactions = pgTable("interactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// BBEC Interactions table for storing interaction data fetched from BBEC API
+export const bbecInteractions = pgTable("bbec_interactions", {
+  id: serial("id").primaryKey(),
+  constituentId: text("constituent_id").notNull(), // GUID from BBEC
+  name: text("name").notNull(), // Full name (first and last together)
+  lastName: text("last_name").notNull(),
+  lookupId: text("lookup_id").notNull(), // User-friendly ID (U, Z, or 8 prefix)
+  interactionLookupId: text("interaction_lookup_id").notNull(), // User-friendly unique ID for interaction
+  interactionId: text("interaction_id").notNull(), // GUID unique ID for interaction
+  summary: text("summary"), // Short description
+  comment: text("comment"), // Long verbose detailed description
+  date: timestamp("date").notNull(), // Date of interaction
+  contactMethod: text("contact_method"), // Type of meeting (in-person, zoom, email, etc.)
+  prospectManagerId: text("prospect_manager_id").notNull(), // GUID of prospect manager
+  lastSynced: timestamp("last_synced").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint for upserts on constituent + interaction combination
+  uniqueConstituentInteraction: uniqueIndex("bbec_interactions_constituent_interaction_uidx").on(table.constituentId, table.interactionId),
+  // Additional indexes for efficient lookups
+  prospectManagerIdx: index("bbec_interactions_prospect_manager_idx").on(table.prospectManagerId),
+  dateIdx: index("bbec_interactions_date_idx").on(table.date),
+}));
 
 export const affinityTags = pgTable("affinity_tags", {
   id: serial("id").primaryKey(),
@@ -675,6 +700,15 @@ export const insertInteractionSchema = createInsertSchema(interactions).omit({
   userId: z.string().optional(),
 });
 
+export const insertBbecInteractionSchema = createInsertSchema(bbecInteractions).omit({
+  id: true,
+  lastSynced: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  date: z.union([z.date(), z.string().transform((str) => new Date(str))]),
+});
+
 export const insertAffinityTagSchema = createInsertSchema(affinityTags).omit({
   id: true,
   lastSynced: true,
@@ -829,6 +863,8 @@ export type RoleApplication = typeof roleApplications.$inferSelect;
 export type InsertRoleApplication = z.infer<typeof insertRoleApplicationSchema>;
 export type Interaction = typeof interactions.$inferSelect;
 export type InsertInteraction = z.infer<typeof insertInteractionSchema>;
+export type BbecInteraction = typeof bbecInteractions.$inferSelect;
+export type InsertBbecInteraction = z.infer<typeof insertBbecInteractionSchema>;
 export type AffinityTag = typeof affinityTags.$inferSelect;
 export type InsertAffinityTag = z.infer<typeof insertAffinityTagSchema>;
 export type VoiceRecording = typeof voiceRecordings.$inferSelect;

@@ -89,7 +89,10 @@ import {
   type SSOConfiguration,
   type InsertSSOConfiguration,
   type SSOSession,
-  type InsertSSOSession
+  type InsertSSOSession,
+  bbecInteractions,
+  type BbecInteraction,
+  type InsertBbecInteraction
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, inArray } from "drizzle-orm";
@@ -276,6 +279,12 @@ export interface IStorage {
 
   // User role management for SSO
   ensureUserRoles(userId: string, roleNames: string[]): Promise<void>;
+
+  // BBEC interaction methods
+  getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]>;
+  upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void>;
+  getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]>;
+  clearBbecInteractions(prospectManagerId: string): Promise<void>;
 }
 
 export class MemStorage implements Partial<IStorage> {
@@ -287,11 +296,13 @@ export class MemStorage implements Partial<IStorage> {
   private applications: Map<number, Application>;
   private userRoles: Map<string, number[]>;
   private roleApplications: Map<number, Map<number, string[]>>;
+  private bbecInteractions: Map<number, BbecInteraction>;
   private currentInteractionId: number;
   private currentAffinityTagId: number;
   private currentVoiceRecordingId: number;
   private currentRoleId: number;
   private currentApplicationId: number;
+  private currentBbecInteractionId: number;
 
   constructor() {
     this.users = new Map();
@@ -302,11 +313,13 @@ export class MemStorage implements Partial<IStorage> {
     this.applications = new Map();
     this.userRoles = new Map();
     this.roleApplications = new Map();
+    this.bbecInteractions = new Map();
     this.currentInteractionId = 1;
     this.currentAffinityTagId = 1;
     this.currentVoiceRecordingId = 1;
     this.currentRoleId = 1;
     this.currentApplicationId = 1;
+    this.currentBbecInteractionId = 1;
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -892,6 +905,56 @@ export class MemStorage implements Partial<IStorage> {
 
   async getAllApplications(): Promise<Application[]> {
     return Array.from(this.applications.values()).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+
+  // BBEC interaction methods for MemStorage
+  async getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]> {
+    return Array.from(this.bbecInteractions.values())
+      .filter(interaction => interaction.prospectManagerId === prospectManagerId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void> {
+    for (const interactionData of interactions) {
+      // Find existing interaction by interaction_id
+      const existingInteraction = Array.from(this.bbecInteractions.values())
+        .find(interaction => interaction.interactionId === interactionData.interactionId);
+      
+      if (existingInteraction) {
+        // Update existing
+        const updatedInteraction: BbecInteraction = {
+          ...existingInteraction,
+          ...interactionData,
+          updatedAt: new Date(),
+        };
+        this.bbecInteractions.set(existingInteraction.id, updatedInteraction);
+      } else {
+        // Create new
+        const id = this.currentBbecInteractionId++;
+        const newInteraction: BbecInteraction = {
+          ...interactionData,
+          id,
+          lastSynced: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        this.bbecInteractions.set(id, newInteraction);
+      }
+    }
+  }
+
+  async getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]> {
+    return Array.from(this.bbecInteractions.values())
+      .filter(interaction => interaction.constituentId === constituentId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async clearBbecInteractions(prospectManagerId: string): Promise<void> {
+    for (const [id, interaction] of this.bbecInteractions.entries()) {
+      if (interaction.prospectManagerId === prospectManagerId) {
+        this.bbecInteractions.delete(id);
+      }
+    }
   }
 }
 
@@ -2080,6 +2143,45 @@ export class DatabaseStorage implements IStorage {
 
   async cleanupExpiredSSOSessions(): Promise<void> {
     await db.delete(ssoSessions).where(sql`expires_at < NOW()`);
+  }
+
+  // BBEC interaction methods for DatabaseStorage
+  async getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]> {
+    return await db
+      .select()
+      .from(bbecInteractions)
+      .where(eq(bbecInteractions.prospectManagerId, prospectManagerId))
+      .orderBy(desc(bbecInteractions.date));
+  }
+
+  async upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void> {
+    for (const interactionData of interactions) {
+      await db
+        .insert(bbecInteractions)
+        .values(interactionData)
+        .onConflictDoUpdate({
+          target: [bbecInteractions.constituentId, bbecInteractions.interactionId],
+          set: {
+            ...interactionData,
+            lastSynced: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+    }
+  }
+
+  async getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]> {
+    return await db
+      .select()
+      .from(bbecInteractions)
+      .where(eq(bbecInteractions.constituentId, constituentId))
+      .orderBy(desc(bbecInteractions.date));
+  }
+
+  async clearBbecInteractions(prospectManagerId: string): Promise<void> {
+    await db
+      .delete(bbecInteractions)
+      .where(eq(bbecInteractions.prospectManagerId, prospectManagerId));
   }
 
   // User role management for SSO

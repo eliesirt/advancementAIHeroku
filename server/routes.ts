@@ -1245,6 +1245,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // BBEC Interactions API routes
+  app.post('/api/bbec/interactions/sync', isAuthenticated, async (req: any, res) => {
+    try {
+      // Validate request body
+      const syncSchema = z.object({
+        contextRecordId: z.string().optional()
+      });
+      const { contextRecordId } = syncSchema.parse(req.body);
+      const { fetchInteractions } = await import('./services/bbecDataService');
+      
+      // Fetch interactions from BBEC for authenticated user
+      const result = await fetchInteractions({
+        authUserId: req.user.claims.sub,
+        contextRecordId
+      });
+      
+      // Map to insert schema and validate interactions
+      const { insertBbecInteractionSchema } = await import('@shared/schema');
+      const validInteractions = result.interactions
+        .map((interaction: any) => ({
+          constituentId: interaction.constituentId,
+          name: interaction.name,
+          lastName: interaction.lastName,
+          lookupId: interaction.lookupId,
+          interactionLookupId: interaction.interactionLookupId,
+          interactionId: interaction.interactionId,
+          summary: interaction.summary,
+          comment: interaction.comment,
+          date: interaction.date,
+          contactMethod: interaction.contactMethod,
+          prospectManagerId: interaction.prospectManagerId
+        }))
+        .filter((interaction: any) => {
+          // Filter out interactions missing critical fields
+          if (!interaction.interactionId || !interaction.constituentId) {
+            console.warn('🚫 [BBEC Sync] Dropping interaction missing interactionId or constituentId:', interaction);
+            return false;
+          }
+          try {
+            insertBbecInteractionSchema.parse(interaction);
+            return true;
+          } catch (error) {
+            console.warn('🚫 [BBEC Sync] Dropping invalid interaction:', interaction, error);
+            return false;
+          }
+        });
+      
+      const droppedCount = result.interactions.length - validInteractions.length;
+      if (droppedCount > 0) {
+        console.warn(`🚫 [BBEC Sync] Dropped ${droppedCount} invalid interactions out of ${result.interactions.length}`);
+      }
+      
+      await storage.upsertBbecInteractions(validInteractions);
+      
+      res.json({
+        success: true,
+        count: validInteractions.length,
+        contextRecordId: result.contextRecordId,
+        timestamp: result.timestamp
+      });
+    } catch (error) {
+      console.error('BBEC interactions sync error:', error);
+      res.status(500).json({ 
+        error: 'Failed to sync interactions', 
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.get('/api/bbec/interactions', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prospectManagerId } = req.query;
+      const interactions = await storage.getBbecInteractions(prospectManagerId as string);
+      res.json(interactions);
+    } catch (error) {
+      console.error('Get BBEC interactions error:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch interactions',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.get('/api/bbec/interactions/by-constituent/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const interactions = await storage.getBbecInteractionsByConstituent(id);
+      res.json(interactions);
+    } catch (error) {
+      console.error('Get BBEC interactions by constituent error:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch constituent interactions',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Get affinity tags info (count, last refresh, etc.)
   app.get("/api/affinity-tags/info", async (req, res) => {
     try {
