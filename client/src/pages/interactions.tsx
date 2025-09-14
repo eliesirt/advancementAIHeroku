@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, Users, Calendar, MessageSquare, ArrowUpDown, Eye, ArrowUp, ArrowDown } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AppNavigation } from "@/components/app-navigation";
-import { useToast } from "@/hooks/use-toast";
 
 type SortField = 'prospectName' | 'category' | 'actualDate' | 'status' | 'qualityScore';
 type SortDirection = 'asc' | 'desc';
@@ -100,7 +99,10 @@ export default function InteractionsPage() {
   };
 
   const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    if (!date) return "—";
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -218,7 +220,9 @@ export default function InteractionsPage() {
                   <p className="text-sm font-medium text-gray-600">This Month</p>
                   <p className="text-xl font-semibold text-gray-900" data-testid="stat-this-month">
                     {interactions.filter(i => {
+                      if (!i.actualDate) return false;
                       const interactionDate = new Date(i.actualDate);
+                      if (Number.isNaN(interactionDate.getTime())) return false;
                       const now = new Date();
                       return interactionDate.getMonth() === now.getMonth() && 
                              interactionDate.getFullYear() === now.getFullYear();
