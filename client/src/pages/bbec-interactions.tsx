@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { BbecInteraction } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Filter, Users, Calendar, MessageSquare, ArrowUpDown, ArrowUp, ArrowDown, Eye, ExternalLink } from "lucide-react";
+import { Search, Filter, Users, Calendar, MessageSquare, ArrowUpDown, ArrowUp, ArrowDown, Eye, ExternalLink, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { AppNavigation } from "@/components/app-navigation";
 
 type SortField = 'name' | 'contactMethod' | 'date' | 'lastSynced';
@@ -25,10 +27,42 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
+  const { toast } = useToast();
+
+  // Extract constituent ID from URL params if not provided as prop
+  const params = new URLSearchParams(window.location.search);
+  const currentConstituentId = constituentId || params.get('constituent');
+
   // Fetch BBEC interactions
   const { data: interactions = [], isLoading, error } = useQuery<BbecInteraction[]>({
-    queryKey: constituentId ? ['/api/bbec/interactions/by-constituent', constituentId] : ['/api/bbec/interactions'],
+    queryKey: currentConstituentId ? ['/api/bbec/interactions/by-constituent', currentConstituentId] : ['/api/bbec/interactions'],
     retry: false,
+  });
+
+  // Refresh mutation for specific constituent
+  const refreshMutation = useMutation({
+    mutationFn: async (constituentId: string) => {
+      return await apiRequest(`/api/bbec/interactions/refresh/${constituentId}`, {
+        method: 'POST',
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Interactions Refreshed",
+        description: `Successfully refreshed ${data.count} interactions from BBEC`,
+      });
+      // Invalidate the interactions query to refetch data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/bbec/interactions/by-constituent', currentConstituentId] 
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Refresh Failed",
+        description: error.message || "Failed to refresh interactions from BBEC",
+        variant: "destructive",
+      });
+    }
   });
 
   // Filter and sort interactions
@@ -307,9 +341,24 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>BBEC Interactions ({filteredInteractions.length})</span>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                Synced from BBEC
-              </Badge>
+              <div className="flex items-center gap-2">
+                {currentConstituentId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refreshMutation.mutate(currentConstituentId)}
+                    disabled={refreshMutation.isPending}
+                    className="flex items-center gap-1"
+                    data-testid="button-refresh-interactions"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+                    {refreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                )}
+                <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  Synced from BBEC
+                </Badge>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
