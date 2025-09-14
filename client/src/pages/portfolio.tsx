@@ -503,9 +503,18 @@ export default function PortfolioPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  window.location.href = `/apps/portfolio/interactions?constituent=${prospect.constituentGuid || prospect.bbecGuid}`;
+                                  const constituentId = prospect.constituentGuid || prospect.bbecGuid;
+                                  if (constituentId) {
+                                    // First refresh interactions for this constituent
+                                    try {
+                                      await apiRequest('POST', `/api/bbec/interactions/refresh/${constituentId}`);
+                                    } catch (error) {
+                                      console.warn('Failed to refresh interactions before viewing:', error);
+                                    }
+                                  }
+                                  window.location.href = `/apps/portfolio/interactions?constituent=${constituentId}`;
                                 }}
                                 className="text-xs px-2 py-1 h-6"
                                 data-testid={`button-view-interactions-${prospect.id}`}
@@ -595,8 +604,17 @@ export default function PortfolioPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => {
-                                window.location.href = `/apps/portfolio/interactions?constituent=${selectedProspect.constituentGuid || selectedProspect.bbecGuid}`;
+                              onClick={async () => {
+                                const constituentId = selectedProspect.constituentGuid || selectedProspect.bbecGuid;
+                                if (constituentId) {
+                                  // First refresh interactions for this constituent
+                                  try {
+                                    await apiRequest('POST', `/api/bbec/interactions/refresh/${constituentId}`);
+                                  } catch (error) {
+                                    console.warn('Failed to refresh interactions before viewing:', error);
+                                  }
+                                }
+                                window.location.href = `/apps/portfolio/interactions?constituent=${constituentId}`;
                               }}
                               className="text-xs px-2 py-1 h-6"
                               data-testid={`button-view-interactions-detail-${selectedProspect.id}`}

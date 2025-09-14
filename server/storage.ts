@@ -13,6 +13,7 @@ import {
   prospectRelationships,
   prospectEvents,
   prospectBadges,
+  bbecInteractions,
   type User,
   type InsertUser,
   type UpsertUser,
