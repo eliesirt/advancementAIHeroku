@@ -492,7 +492,7 @@ export default function PortfolioPage() {
                           </TableCell>
                           <TableCell>
                             <Badge className={getProspectRatingColor(prospect.prospectRating || 'Unknown')}>
-                              {prospect.prospectRating}
+                              {prospect.prospectRating || 'Not available'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
@@ -571,7 +571,7 @@ export default function PortfolioPage() {
                         <div>
                           <p className="text-gray-500">Rating</p>
                           <Badge className={getProspectRatingColor(selectedProspect.prospectRating || 'Unknown')}>
-                            {selectedProspect.prospectRating}
+                            {selectedProspect.prospectRating || 'Not available'}
                           </Badge>
                         </div>
                         <div>
