@@ -666,23 +666,14 @@ export default function PortfolioPage() {
                             setAiSummaryLoading(true);
                             try {
                               const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-summary`);
+                              const data = await response.json();
                               
-                              // Debug: Log the actual response
-                              console.log('AI Summary Response:', response);
-                              console.log('Response type:', typeof response);
-                              console.log('Summary field:', response?.summary);
-                              console.log('Summary type:', typeof response?.summary);
-                              
-                              // More lenient validation
-                              if (!response) {
-                                throw new Error('No response received from AI service');
+                              // Validate response structure
+                              if (!data || typeof data.summary !== 'string') {
+                                throw new Error('Invalid response format from AI service');
                               }
                               
-                              if (!response.summary) {
-                                throw new Error('Response missing summary field');
-                              }
-                              
-                              setAiSummary(response.summary);
+                              setAiSummary(data.summary);
                               toast({
                                 title: "AI Summary Generated",
                                 description: "The prospect summary has been generated successfully.",
@@ -740,23 +731,14 @@ export default function PortfolioPage() {
                             setAiNextActionsLoading(true);
                             try {
                               const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-next-actions`);
+                              const data = await response.json();
                               
-                              // Debug: Log the actual response  
-                              console.log('AI Next Actions Response:', response);
-                              console.log('Response type:', typeof response);
-                              console.log('NextActions field:', response?.nextActions);
-                              console.log('NextActions type:', typeof response?.nextActions);
-                              
-                              // More lenient validation
-                              if (!response) {
-                                throw new Error('No response received from AI service');
+                              // Validate response structure
+                              if (!data || typeof data.nextActions !== 'string') {
+                                throw new Error('Invalid response format from AI service');
                               }
                               
-                              if (!response.nextActions) {
-                                throw new Error('Response missing nextActions field');
-                              }
-                              
-                              setAiNextActions(response.nextActions);
+                              setAiNextActions(data.nextActions);
                               toast({
                                 title: "Next Actions Generated",
                                 description: "AI-powered next actions have been generated successfully.",
