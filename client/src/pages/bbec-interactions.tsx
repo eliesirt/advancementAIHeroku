@@ -209,7 +209,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppNavigation appName={pageTitle} />
+      <AppNavigation appName={pageTitle} backUrl="/apps/portfolio" />
       
       <div className="container mx-auto px-4 py-6">
         {/* Header */}

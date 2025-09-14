@@ -505,7 +505,7 @@ export default function PortfolioPage() {
                                 variant="ghost"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.location.href = `/apps/interactions/bbec?constituent=${prospect.constituentGuid || prospect.bbecGuid}`;
+                                  window.location.href = `/apps/portfolio/interactions?constituent=${prospect.constituentGuid || prospect.bbecGuid}`;
                                 }}
                                 className="text-xs px-2 py-1 h-6"
                                 data-testid={`button-view-interactions-${prospect.id}`}
@@ -596,7 +596,7 @@ export default function PortfolioPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                window.location.href = `/apps/interactions/bbec?constituent=${selectedProspect.constituentGuid || selectedProspect.bbecGuid}`;
+                                window.location.href = `/apps/portfolio/interactions?constituent=${selectedProspect.constituentGuid || selectedProspect.bbecGuid}`;
                               }}
                               className="text-xs px-2 py-1 h-6"
                               data-testid={`button-view-interactions-detail-${selectedProspect.id}`}
