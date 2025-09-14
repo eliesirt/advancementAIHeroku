@@ -42,9 +42,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
   // Refresh mutation for specific constituent
   const refreshMutation = useMutation({
     mutationFn: async (constituentId: string) => {
-      return await apiRequest(`/api/bbec/interactions/refresh/${constituentId}`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/bbec/interactions/refresh/${constituentId}`);
     },
     onSuccess: (data) => {
       toast({
