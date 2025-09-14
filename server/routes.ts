@@ -2892,6 +2892,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sync prospects from BBEC API
+  app.post('/api/prospects/sync-from-bbec', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get user to access their BBEC GUID
+      const user = await storage.getUser(userId);
+      if (!user || !user.bbecGuid) {
+        return res.status(400).json({ message: "User missing BBEC GUID for prospect sync" });
+      }
+      
+      console.log(`🔄 [Routes] Starting BBEC prospects sync for user: ${userId}, BBEC GUID: ${user.bbecGuid}`);
+      
+      // Fetch prospects from BBEC using the user's BBEC GUID as context
+      const { fetchProspects } = await import('./services/bbecDataService');
+      const bbecResponse = await fetchProspects({ 
+        authUserId: userId, 
+        contextRecordId: user.bbecGuid 
+      });
+      
+      // Sync the fetched prospects to our database
+      await storage.syncProspectsFromBbec(bbecResponse.prospects, userId);
+      
+      // Return the synced prospects
+      const syncedProspects = await storage.getProspectsByManager(userId);
+      
+      res.json({ 
+        message: "Prospects successfully synced from BBEC",
+        syncedCount: bbecResponse.prospects.length,
+        prospects: syncedProspects,
+        timestamp: bbecResponse.timestamp
+      });
+      
+    } catch (error) {
+      console.error("❌ [Routes] Error syncing prospects from BBEC:", error);
+      res.status(500).json({ 
+        message: "Failed to sync prospects from BBEC", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   // Refresh specific prospect data
   app.post('/api/prospects/:id/refresh', isAuthenticated, async (req: any, res) => {
     try {
