@@ -46,8 +46,8 @@ function AppContent() {
             <Route path="/" component={Launcher} />
             <Route path="/apps/interactions" component={InteractionsApp} />
             <Route path="/apps/interactions/list" component={InteractionsPage} />
-            <Route path="/apps/interactions/bbec" component={BBECInteractionsPage} />
             <Route path="/apps/portfolio" component={PortfolioPage} />
+            <Route path="/apps/portfolio/interactions" component={BBECInteractionsPage} />
             <Route path="/apps/itinerary" component={ItineraryPage} />
             <Route path="/apps/settings" component={SettingsPage} />
             <Route path="/apps/user-management" component={UserManagementPage} />
