@@ -52,9 +52,12 @@ export default function PortfolioPage() {
     }
   });
 
-  // Auto-sync prospects when component mounts (once per session)
+  // Auto-sync prospects when component mounts (temporarily forcing sync for testing)
   useEffect(() => {
     const sessionKey = 'portfolio-bbec-synced';
+    
+    // TEMPORARY: Clear session storage to force sync for testing real BBEC data
+    sessionStorage.removeItem(sessionKey);
     const hasAutoSyncedThisSession = sessionStorage.getItem(sessionKey);
     
     if (!hasAutoSyncedThisSession) {
