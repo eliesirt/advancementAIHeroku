@@ -2909,12 +2909,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sync the fetched prospects to our database
       await storage.syncProspectsFromBbec(bbecResponse.prospects, userId);
       
-      // Return the synced prospects
+      console.log(`🔄 [Routes] Starting BBEC interactions sync for user: ${userId}, BBEC GUID: ${user.bbecGuid}`);
+      
+      // Immediately sync interactions after prospects sync
+      let interactionsCount = 0;
+      let interactionsSyncStatus = 'success';
+      let interactionsSyncError: string | null = null;
+      
+      try {
+        const { fetchInteractions } = await import('./services/bbecDataService');
+        const interactionsResponse = await fetchInteractions({ 
+          authUserId: userId, 
+          contextRecordId: user.bbecGuid 
+        });
+        
+        // Sync interactions to database and update prospect aggregates
+        await storage.syncInteractionsFromBbec(interactionsResponse.interactions, userId);
+        
+        interactionsCount = interactionsResponse.interactions.length;
+        console.log(`✅ [Routes] Successfully synced ${interactionsCount} interactions from BBEC`);
+        
+      } catch (interactionsError) {
+        console.error(`❌ [Routes] Failed to sync interactions from BBEC:`, interactionsError);
+        interactionsSyncStatus = 'failed';
+        interactionsSyncError = interactionsError instanceof Error ? interactionsError.message : 'Unknown error';
+        // Don't fail the whole sync if interactions fail - prospects still synced successfully
+      }
+      
+      // Return the synced prospects with detailed status
       const syncedProspects = await storage.getProspectsByManager(userId);
       
-      res.json({ 
-        message: "Prospects successfully synced from BBEC",
+      // Determine response message and status code based on sync results
+      const isPartialSuccess = interactionsSyncStatus === 'failed';
+      const message = isPartialSuccess 
+        ? `Prospects synced successfully, but interactions sync failed: ${interactionsSyncError}`
+        : "Prospects and interactions successfully synced from BBEC";
+      
+      // Use 207 Multi-Status for partial success scenarios
+      const statusCode = isPartialSuccess ? 207 : 200;
+      
+      res.status(statusCode).json({ 
+        message,
+        status: isPartialSuccess ? 'partial_success' : 'success',
         syncedCount: bbecResponse.prospects.length,
+        interactionsCount,
+        interactionsSyncStatus,
+        interactionsSyncError,
         prospects: syncedProspects,
         timestamp: bbecResponse.timestamp
       });

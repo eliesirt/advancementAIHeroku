@@ -289,6 +289,7 @@ export interface IStorage {
   
   // Prospect sync methods
   syncProspectsFromBbec(prospectsData: any[], prospectManagerId: string): Promise<void>;
+  syncInteractionsFromBbec(interactionsData: any[], prospectManagerId: string): Promise<void>;
 }
 
 export class MemStorage implements Partial<IStorage> {
@@ -1676,6 +1677,187 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('❌ [Storage] Error syncing prospects from BBEC:', error);
       throw new Error(`Failed to sync prospects: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async syncInteractionsFromBbec(interactionsData: any[], prospectManagerId: string): Promise<void> {
+    console.log(`📥 [Storage] Syncing ${interactionsData.length} interactions from BBEC for manager: ${prospectManagerId}`);
+    
+    if (interactionsData.length === 0) {
+      console.log(`✅ [Storage] No interactions to sync for manager: ${prospectManagerId}`);
+      return;
+    }
+    
+    try {
+      // Transform BBEC interactions data to our bbecInteractions schema format with proper validation
+      const validInteractionRecords: InsertBbecInteraction[] = [];
+      let skippedCount = 0;
+      
+      for (const bbecInteraction of interactionsData) {
+        // Define required fields that cannot be empty
+        const requiredFields = {
+          constituentId: bbecInteraction.constituentId,
+          name: bbecInteraction.name,
+          lastName: bbecInteraction.lastName,
+          lookupId: bbecInteraction.lookupId,
+          interactionLookupId: bbecInteraction.interactionLookupId,
+          interactionId: bbecInteraction.interactionId,
+          date: bbecInteraction.date
+        };
+        
+        // Check if any required field is missing, null, undefined, or empty string
+        const missingFields = Object.entries(requiredFields)
+          .filter(([_, value]) => !value || (typeof value === 'string' && value.trim() === ''))
+          .map(([field]) => field);
+        
+        if (missingFields.length > 0) {
+          console.warn(`⚠️ [Storage] Skipping BBEC interaction due to missing required fields: ${missingFields.join(', ')}`, {
+            constituentId: bbecInteraction.constituentId || 'MISSING',
+            interactionId: bbecInteraction.interactionId || 'MISSING',
+            missingFields
+          });
+          skippedCount++;
+          continue;
+        }
+        
+        // Validate date field specifically
+        let validDate = bbecInteraction.date;
+        if (!validDate || !(validDate instanceof Date) || isNaN(validDate.getTime())) {
+          // Try to parse the date if it's a string
+          if (typeof bbecInteraction.date === 'string') {
+            const parsedDate = new Date(bbecInteraction.date);
+            if (!isNaN(parsedDate.getTime())) {
+              validDate = parsedDate;
+            } else {
+              console.warn(`⚠️ [Storage] Skipping BBEC interaction due to invalid date: ${bbecInteraction.date}`, {
+                constituentId: bbecInteraction.constituentId,
+                interactionId: bbecInteraction.interactionId
+              });
+              skippedCount++;
+              continue;
+            }
+          } else {
+            console.warn(`⚠️ [Storage] Skipping BBEC interaction due to invalid date format`, {
+              constituentId: bbecInteraction.constituentId,
+              interactionId: bbecInteraction.interactionId,
+              date: bbecInteraction.date
+            });
+            skippedCount++;
+            continue;
+          }
+        }
+        
+        // Create validated interaction record
+        const validInteraction: InsertBbecInteraction = {
+          constituentId: bbecInteraction.constituentId.trim(),
+          name: bbecInteraction.name.trim(),
+          lastName: bbecInteraction.lastName.trim(),
+          lookupId: bbecInteraction.lookupId.trim(),
+          interactionLookupId: bbecInteraction.interactionLookupId.trim(),
+          interactionId: bbecInteraction.interactionId.trim(),
+          summary: bbecInteraction.summary?.trim() || null,
+          comment: bbecInteraction.comment?.trim() || null,
+          date: validDate,
+          contactMethod: bbecInteraction.contactMethod?.trim() || null,
+          prospectManagerId: prospectManagerId,
+          lastSynced: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        validInteractionRecords.push(validInteraction);
+      }
+      
+      console.log(`📋 [Storage] Validation results: ${validInteractionRecords.length} valid interactions, ${skippedCount} skipped due to missing required fields`);
+      
+      if (validInteractionRecords.length === 0) {
+        console.log(`⚠️ [Storage] No valid interactions to sync after validation for manager: ${prospectManagerId}`);
+        return;
+      }
+
+      // Use existing upsert method to persist valid interactions
+      await this.upsertBbecInteractions(validInteractionRecords);
+      
+      console.log(`✅ [Storage] Successfully persisted ${validInteractionRecords.length} valid interactions to database (${skippedCount} invalid records skipped)`);
+      
+      // Compute aggregates and update prospects' totalInteractions and lastContactDate
+      await this.updateProspectInteractionAggregates(prospectManagerId);
+      
+      console.log(`✅ [Storage] Updated prospect aggregates for manager: ${prospectManagerId}`);
+      
+    } catch (error) {
+      console.error('❌ [Storage] Error syncing interactions from BBEC:', error);
+      throw new Error(`Failed to sync interactions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  private async updateProspectInteractionAggregates(prospectManagerId: string): Promise<void> {
+    console.log(`🔄 [Storage] Computing interaction aggregates for prospects managed by: ${prospectManagerId}`);
+    
+    try {
+      // Get all prospects for this manager
+      const managerProspects = await db
+        .select()
+        .from(prospects)
+        .where(eq(prospects.prospectManagerId, prospectManagerId));
+        
+      console.log(`📊 [Storage] Found ${managerProspects.length} prospects to update aggregates for`);
+      
+      // For each prospect, compute interaction count and last contact date
+      for (const prospect of managerProspects) {
+        if (!prospect.constituentGuid && !prospect.bbecGuid) {
+          console.log(`⚠️ [Storage] Skipping prospect ${prospect.id} - no GUID to match interactions`);
+          continue;
+        }
+        
+        // Use either constituentGuid or bbecGuid to match interactions
+        const constituentId = prospect.constituentGuid || prospect.bbecGuid;
+        
+        // Get interaction count and latest interaction date for this constituent
+        const aggregateResult = await db
+          .select({
+            totalInteractions: sql<number>`count(*)`,
+            lastContactDate: sql<Date | null>`max(${bbecInteractions.date})`
+          })
+          .from(bbecInteractions)
+          .where(eq(bbecInteractions.constituentId, constituentId!))
+          .groupBy(bbecInteractions.constituentId);
+          
+        const aggregate = aggregateResult[0];
+        
+        if (aggregate) {
+          // Update prospect with computed aggregates
+          await db
+            .update(prospects)
+            .set({
+              totalInteractions: aggregate.totalInteractions,
+              lastContactDate: aggregate.lastContactDate,
+              updatedAt: new Date()
+            })
+            .where(eq(prospects.id, prospect.id));
+            
+          console.log(`📈 [Storage] Updated prospect ${prospect.id} (${prospect.fullName}): ${aggregate.totalInteractions} interactions, last contact: ${aggregate.lastContactDate}`);
+        } else {
+          // No interactions found - set to 0
+          await db
+            .update(prospects)
+            .set({
+              totalInteractions: 0,
+              lastContactDate: null,
+              updatedAt: new Date()
+            })
+            .where(eq(prospects.id, prospect.id));
+            
+          console.log(`📉 [Storage] Updated prospect ${prospect.id} (${prospect.fullName}): 0 interactions`);
+        }
+      }
+      
+      console.log(`✅ [Storage] Completed aggregate updates for ${managerProspects.length} prospects`);
+      
+    } catch (error) {
+      console.error('❌ [Storage] Error updating prospect interaction aggregates:', error);
+      // Don't throw here - we want the interaction sync to succeed even if aggregates fail
+      console.warn('⚠️ [Storage] Continuing despite aggregate update failure');
     }
   }
 
