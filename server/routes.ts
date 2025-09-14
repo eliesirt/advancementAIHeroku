@@ -4008,7 +4008,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
       const constituentId = prospect.constituentGuid || prospect.bbecGuid;
       let interactions: any[] = [];
       if (constituentId) {
-        interactions = await storage.getBBECInteractionsByConstituent(constituentId);
+        interactions = await storage.getBbecInteractionsByConstituent(constituentId);
       }
 
       // Build summary data for AI
@@ -4068,7 +4068,7 @@ Generate a complete, functional Python script that accomplishes the user's requi
       const constituentId = prospect.constituentGuid || prospect.bbecGuid;
       let interactions: any[] = [];
       if (constituentId) {
-        interactions = await storage.getBBECInteractionsByConstituent(constituentId);
+        interactions = await storage.getBbecInteractionsByConstituent(constituentId);
       }
 
       // Build summary data for AI
