@@ -667,9 +667,19 @@ export default function PortfolioPage() {
                             try {
                               const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-summary`);
                               
-                              // Validate response structure
-                              if (!response || typeof response.summary !== 'string') {
-                                throw new Error('Invalid response format from AI service');
+                              // Debug: Log the actual response
+                              console.log('AI Summary Response:', response);
+                              console.log('Response type:', typeof response);
+                              console.log('Summary field:', response?.summary);
+                              console.log('Summary type:', typeof response?.summary);
+                              
+                              // More lenient validation
+                              if (!response) {
+                                throw new Error('No response received from AI service');
+                              }
+                              
+                              if (!response.summary) {
+                                throw new Error('Response missing summary field');
                               }
                               
                               setAiSummary(response.summary);
@@ -731,9 +741,19 @@ export default function PortfolioPage() {
                             try {
                               const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-next-actions`);
                               
-                              // Validate response structure
-                              if (!response || typeof response.nextActions !== 'string') {
-                                throw new Error('Invalid response format from AI service');
+                              // Debug: Log the actual response  
+                              console.log('AI Next Actions Response:', response);
+                              console.log('Response type:', typeof response);
+                              console.log('NextActions field:', response?.nextActions);
+                              console.log('NextActions type:', typeof response?.nextActions);
+                              
+                              // More lenient validation
+                              if (!response) {
+                                throw new Error('No response received from AI service');
+                              }
+                              
+                              if (!response.nextActions) {
+                                throw new Error('Response missing nextActions field');
                               }
                               
                               setAiNextActions(response.nextActions);
