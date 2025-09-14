@@ -281,7 +281,7 @@ export interface IStorage {
   ensureUserRoles(userId: string, roleNames: string[]): Promise<void>;
 
   // BBEC interaction methods
-  getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]>;
+  getBbecInteractions(prospectManagerId?: string): Promise<BbecInteraction[]>;
   upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void>;
   getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]>;
   getConstituentsByProspectManager(prospectManagerGuid: string): Promise<ProspectWithDetails[]>;
@@ -2380,12 +2380,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BBEC interaction methods for DatabaseStorage
-  async getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]> {
-    return await db
-      .select()
-      .from(bbecInteractions)
-      .where(eq(bbecInteractions.prospectManagerId, prospectManagerId))
-      .orderBy(desc(bbecInteractions.date));
+  async getBbecInteractions(prospectManagerId?: string): Promise<BbecInteraction[]> {
+    if (prospectManagerId) {
+      return await db
+        .select()
+        .from(bbecInteractions)
+        .where(eq(bbecInteractions.prospectManagerId, prospectManagerId))
+        .orderBy(desc(bbecInteractions.date));
+    } else {
+      return await db
+        .select()
+        .from(bbecInteractions)
+        .orderBy(desc(bbecInteractions.date));
+    }
   }
 
   async upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void> {
