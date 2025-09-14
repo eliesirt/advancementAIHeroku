@@ -2837,8 +2837,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/prospects', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const prospects = await storage.getProspectsByManager(userId);
-      res.json(prospects);
+      
+      // Get current user to access their BBEC GUID
+      const user = await storage.getUser(userId);
+      if (!user || !user.bbecGuid) {
+        return res.json([]); // Return empty array if no BBEC GUID
+      }
+      
+      // Get constituents from interactions where user's BBEC GUID is the prospect manager
+      const constituents = await storage.getConstituentsByProspectManager(user.bbecGuid);
+      res.json(constituents);
     } catch (error) {
       console.error("Error fetching prospects:", error);
       res.status(500).json({ message: "Failed to fetch prospects", error: (error as Error).message });

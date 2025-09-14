@@ -284,6 +284,7 @@ export interface IStorage {
   getBbecInteractions(prospectManagerId: string): Promise<BbecInteraction[]>;
   upsertBbecInteractions(interactions: InsertBbecInteraction[]): Promise<void>;
   getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]>;
+  getConstituentsByProspectManager(prospectManagerGuid: string): Promise<ProspectWithDetails[]>;
   clearBbecInteractions(prospectManagerId: string): Promise<void>;
 }
 
@@ -2176,6 +2177,51 @@ export class DatabaseStorage implements IStorage {
       .from(bbecInteractions)
       .where(eq(bbecInteractions.constituentId, constituentId))
       .orderBy(desc(bbecInteractions.date));
+  }
+
+  async getConstituentsByProspectManager(prospectManagerGuid: string): Promise<ProspectWithDetails[]> {
+    // Get unique constituents from interactions where the prospect manager matches
+    const constituents = await db
+      .selectDistinctOn([bbecInteractions.constituentId], {
+        id: bbecInteractions.constituentId,
+        buid: bbecInteractions.lookupId,
+        bbecGuid: bbecInteractions.constituentId,
+        firstName: bbecInteractions.name,
+        lastName: bbecInteractions.lastName,
+        fullName: bbecInteractions.name,
+        lastInteractionDate: bbecInteractions.date,
+        totalInteractions: sql<number>`count(*) over (partition by ${bbecInteractions.constituentId})`.as('totalInteractions'),
+        recentInteractionSummary: bbecInteractions.summary,
+        // Default placeholder values for fields not in interactions table
+        title: sql<string>`null`.as('title'),
+        preferredName: sql<string>`null`.as('preferredName'),
+        email: sql<string>`null`.as('email'),
+        phone: sql<string>`null`.as('phone'),
+        address: sql<string>`null`.as('address'),
+        city: sql<string>`null`.as('city'),
+        state: sql<string>`null`.as('state'),
+        zipCode: sql<string>`null`.as('zipCode'),
+        country: sql<string>`null`.as('country'),
+        donorStatus: sql<string>`'Unknown'`.as('donorStatus'),
+        lastGiftDate: sql<Date | null>`null`.as('lastGiftDate'),
+        lastGiftAmount: sql<number | null>`null`.as('lastGiftAmount'),
+        lifetimeGiving: sql<number | null>`null`.as('lifetimeGiving'),
+        prospectRating: sql<string>`null`.as('prospectRating'),
+        expectedGiftRange: sql<string>`null`.as('expectedGiftRange'),
+        nextContactDate: sql<Date | null>`null`.as('nextContactDate'),
+        notes: sql<string>`null`.as('notes'),
+        tags: sql<string[]>`array[]::text[]`.as('tags'),
+        relationships: sql<any[]>`array[]::jsonb[]`.as('relationships'),
+        events: sql<any[]>`array[]::jsonb[]`.as('events'),
+        badges: sql<any[]>`array[]::jsonb[]`.as('badges'),
+        createdAt: bbecInteractions.createdAt,
+        updatedAt: bbecInteractions.updatedAt
+      })
+      .from(bbecInteractions)
+      .where(eq(bbecInteractions.prospectManagerId, prospectManagerGuid))
+      .orderBy(desc(bbecInteractions.date));
+
+    return constituents;
   }
 
   async clearBbecInteractions(prospectManagerId: string): Promise<void> {
