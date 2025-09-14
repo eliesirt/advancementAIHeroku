@@ -343,11 +343,10 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
     // Navigate through SOAP envelope to get data list rows
     const envelope = parsed.Envelope;
     const body = envelope.Body;
-    const response = body.DataListLoadResponse;
-    const result = response.DataListLoadResult;
+    const response = body.DataListLoadReply;  // Fixed: API returns Reply not Response
     
     // Normalize rows to always be an array (explicitArray: false may return single object)
-    let rawRows = result?.Rows?.Row || [];
+    let rawRows = response?.Rows?.r || [];  // Fixed: API uses 'r' not 'Row'
     const rows = Array.isArray(rawRows) ? rawRows : [rawRows];
     
     console.log(`🔍 [BBEC Service] Parsing ${rows.length} prospect rows from SOAP response`);
@@ -355,31 +354,32 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
     // Transform rows into our prospect format
     const prospects = rows.map((row: any, index: number) => {
       try {
-        // Normalize values to array (explicitArray: false may return single object)
-        let rawValues = row.Values?.Value || [];
+        // Normalize values to array (explicitArray: false may return single object) 
+        let rawValues = row.Values?.v || [];  // Fixed: API uses 'v' not 'Value'
         const values = Array.isArray(rawValues) ? rawValues : [rawValues];
         
-        // Map BBEC response values to our schema with safer field extraction
-        const fieldMap = buildFieldMap(values);
-        
-        // Extract prospect data from BBEC fields
+        // Extract prospect data using direct array indexing (based on BBEC API structure)
+        // Array indices determined from API analysis: 
+        // [0]=ID/BBEC_GUID, [1]=Full_Name, [2]=First_Name, [3]=Last_Name, [4]=BUID, 
+        // [5]=Prospect_Manager_ID, [6]=Full_Name_With_Title, [7]=Lifetime_Giving, [12]=Affinity_Tags, [13]=Capacity_Rating
         const prospect = {
-          buid: getFieldValue(fieldMap, 'LOOKUPID') || getFieldValue(fieldMap, 'lookup_id'),
-          bbecGuid: getFieldValue(fieldMap, 'ID') || getFieldValue(fieldMap, 'constituent_id'),
-          constituentGuid: getFieldValue(fieldMap, 'ID') || getFieldValue(fieldMap, 'constituent_id'),
-          firstName: getFieldValue(fieldMap, 'FIRSTNAME') || getFieldValue(fieldMap, 'first_name'),
-          lastName: getFieldValue(fieldMap, 'LASTNAME') || getFieldValue(fieldMap, 'last_name'),
-          fullName: getFieldValue(fieldMap, 'NAME') || getFieldValue(fieldMap, 'full_name'),
-          email: getFieldValue(fieldMap, 'EMAIL') || getFieldValue(fieldMap, 'email'),
-          phone: getFieldValue(fieldMap, 'PHONE') || getFieldValue(fieldMap, 'phone'),
-          prospectRating: getFieldValue(fieldMap, 'PROSPECTSTATUS') || getFieldValue(fieldMap, 'prospect_rating'),
-          stage: getFieldValue(fieldMap, 'STAGE') || 'Identification',
-          lastContactDate: getFieldValue(fieldMap, 'LASTCONTACTDATE') ? parseDate(getFieldValue(fieldMap, 'LASTCONTACTDATE')) : null,
-          nextContactDate: getFieldValue(fieldMap, 'NEXTCONTACTDATE') ? parseDate(getFieldValue(fieldMap, 'NEXTCONTACTDATE')) : null,
-          lifetimeGiving: getFieldValue(fieldMap, 'LIFETIMEGIVING') ? parseInt(getFieldValue(fieldMap, 'LIFETIMEGIVING') || '0') : 0,
-          lastGiftDate: getFieldValue(fieldMap, 'LASTGIFTDATE') ? parseDate(getFieldValue(fieldMap, 'LASTGIFTDATE')) : null,
-          lastSyncedAt: new Date(),
-          prospectManagerId: getFieldValue(fieldMap, 'PROSPECTMANAGERID') || getFieldValue(fieldMap, 'prospect_manager_id')
+          buid: values[4] || '',                               // Array index 4: BUID
+          bbecGuid: values[0] || '',                           // Array index 0: ID/BBEC GUID
+          constituentGuid: values[0] || '',                    // Array index 0: ID/BBEC GUID (same as bbecGuid)
+          firstName: values[2] || '',                          // Array index 2: First Name
+          lastName: values[3] || '',                           // Array index 3: Last Name  
+          fullName: values[6] || values[1] || `${values[2] || ''} ${values[3] || ''}`.trim(), // Array index 6 (with title), fallback to index 1, or construct from first/last
+          email: null,                                         // Not available in BBEC prospects API
+          phone: null,                                         // Not available in BBEC prospects API  
+          prospectRating: values[13] || null,                  // Array index 13: Capacity Rating (e.g., "E-$100K - $249k")
+          stage: 'Identification',                             // Default stage (not in BBEC API)
+          lastContactDate: null,                               // Not available in BBEC prospects API
+          nextContactDate: null,                               // Not available in BBEC prospects API
+          lifetimeGiving: values[7] ? Math.round(parseFloat(values[7]) || 0) : 0, // Array index 7: Lifetime Giving (convert to integer)
+          lastGiftDate: null,                                  // Not available in BBEC prospects API
+          lastSyncedAt: new Date(),                            // Set current timestamp
+          prospectManagerId: values[5] || null,                // Array index 5: Prospect Manager ID  
+          affinityTags: values[12] ? values[12].toString().split(';').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0) : [] // Array index 12: Affinity tags (split by semicolon)
         };
         
         // Filter out invalid prospects (missing required fields)
