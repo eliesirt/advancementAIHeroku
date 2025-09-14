@@ -6,9 +6,10 @@ import { useLocation } from "wouter";
 interface AppNavigationProps {
   appName: string;
   backUrl?: string;
+  backText?: string;
 }
 
-export function AppNavigation({ appName, backUrl = "/" }: AppNavigationProps) {
+export function AppNavigation({ appName, backUrl = "/", backText = "Back to Apps" }: AppNavigationProps) {
   const [, setLocation] = useLocation();
 
   const handleBackToLauncher = () => {
@@ -28,7 +29,7 @@ export function AppNavigation({ appName, backUrl = "/" }: AppNavigationProps) {
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Apps</span>
+              <span>{backText}</span>
             </Button>
             <div className="h-6 w-px bg-gray-300" />
             <div className="flex items-center space-x-3">
