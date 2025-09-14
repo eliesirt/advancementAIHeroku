@@ -139,7 +139,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AppNavigation appName="BBEC Interactions" />
+        <AppNavigation appName="BBEC Interactions" backUrl="/apps/portfolio" />
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -153,7 +153,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AppNavigation appName="BBEC Interactions" />
+        <AppNavigation appName="BBEC Interactions" backUrl="/apps/portfolio" />
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="p-6">

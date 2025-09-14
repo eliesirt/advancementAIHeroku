@@ -5,13 +5,14 @@ import { useLocation } from "wouter";
 
 interface AppNavigationProps {
   appName: string;
+  backUrl?: string;
 }
 
-export function AppNavigation({ appName }: AppNavigationProps) {
+export function AppNavigation({ appName, backUrl = "/" }: AppNavigationProps) {
   const [, setLocation] = useLocation();
 
   const handleBackToLauncher = () => {
-    setLocation("/");
+    setLocation(backUrl);
   };
 
   return (
