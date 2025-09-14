@@ -35,7 +35,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
 
   // Fetch BBEC interactions
   const { data: interactions = [], isLoading, error } = useQuery<BbecInteraction[]>({
-    queryKey: currentConstituentId ? ['/api/bbec/interactions/by-constituent', currentConstituentId] : ['/api/bbec/interactions'],
+    queryKey: currentConstituentId ? [`/api/bbec/interactions/by-constituent/${currentConstituentId}`] : ['/api/bbec/interactions'],
     retry: false,
   });
 
@@ -53,7 +53,7 @@ export default function BBECInteractionsPage({ constituentId }: BBECInteractions
       });
       // Invalidate the interactions query to refetch data
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/bbec/interactions/by-constituent', currentConstituentId] 
+        queryKey: [`/api/bbec/interactions/by-constituent/${currentConstituentId}`] 
       });
     },
     onError: (error: any) => {
