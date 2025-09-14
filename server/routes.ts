@@ -6,6 +6,7 @@ import { bbecClient, type BBECInteractionSubmission } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema, insertItinerarySchema, insertItineraryMeetingSchema } from "@shared/schema";
+import { generateProspectSummary, generateNextActions } from "./lib/prospect-ai";
 import fetch from 'node-fetch';
 import { z } from "zod";
 import { exec } from 'child_process';
@@ -3989,6 +3990,127 @@ Generate a complete, functional Python script that accomplishes the user's requi
     } catch (error) {
       console.error('Error fetching user settings:', error);
       res.status(500).json({ error: 'Failed to fetch user settings' });
+    }
+  });
+
+  // AI Summary endpoint for portfolio prospects
+  app.post('/api/prospect/:id/generate-summary', isAuthenticated, async (req, res) => {
+    try {
+      const prospectId = parseInt(req.params.id);
+      
+      // Get prospect data from database
+      const prospect = await storage.getProspect(prospectId);
+      if (!prospect) {
+        return res.status(404).json({ error: 'Prospect not found' });
+      }
+
+      // Get BBEC interactions for this prospect
+      const constituentId = prospect.constituentGuid || prospect.bbecGuid;
+      let interactions: any[] = [];
+      if (constituentId) {
+        interactions = await storage.getBBECInteractionsByConstituent(constituentId);
+      }
+
+      // Build summary data for AI
+      const summaryData = {
+        interactionHistory: {
+          totalCount: interactions.length,
+          lastContactDate: interactions.length > 0 ? interactions[0]?.date : null,
+          averageContactsPerMonth: interactions.length / Math.max(12, 1) // Rough estimate
+        },
+        donorHistory: {
+          lifetimeGiving: prospect.lifetimeGiving || 0,
+          currentYearGiving: prospect.currentYearGiving || 0
+        },
+        eventAttendance: {
+          totalEvents: 0,
+          favoriteEventTypes: [],
+          lastTwoYears: [],
+          attendanceRate: 0
+        },
+        professional: {
+          currentPosition: prospect.jobTitle || 'Not specified',
+          employer: prospect.employer || 'Not specified'
+        },
+        engagement: {
+          prospectRating: prospect.rating || 'Not available',
+          inclination: prospect.inclination || 'Unknown',
+          stage: prospect.stage || 'Unknown',
+          capacity: prospect.capacity,
+          engagementTrend: 'Unknown'
+        },
+        relationships: {
+          spouse: prospect.spouseName || null
+        }
+      };
+
+      const summary = await generateProspectSummary(summaryData);
+      
+      res.json({ summary });
+    } catch (error) {
+      console.error('Error generating AI summary:', error);
+      res.status(500).json({ error: 'Failed to generate AI summary' });
+    }
+  });
+
+  // AI Next Actions endpoint for portfolio prospects  
+  app.post('/api/prospect/:id/generate-next-actions', isAuthenticated, async (req, res) => {
+    try {
+      const prospectId = parseInt(req.params.id);
+      
+      // Get prospect data from database
+      const prospect = await storage.getProspect(prospectId);
+      if (!prospect) {
+        return res.status(404).json({ error: 'Prospect not found' });
+      }
+
+      // Get BBEC interactions for this prospect
+      const constituentId = prospect.constituentGuid || prospect.bbecGuid;
+      let interactions: any[] = [];
+      if (constituentId) {
+        interactions = await storage.getBBECInteractionsByConstituent(constituentId);
+      }
+
+      // Build summary data for AI
+      const summaryData = {
+        interactionHistory: {
+          totalCount: interactions.length,
+          lastContactDate: interactions.length > 0 ? interactions[0]?.date : null,
+          averageContactsPerMonth: interactions.length / Math.max(12, 1)
+        },
+        donorHistory: {
+          lifetimeGiving: prospect.lifetimeGiving || 0,
+          currentYearGiving: prospect.currentYearGiving || 0
+        },
+        eventAttendance: {
+          totalEvents: 0,
+          favoriteEventTypes: [],
+          lastTwoYears: [],
+          attendanceRate: 0
+        },
+        professional: {
+          currentPosition: prospect.jobTitle || 'Not specified',
+          employer: prospect.employer || 'Not specified'
+        },
+        engagement: {
+          prospectRating: prospect.rating || 'Not available',
+          inclination: prospect.inclination || 'Unknown',
+          stage: prospect.stage || 'Unknown',
+          capacity: prospect.capacity,
+          engagementTrend: 'Unknown'
+        },
+        relationships: {
+          spouse: prospect.spouseName || null
+        }
+      };
+
+      const prospectName = `${prospect.firstName || ''} ${prospect.lastName || ''}`.trim() || 'Unknown Prospect';
+      const nextActions = await generateNextActions(summaryData, prospectName);
+      
+      res.json({ nextActions });
+    } catch (error) {
+      console.error('Error generating next actions:', error);
+      res.status(500).json({ error: 'Failed to generate next actions' });
     }
   });
 
