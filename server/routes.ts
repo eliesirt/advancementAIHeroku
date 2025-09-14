@@ -1342,6 +1342,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Refresh interactions for a specific constituent
+  app.post('/api/bbec/interactions/refresh/:constituentId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { constituentId } = req.params;
+      const { fetchInteractions } = await import('./services/bbecDataService');
+      
+      console.log(`🔄 [BBEC Refresh] Starting refresh for constituent: ${constituentId}`);
+      
+      // Fetch interactions from BBEC for this specific constituent
+      const result = await fetchInteractions({
+        authUserId: req.user.claims.sub,
+        contextRecordId: constituentId // Use constituent ID as context
+      });
+      
+      // Map to insert schema and validate interactions
+      const { insertBbecInteractionSchema } = await import('@shared/schema');
+      const validInteractions = result.interactions
+        .filter((interaction: any) => interaction.constituentId === constituentId) // Only keep interactions for this constituent
+        .map((interaction: any) => ({
+          constituentId: interaction.constituentId,
+          name: interaction.name,
+          lastName: interaction.lastName,
+          lookupId: interaction.lookupId,
+          interactionLookupId: interaction.interactionLookupId,
+          interactionId: interaction.interactionId,
+          summary: interaction.summary,
+          comment: interaction.comment,
+          date: interaction.date,
+          contactMethod: interaction.contactMethod,
+          prospectManagerId: interaction.prospectManagerId
+        }))
+        .filter((interaction: any) => {
+          if (!interaction.interactionId || !interaction.constituentId) {
+            console.warn('🚫 [BBEC Refresh] Dropping interaction missing interactionId or constituentId:', interaction);
+            return false;
+          }
+          try {
+            insertBbecInteractionSchema.parse(interaction);
+            return true;
+          } catch (error) {
+            console.warn('🚫 [BBEC Refresh] Dropping invalid interaction:', interaction, error);
+            return false;
+          }
+        });
+      
+      await storage.upsertBbecInteractions(validInteractions);
+      
+      console.log(`✅ [BBEC Refresh] Successfully refreshed ${validInteractions.length} interactions for constituent: ${constituentId}`);
+      
+      res.json({
+        success: true,
+        count: validInteractions.length,
+        constituentId,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error(`❌ [BBEC Refresh] Error refreshing interactions for constituent:`, error);
+      res.status(500).json({ 
+        error: 'Failed to refresh constituent interactions',
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Get affinity tags info (count, last refresh, etc.)
   app.get("/api/affinity-tags/info", async (req, res) => {
     try {
