@@ -286,6 +286,9 @@ export interface IStorage {
   getBbecInteractionsByConstituent(constituentId: string): Promise<BbecInteraction[]>;
   getConstituentsByProspectManager(prospectManagerGuid: string): Promise<ProspectWithDetails[]>;
   clearBbecInteractions(prospectManagerId: string): Promise<void>;
+  
+  // Prospect sync methods
+  syncProspectsFromBbec(prospectsData: any[], prospectManagerId: string): Promise<void>;
 }
 
 export class MemStorage implements Partial<IStorage> {
@@ -1626,6 +1629,54 @@ export class DatabaseStorage implements IStorage {
       .update(prospects)
       .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
       .where(eq(prospects.prospectManagerId, prospectManagerId));
+  }
+
+  async syncProspectsFromBbec(prospectsData: any[], prospectManagerId: string): Promise<void> {
+    console.log(`📥 [Storage] Syncing ${prospectsData.length} prospects from BBEC for manager: ${prospectManagerId}`);
+    
+    // Clear existing prospects for this manager first to avoid stale data
+    await db.delete(prospects).where(eq(prospects.prospectManagerId, prospectManagerId));
+    
+    if (prospectsData.length === 0) {
+      console.log(`✅ [Storage] No prospects to sync for manager: ${prospectManagerId}`);
+      return;
+    }
+    
+    // Transform BBEC data to our prospect schema format
+    const prospectRecords = prospectsData.map(bbecProspect => ({
+      buid: bbecProspect.buid,
+      bbecGuid: bbecProspect.bbecGuid,
+      constituentGuid: bbecProspect.constituentGuid,
+      firstName: bbecProspect.firstName || '',
+      lastName: bbecProspect.lastName || '',
+      fullName: bbecProspect.fullName || `${bbecProspect.firstName} ${bbecProspect.lastName}`.trim(),
+      email: bbecProspect.email,
+      phone: bbecProspect.phone,
+      prospectManagerId: prospectManagerId,
+      prospectRating: bbecProspect.prospectRating,
+      stage: bbecProspect.stage || 'Identification',
+      lastContactDate: bbecProspect.lastContactDate,
+      nextContactDate: bbecProspect.nextContactDate,
+      lifetimeGiving: bbecProspect.lifetimeGiving || 0,
+      lastGiftDate: bbecProspect.lastGiftDate,
+      lastSyncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+    
+    try {
+      // Insert all prospects in a single batch operation
+      const insertedProspects = await db
+        .insert(prospects)
+        .values(prospectRecords)
+        .returning();
+        
+      console.log(`✅ [Storage] Successfully synced ${insertedProspects.length} prospects from BBEC`);
+      
+    } catch (error) {
+      console.error('❌ [Storage] Error syncing prospects from BBEC:', error);
+      throw new Error(`Failed to sync prospects: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Prospect relationship methods
