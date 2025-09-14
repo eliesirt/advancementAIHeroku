@@ -104,11 +104,10 @@ const parseInteractionsResponse = async (soapResponse: string): Promise<any[]> =
     // Navigate through SOAP envelope to get data list rows
     const envelope = parsed.Envelope;
     const body = envelope.Body;
-    const response = body.DataListLoadResponse;
-    const result = response.DataListLoadResult;
+    const response = body.DataListLoadReply;  // Fixed: API returns Reply not Response
     
     // Normalize rows to always be an array (explicitArray: false may return single object)
-    let rawRows = result?.Rows?.Row || [];
+    let rawRows = response?.Rows?.r || [];  // Fixed: API uses 'r' not 'Row'
     const rows = Array.isArray(rawRows) ? rawRows : [rawRows];
     
     console.log(`🔍 [BBEC Service] Parsing ${rows.length} interaction rows from SOAP response`);
@@ -117,7 +116,7 @@ const parseInteractionsResponse = async (soapResponse: string): Promise<any[]> =
     const interactions = rows.map((row: any, index: number) => {
       try {
         // Normalize values to array (explicitArray: false may return single object)
-        let rawValues = row.Values?.Value || [];
+        let rawValues = row.Values?.v || [];  // Fixed: API uses 'v' not 'Value'
         const values = Array.isArray(rawValues) ? rawValues : [rawValues];
         
         // Map BBEC response values to our schema with safer field extraction
