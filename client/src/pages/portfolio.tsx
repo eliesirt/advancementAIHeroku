@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { RefreshCw, Search, Filter, Users, DollarSign, Calendar, Award, ArrowUpDown } from "lucide-react";
 import { AppNavigation } from "@/components/app-navigation";
 import { useToast } from "@/hooks/use-toast";
+import { parseMarkdownToJSX } from "@/lib/markdown-utils";
 
 type SortField = 'fullName' | 'prospectRating' | 'lifetimeGiving' | 'lastContactDate' | 'totalInteractions' | 'stage';
 type SortDirection = 'asc' | 'desc';
@@ -652,8 +653,10 @@ export default function PortfolioPage() {
 
                       {aiSummary ? (
                         <div data-testid="ai-summary-result">
-                          <p className="text-gray-500 text-sm mb-2">AI Summary</p>
-                          <p className="text-sm leading-relaxed">{aiSummary}</p>
+                          <p className="text-gray-500 text-sm mb-3">AI Summary</p>
+                          <div className="text-sm">
+                            {parseMarkdownToJSX(aiSummary)}
+                          </div>
                         </div>
                       ) : (
                         <Button 
@@ -713,10 +716,8 @@ export default function PortfolioPage() {
                   </CardHeader>
                   <CardContent className="p-6">
                     {aiNextActions ? (
-                      <div className="prose prose-sm" data-testid="ai-next-actions-result">
-                        <div className="whitespace-pre-line text-sm leading-relaxed">
-                          {aiNextActions}
-                        </div>
+                      <div data-testid="ai-next-actions-result">
+                        {parseMarkdownToJSX(aiNextActions)}
                       </div>
                     ) : (
                       <div className="text-center">
