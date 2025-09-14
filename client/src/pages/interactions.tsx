@@ -174,8 +174,8 @@ export default function InteractionsPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Interactions</h1>
-          <p className="text-gray-600">View and manage your constituent interactions</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Internal App Interactions</h1>
+          <p className="text-gray-600">View and manage interactions created in this application</p>
         </div>
 
         {/* Stats Cards */}
