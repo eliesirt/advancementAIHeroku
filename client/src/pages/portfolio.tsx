@@ -108,7 +108,25 @@ export default function PortfolioPage() {
     try {
       setRefreshingAll(true);
       
-      const prospectIds = prospects.map(p => p.id);
+      // First, sync new prospects from BBEC
+      console.log('🔄 Syncing prospects from BBEC before refresh...');
+      try {
+        const syncResponse = await apiRequest('POST', '/api/prospects/sync-from-bbec');
+        console.log('✅ BBEC sync completed:', syncResponse);
+        
+        // Invalidate prospects query to get fresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/prospects'] });
+        
+        // Wait a moment for the query to refresh
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (syncError) {
+        console.error('❌ BBEC sync failed:', syncError);
+        // Continue with refresh of existing prospects even if sync fails
+      }
+      
+      // Get current prospects (after sync)
+      const currentProspects = queryClient.getQueryData<ProspectWithDetails[]>(['/api/prospects']) || prospects;
+      const prospectIds = currentProspects.map(p => p.id);
       console.log(`🔄 Starting sequential refresh for ${prospectIds.length} prospects`);
       
       // Process prospects one by one to prevent server overload
@@ -134,8 +152,8 @@ export default function PortfolioPage() {
       }
       
       toast({
-        title: "Bulk Refresh Complete",
-        description: `Refresh process initiated for all ${prospectIds.length} prospects.`,
+        title: "Sync & Refresh Complete",
+        description: `Synced from BBEC and refreshed all ${prospectIds.length} prospects.`,
       });
       
     } catch (error) {
