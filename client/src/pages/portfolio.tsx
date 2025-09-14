@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { ProspectWithDetails } from "@shared/schema";
@@ -30,7 +30,41 @@ export default function PortfolioPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch prospects
+  // Sync prospects from BBEC mutation
+  const syncProspectsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/prospects/sync-from-bbec', 'POST');
+    },
+    onSuccess: (data) => {
+      console.log('✅ [Portfolio] Prospects synced from BBEC:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/prospects'] });
+      // Only show toast for manual sync, not auto-sync
+      if (data._isManualSync) {
+        toast({
+          title: "Prospects Synced",
+          description: `Successfully synced ${data.syncedCount} prospects from BBEC.`,
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('❌ [Portfolio] Failed to sync prospects from BBEC:', error);
+      // Don't show error toast as this is automatic - user can still see the cached prospects
+    }
+  });
+
+  // Auto-sync prospects when component mounts (once per session)
+  useEffect(() => {
+    const sessionKey = 'portfolio-bbec-synced';
+    const hasAutoSyncedThisSession = sessionStorage.getItem(sessionKey);
+    
+    if (!hasAutoSyncedThisSession) {
+      console.log('🔄 [Portfolio] Auto-syncing prospects from BBEC on app load...');
+      syncProspectsMutation.mutate();
+      sessionStorage.setItem(sessionKey, 'true');
+    }
+  }, []);
+
+  // Fetch prospects (will be triggered after sync or immediately if sync fails)
   const { data: prospects = [], isLoading, error } = useQuery<ProspectWithDetails[]>({
     queryKey: ['/api/prospects'],
     retry: false,
@@ -83,7 +117,7 @@ export default function PortfolioPage() {
           setRefreshingProspects(prev => new Set(prev).add(prospectId));
           
           console.log(`🔄 Processing prospect ${prospectId}...`);
-          await apiRequest('POST', `/api/portfolio/refresh/${prospectId}`);
+          await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
           
           // Small delay between requests
           await new Promise(resolve => setTimeout(resolve, 500));
