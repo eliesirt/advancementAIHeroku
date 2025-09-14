@@ -83,7 +83,7 @@ export default function PortfolioPage() {
           setRefreshingProspects(prev => new Set(prev).add(prospectId));
           
           console.log(`🔄 Processing prospect ${prospectId}...`);
-          await apiRequest(`/api/portfolio/refresh/${prospectId}`, 'POST');
+          await apiRequest('POST', `/api/portfolio/refresh/${prospectId}`);
           
           // Small delay between requests
           await new Promise(resolve => setTimeout(resolve, 500));
