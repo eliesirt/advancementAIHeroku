@@ -12,7 +12,7 @@ import { RefreshCw, Search, Filter, Users, DollarSign, Calendar, Award, ArrowUpD
 import { AppNavigation } from "@/components/app-navigation";
 import { useToast } from "@/hooks/use-toast";
 
-type SortField = 'fullName' | 'prospectRating' | 'lifetimeGiving' | 'lastContactDate' | 'stage';
+type SortField = 'fullName' | 'prospectRating' | 'lifetimeGiving' | 'lastContactDate' | 'totalInteractions' | 'stage';
 type SortDirection = 'asc' | 'desc';
 
 export default function PortfolioPage() {
@@ -193,7 +193,7 @@ export default function PortfolioPage() {
       }
       
       // Handle numbers
-      if (sortField === 'lifetimeGiving') {
+      if (sortField === 'lifetimeGiving' || sortField === 'totalInteractions') {
         aValue = aValue || 0;
         bValue = bValue || 0;
       }
@@ -457,6 +457,16 @@ export default function PortfolioPage() {
                         </TableHead>
                         <TableHead 
                           className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => handleSort('totalInteractions')}
+                          data-testid="header-interactions"
+                        >
+                          <div className="flex items-center">
+                            Interactions
+                            <ArrowUpDown className="ml-1 h-3 w-3" />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-gray-50"
                           onClick={() => handleSort('stage')}
                         >
                           <div className="flex items-center">
@@ -487,6 +497,24 @@ export default function PortfolioPage() {
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
                           <TableCell>{formatDate(prospect.lastContactDate)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-900" data-testid={`text-interaction-count-${prospect.id}`}>{prospect.totalInteractions || 0}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // TODO: Navigate to interactions page for this prospect
+                                  console.log(`View interactions for prospect ${prospect.id}`);
+                                }}
+                                className="text-xs px-2 py-1 h-6"
+                                data-testid={`button-view-interactions-${prospect.id}`}
+                              >
+                                View
+                              </Button>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Badge className={getStageColor(prospect.stage)}>
                               {prospect.stage}
@@ -560,6 +588,24 @@ export default function PortfolioPage() {
                         <div>
                           <p className="text-gray-500">Last Contact</p>
                           <p className="font-semibold">{formatDate(selectedProspect.lastContactDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Interactions</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="font-semibold">{selectedProspect.totalInteractions || 0}</p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                // TODO: Navigate to interactions page for this prospect
+                                console.log(`View interactions for prospect ${selectedProspect.id}`);
+                              }}
+                              className="text-xs px-2 py-1 h-6"
+                              data-testid={`button-view-interactions-detail-${selectedProspect.id}`}
+                            >
+                              View All
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
