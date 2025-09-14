@@ -2972,12 +2972,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 2. Execute background BBEC data fetch operations without awaiting
       console.log(`🔥 [Portfolio Routes] Starting background data fetch for prospect: ${prospectId}`);
       
+      // Get user to access their BBEC GUID for interactions context
+      const user = await storage.getUser(userId);
+      const contextRecordId = user?.bbecGuid || userId;
+      
       // Import BBEC service and execute all four data fetching operations in background
       const bbecService = await import('./services/bbecDataService.js');
       
       // Fire all four operations simultaneously in the background
       Promise.allSettled([
-        bbecService.fetchInteractions(prospectId),
+        bbecService.fetchInteractions({ authUserId: userId, contextRecordId }),
         bbecService.fetchDonationSummary(prospectId),
         bbecService.fetchResearchNotes(prospectId),
         bbecService.fetchSolicitationPlans(prospectId)
