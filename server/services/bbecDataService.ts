@@ -364,6 +364,8 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
         // [0]=ID/BBEC_GUID, [1]=Full_Name, [2]=First_Name, [3]=Last_Name, [4]=BUID, 
         // [5]=Prospect_Manager_ID, [6]=Full_Name_With_Title, [7]=Lifetime_Giving, [12]=Affinity_Tags, [13]=Capacity_Rating
         // [14]=City, [15]=State, [16]=Country (newly added location fields)
+        
+        
         const prospect = {
           buid: values[4] || '',                               // Array index 4: BUID
           bbecGuid: values[0] || '',                           // Array index 0: ID/BBEC GUID

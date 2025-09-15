@@ -520,7 +520,7 @@ export default function PortfolioPage() {
                           </TableCell>
                           <TableCell>
                             <Badge className={getProspectRatingColor(prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
-                              {prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Not available'}
+                              {prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : prospect.prospectRating ? String(prospect.prospectRating) : 'Not available'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
