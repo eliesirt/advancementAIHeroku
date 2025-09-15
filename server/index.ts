@@ -151,22 +151,55 @@ app.get('/health', (req, res) => {
   console.log(`Starting server on port ${port}, NODE_ENV=${process.env.NODE_ENV}`);
 
   if (process.env.NODE_ENV === 'production') {
-    // HEROKU FAST STARTUP MODE
-    console.log("🚀 HEROKU: Using ultra-fast startup mode...");
+    // HEROKU FAST STARTUP MODE - WITH PROPER STORAGE INITIALIZATION
+    console.log("🚀 HEROKU: Using fast startup mode with storage gating...");
     
-    // Import storage for user data access
-    const { storage } = await import("./storage");
+    // CRITICAL: Initialize storage FIRST and ensure PostgreSQL connection
+    const { initStorage, getStorageReady } = await import("./storage");
+    let storageReady = false;
+    let storage: any = null;
+    
+    try {
+      console.log("⏳ [HEROKU] Initializing storage before serving routes...");
+      storage = await initStorage({ requireDbInProd: true });
+      storageReady = true;
+      console.log("✅ [HEROKU] Storage initialized successfully");
+    } catch (error) {
+      console.error("🚨 [HEROKU] Storage initialization failed:", error);
+      // Don't fail completely, but gate all API routes
+    }
     
     // Initialize fallbacks immediately for static serving
     await setupFallbacks();
     
     // Add immediate health endpoints
     app.get('/health', (req, res) => {
-      res.json({ status: 'ok', port, startup: 'fast-mode' });
+      res.json({ 
+        status: storageReady ? 'ok' : 'initializing',
+        port, 
+        startup: 'fast-mode',
+        storageReady
+      });
     });
     
     app.get('/api/health', (req, res) => {
-      res.json({ status: 'ok', message: 'Server running in fast startup mode' });
+      res.json({ 
+        status: storageReady ? 'ok' : 'initializing',
+        message: storageReady ? 'Server ready' : 'Storage initializing...',
+        backend: process.env.DATABASE_URL ? 'PostgreSQL' : 'Development'
+      });
+    });
+
+    // Gate all API routes until storage is ready
+    app.use('/api', (req, res, next) => {
+      if (!storageReady && req.path !== '/health') {
+        return res.status(503).json({ 
+          status: 'initializing', 
+          message: 'Storage is initializing, please try again shortly',
+          retryAfter: 2 
+        });
+      }
+      next();
     });
     
     // CRITICAL: Add essential auth routes IMMEDIATELY

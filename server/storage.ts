@@ -2507,6 +2507,54 @@ if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-console.log(`🗄️ [STORAGE] Storage backend: ${process.env.DATABASE_URL ? 'Postgres' : 'Development'}, NODE_ENV: ${process.env.NODE_ENV}`);
+// Storage initialization state
+let storageInstance: IStorage | null = null;
+let storageReady: Promise<void> | null = null;
 
+export async function initStorage({ requireDbInProd = true } = {}): Promise<IStorage> {
+  if (storageInstance) {
+    return storageInstance;
+  }
+  
+  console.log(`🗄️ [STORAGE] Initializing storage backend, NODE_ENV: ${process.env.NODE_ENV}`);
+  
+  // In production, require PostgreSQL and test connection
+  if (process.env.NODE_ENV === 'production' && requireDbInProd) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL required in production');
+    }
+    
+    try {
+      // Test database connection with a simple query
+      const { db } = await import('./db');
+      await db.execute('SELECT 1 as test');
+      console.log(`✅ [STORAGE] PostgreSQL connection verified`);
+    } catch (error) {
+      console.error('🚨 [STORAGE] PostgreSQL connection failed:', error);
+      throw new Error(`Database initialization failed: ${error}`);
+    }
+  }
+
+  // Initialize storage instance
+  storageInstance = new DatabaseStorage();
+  console.log(`✅ [STORAGE] Storage initialized: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'Development'}`);
+  
+  return storageInstance;
+}
+
+export function getStorage(): IStorage {
+  if (!storageInstance) {
+    throw new Error('Storage not initialized. Call initStorage() first.');
+  }
+  return storageInstance;
+}
+
+export function getStorageReady(): Promise<void> {
+  if (!storageReady) {
+    storageReady = initStorage().then(() => {});
+  }
+  return storageReady;
+}
+
+// Legacy export for backward compatibility - will be removed after migration
 export const storage = new DatabaseStorage();
