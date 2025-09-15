@@ -3,29 +3,40 @@ import type { ProspectSummaryData } from "@shared/schema";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function generateProspectSummary(summaryData: ProspectSummaryData): Promise<string> {
+export async function generateProspectSummary(summaryData: ProspectSummaryData, userId: string): Promise<string> {
   try {
-    const prompt = `As an expert fundraising AI assistant, generate a comprehensive prospect summary based on the following data. The summary should be professional, actionable, and highlight key opportunities for engagement.
+    // Get custom prompt from user settings
+    const { storage } = await import('../storage');
+    const customPrompt = await storage.getUserSettingValue(
+      userId,
+      'portfolio.generateAiPrompt',
+      `You are an expert fundraising analyst. Analyze this prospect's profile and generate a comprehensive AI summary including:
 
-Prospect Data:
+1. **Prospect Overview**: Key demographic and professional information
+2. **Giving Capacity**: Analysis of their potential giving level based on available data
+3. **Engagement History**: Summary of past interactions and giving patterns
+4. **Strategic Insights**: Key opportunities and considerations for cultivation
+5. **Relationship Mapping**: Important connections and affiliations
+
+Focus on actionable insights that will help the fundraiser build meaningful relationships and identify cultivation opportunities.`
+    );
+
+    // Build the data context for the custom prompt
+    const prospectDataContext = `
+PROSPECT DATA:
 - Interaction History: ${summaryData.interactionHistory.totalCount} total interactions, last contact ${summaryData.interactionHistory.lastContactDate ? new Date(summaryData.interactionHistory.lastContactDate).toDateString() : 'Unknown'}
 - Donor History: $${summaryData.donorHistory.lifetimeGiving.toLocaleString()} lifetime giving, $${summaryData.donorHistory.currentYearGiving.toLocaleString()} this year
 - Event Attendance: ${summaryData.eventAttendance.totalEvents} events attended, favorite types: ${summaryData.eventAttendance.favoriteEventTypes.join(', ')}
 - Professional: ${summaryData.professional.currentPosition || 'Not specified'} at ${summaryData.professional.employer || 'Not specified'}
 - Engagement Level: ${summaryData.engagement.prospectRating} prospect, ${summaryData.engagement.inclination} inclination, ${summaryData.engagement.stage} stage
-- Relationships: ${summaryData.relationships.spouse ? `Spouse: ${summaryData.relationships.spouse}` : 'No spouse data'}
+- Relationships: ${summaryData.relationships.spouse ? `Spouse: ${summaryData.relationships.spouse}` : 'No spouse data'}`;
 
-Please provide a concise but comprehensive summary (3-4 paragraphs) that includes:
-1. Key relationship highlights and engagement history
-2. Giving patterns and financial capacity insights
-3. Personal interests and professional background
-4. Family and relationship connections
-
-Focus on actionable insights that would help a fundraiser build stronger relationships.`;
+    // Combine custom prompt with prospect data
+    const fullPrompt = `${customPrompt}\n\n${prospectDataContext}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // Using GPT-4o for stable API compatibility
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: fullPrompt }],
       max_tokens: 800,
       temperature: 0.7,
     });
@@ -37,10 +48,31 @@ Focus on actionable insights that would help a fundraiser build stronger relatio
   }
 }
 
-export async function generateNextActions(summaryData: ProspectSummaryData, prospectName: string): Promise<string> {
+export async function generateNextActions(summaryData: ProspectSummaryData, prospectName: string, userId: string): Promise<string> {
   try {
-    const prompt = `As an expert fundraising strategist, recommend specific next actions for engaging with this prospect based on their profile data.
+    // Get custom prompt from user settings
+    const { storage } = await import('../storage');
+    const customPrompt = await storage.getUserSettingValue(
+      userId,
+      'portfolio.nextActionsPrompt',
+      `You are a strategic fundraising advisor. Based on this prospect's profile and interaction history, recommend 3-5 specific next actions for the fundraiser:
 
+1. **Immediate Actions** (next 1-2 weeks)
+2. **Short-term Strategy** (next 1-3 months)  
+3. **Long-term Cultivation** (3-12 months)
+
+Each recommendation should be:
+- Specific and actionable
+- Tailored to the prospect's interests and giving capacity
+- Focused on relationship building and stewardship
+- Include suggested timeline and follow-up steps
+
+Consider their preferred communication methods, past giving history, and current engagement level.`
+    );
+
+    // Build the data context for the custom prompt
+    const prospectDataContext = `
+PROSPECT DATA:
 Prospect: ${prospectName}
 Current Stage: ${summaryData.engagement.stage}
 Last Contact: ${summaryData.interactionHistory.lastContactDate ? new Date(summaryData.interactionHistory.lastContactDate).toDateString() : 'Unknown'}
@@ -52,19 +84,14 @@ Professional Background: ${summaryData.professional.currentPosition} at ${summar
 Recent Interaction Patterns:
 - Average contacts per month: ${summaryData.interactionHistory.averageContactsPerMonth}
 - Attendance rate: ${summaryData.eventAttendance.attendanceRate}%
-- Engagement trend: ${summaryData.engagement.engagementTrend}
+- Engagement trend: ${summaryData.engagement.engagementTrend}`;
 
-Please provide 4-5 specific, actionable next steps prioritized by importance. Each action should include:
-- The specific action to take
-- The recommended timing
-- The expected outcome
-- Any special considerations
-
-Format as a bulleted list with clear, actionable items.`;
+    // Combine custom prompt with prospect data
+    const fullPrompt = `${customPrompt}\n\n${prospectDataContext}`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // Using GPT-4o for stable API compatibility
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: fullPrompt }],
       max_tokens: 600,
       temperature: 0.8,
     });

@@ -4055,7 +4055,8 @@ Generate a complete, functional Python script that accomplishes the user's requi
         }
       };
 
-      const summary = await generateProspectSummary(summaryData);
+      const userId = req.user.claims.sub;
+      const summary = await generateProspectSummary(summaryData, userId);
       
       res.json({ summary });
     } catch (error) {
@@ -4116,7 +4117,8 @@ Generate a complete, functional Python script that accomplishes the user's requi
       };
 
       const prospectName = `${prospect.firstName || ''} ${prospect.lastName || ''}`.trim() || 'Unknown Prospect';
-      const nextActions = await generateNextActions(summaryData, prospectName);
+      const userId = req.user.claims.sub;
+      const nextActions = await generateNextActions(summaryData, prospectName, userId);
       
       res.json({ nextActions });
     } catch (error) {
