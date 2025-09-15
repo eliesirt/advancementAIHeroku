@@ -2305,7 +2305,23 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // REMOVED: Mock /api/prospects endpoint - now handled by routes.ts with real PostgreSQL data
+    // CRITICAL: Add working /api/prospects route using real PostgreSQL storage via proxy
+    app.get('/api/prospects', async (req: any, res) => {
+      try {
+        console.log('📋 [Portfolio] Fetching prospects list from PostgreSQL');
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
+        const prospects = await storage.getProspects("42195145"); // Admin user
+        console.log(`✅ [Portfolio] Retrieved ${prospects.length} prospects from PostgreSQL`);
+        res.json(prospects);
+      } catch (error) {
+        console.error('❌ [Portfolio] Error fetching prospects:', error);
+        res.status(500).json({ 
+          message: 'Failed to fetch prospects', 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    });
 
     app.post('/api/prospects/refresh-all', async (req: any, res) => {
       try {
