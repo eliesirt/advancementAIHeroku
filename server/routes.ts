@@ -4043,6 +4043,11 @@ Generate a complete, functional Python script that accomplishes the user's requi
           currentPosition: prospect.jobTitle || 'Not specified',
           employer: prospect.employer || 'Not specified'
         },
+        location: {
+          city: prospect.city || null,
+          state: prospect.state || null,
+          country: prospect.country || null
+        },
         engagement: {
           prospectRating: prospect.rating || 'Not available',
           inclination: prospect.inclination || 'Unknown',
@@ -4103,6 +4108,11 @@ Generate a complete, functional Python script that accomplishes the user's requi
         professional: {
           currentPosition: prospect.jobTitle || 'Not specified',
           employer: prospect.employer || 'Not specified'
+        },
+        location: {
+          city: prospect.city || null,
+          state: prospect.state || null,
+          country: prospect.country || null
         },
         engagement: {
           prospectRating: prospect.rating || 'Not available',

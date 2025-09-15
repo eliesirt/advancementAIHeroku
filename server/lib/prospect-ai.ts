@@ -22,12 +22,17 @@ Focus on actionable insights that will help the fundraiser build meaningful rela
     );
 
     // Build the data context for the custom prompt
+    const locationInfo = summaryData.location && (summaryData.location.city || summaryData.location.state || summaryData.location.country) 
+      ? `${summaryData.location.city || ''}${summaryData.location.city && summaryData.location.state ? ', ' : ''}${summaryData.location.state || ''}${(summaryData.location.city || summaryData.location.state) && summaryData.location.country ? ', ' : ''}${summaryData.location.country || ''}`.trim()
+      : 'Not specified';
+    
     const prospectDataContext = `
 PROSPECT DATA:
 - Interaction History: ${summaryData.interactionHistory.totalCount} total interactions, last contact ${summaryData.interactionHistory.lastContactDate ? new Date(summaryData.interactionHistory.lastContactDate).toDateString() : 'Unknown'}
 - Donor History: $${summaryData.donorHistory.lifetimeGiving.toLocaleString()} lifetime giving, $${summaryData.donorHistory.currentYearGiving.toLocaleString()} this year
 - Event Attendance: ${summaryData.eventAttendance.totalEvents} events attended, favorite types: ${summaryData.eventAttendance.favoriteEventTypes.join(', ')}
 - Professional: ${summaryData.professional.currentPosition || 'Not specified'} at ${summaryData.professional.employer || 'Not specified'}
+- Location: ${locationInfo}
 - Engagement Level: ${summaryData.engagement.prospectRating} prospect, ${summaryData.engagement.inclination} inclination, ${summaryData.engagement.stage} stage
 - Relationships: ${summaryData.relationships.spouse ? `Spouse: ${summaryData.relationships.spouse}` : 'No spouse data'}`;
 
@@ -71,6 +76,10 @@ Consider their preferred communication methods, past giving history, and current
     );
 
     // Build the data context for the custom prompt
+    const locationInfo = summaryData.location && (summaryData.location.city || summaryData.location.state || summaryData.location.country) 
+      ? `${summaryData.location.city || ''}${summaryData.location.city && summaryData.location.state ? ', ' : ''}${summaryData.location.state || ''}${(summaryData.location.city || summaryData.location.state) && summaryData.location.country ? ', ' : ''}${summaryData.location.country || ''}`.trim()
+      : 'Not specified';
+    
     const prospectDataContext = `
 PROSPECT DATA:
 Prospect: ${prospectName}
@@ -78,6 +87,7 @@ Current Stage: ${summaryData.engagement.stage}
 Last Contact: ${summaryData.interactionHistory.lastContactDate ? new Date(summaryData.interactionHistory.lastContactDate).toDateString() : 'Unknown'}
 Giving Capacity: $${summaryData.engagement.capacity?.toLocaleString() || 'Not specified'}
 Inclination: ${summaryData.engagement.inclination}
+Location: ${locationInfo}
 Recent Event Attendance: ${summaryData.eventAttendance.lastTwoYears.slice(0, 3).map(e => e.eventName).join(', ')}
 Professional Background: ${summaryData.professional.currentPosition} at ${summaryData.professional.employer}
 
