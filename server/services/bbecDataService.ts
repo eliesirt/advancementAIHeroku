@@ -367,19 +367,6 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
         
         
         
-        // Debug location extraction
-        const locationCity = values[17];
-        const locationState = values[18]; 
-        const locationCountry = values[19];
-        
-        if (index === 0) {
-          console.log('🔍 [BBEC DEBUG] Location extraction for first prospect:', {
-            city: locationCity, cityType: typeof locationCity,
-            state: locationState, stateType: typeof locationState,
-            country: locationCountry, countryType: typeof locationCountry,
-            valuesLength: values.length
-          });
-        }
         
         const prospect = {
           buid: values[4] || '',                               // Array index 4: BUID
@@ -391,9 +378,9 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
           email: null,                                         // Not available in BBEC prospects API
           phone: null,                                         // Not available in BBEC prospects API
           // Location fields - found in debug logs at indices 17, 18, 19
-          city: locationCity || null,                              // Array index 17: City (e.g., "Chicago")
-          state: locationState || null,                            // Array index 18: State (e.g., "Illinois")  
-          country: locationCountry || null,                        // Array index 19: Country (e.g., "United States")
+          city: values[17] || null,                                // Array index 17: City (e.g., "Chicago")
+          state: values[18] || null,                               // Array index 18: State (e.g., "Illinois")  
+          country: values[19] || null,                             // Array index 19: Country (e.g., "United States")
           prospectRating: values[13] || null,                  // Array index 13: Capacity Rating (e.g., "E-$100K - $249k")
           stage: 'Identification',                             // Default stage (not in BBEC API)
           lastContactDate: null,                               // Not available in BBEC prospects API
