@@ -1,0 +1,98 @@
+{"id":"42195145","email":"elsirt@gmail.com","firstName":"Admin","lastName":"User","profileImageUrl":null,"buid":"U029480520","bbecGuid":"34e0c896-76b2-4041-b035-6591356ca1ad","bbecUsername":"ad\\esirotta","bbecPassword":"WeLoveHawaii317378!"}
+2025-09-15T00:22:43.598453+00:00 app[web.1]: ✅ [HEROKU AUTH] User authenticated: 42195145
+2025-09-15T00:22:43.602137+00:00 app[web.1]: 🔄 [Routes] Starting BBEC prospects sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:22:43.602646+00:00 app[web.1]: 🔄 [BBEC Service] Fetching prospects for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:22:43.605209+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for prospects data...
+2025-09-15T00:22:43.787205+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing prospects data...
+2025-09-15T00:22:43.789391+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 3 prospect rows from SOAP response
+2025-09-15T00:22:43.789427+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 1: Mr. Andrew Mark Mento, (ENG'95)  (U251742630)
+2025-09-15T00:22:43.789446+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 2: Janet Sirotta  (Z935603400)
+2025-09-15T00:22:43.789465+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 3: Dr. Stacey Linda Sirotta (E), (SAR'01, SARᴳ'03,'08)  (U221713130)
+2025-09-15T00:22:43.789476+00:00 app[web.1]: ✅ [BBEC Service] Successfully processed 3 valid prospects
+2025-09-15T00:22:43.789485+00:00 app[web.1]: ✅ [BBEC Service] Prospects fetch completed for user: 42195145, found 3 prospects
+2025-09-15T00:22:43.789507+00:00 app[web.1]: 📥 [Storage] Syncing 3 prospects from BBEC for manager: 42195145
+2025-09-15T00:22:43.804180+00:00 app[web.1]: ✅ [Storage] Successfully synced 3 prospects from BBEC
+2025-09-15T00:22:43.804191+00:00 app[web.1]: 🔄 [Routes] Starting BBEC interactions sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:22:43.804624+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:22:43.807295+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for interactions data...
+2025-09-15T00:22:43.895985+00:00 heroku[router]: at=info method=POST path="/api/prospects/sync-from-bbec" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=de270ccb-8bff-67fc-3c8d-d0423a8e3a45 fwd="73.253.249.113" dyno=web.1 connect=0ms service=298ms status=200 bytes=4345 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:22:43.922573+00:00 heroku[router]: at=info method=GET path="/api/prospects" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=8cc328e1-2c28-f23b-78d5-a9aef9d422d0 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:22:43.883289+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing data...
+2025-09-15T00:22:43.885014+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 0 interaction rows from SOAP response
+2025-09-15T00:22:43.885035+00:00 app[web.1]: ✅ [BBEC Service] Successfully parsed 0 interactions
+2025-09-15T00:22:43.885047+00:00 app[web.1]: ✅ [BBEC Service] Interactions fetch completed for user: 42195145, found 0 interactions
+2025-09-15T00:22:43.885073+00:00 app[web.1]: 📥 [Storage] Syncing 0 interactions from BBEC for manager: 42195145
+2025-09-15T00:22:43.885082+00:00 app[web.1]: ✅ [Storage] No interactions to sync for manager: 42195145
+2025-09-15T00:22:43.885090+00:00 app[web.1]: ✅ [Routes] Successfully synced 0 interactions from BBEC
+2025-09-15T00:22:43.896542+00:00 app[web.1]: [production] POST /api/prospects/sync-from-bbec 200 in 298ms :: {"message":"Prospects and in…
+2025-09-15T00:22:43.922160+00:00 app[web.1]: 📋 [Portfolio] Fetching prospects list
+2025-09-15T00:22:43.922573+00:00 app[web.1]: [production] GET /api/prospects 304 in 1ms :: [{"id":1,"fullName":"John Smith","email":"john…
+2025-09-15T00:22:44.928545+00:00 heroku[router]: at=info method=POST path="/api/portfolio/refresh/1" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=022f1055-62bc-0762-9c6e-bda9f2f85002 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=202 bytes=109 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:22:44.927707+00:00 app[web.1]: 🔄 [Portfolio] Refresh initiated for prospect ID: 1
+2025-09-15T00:22:44.928054+00:00 app[web.1]: 🔥 [Portfolio] Starting background data fetch for prospect: 1
+2025-09-15T00:22:44.928518+00:00 app[web.1]: [production] POST /api/portfolio/refresh/1 202 in 1ms :: {"message":"Refresh process initiat…
+2025-09-15T00:22:44.928645+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: undefined, context: default
+2025-09-15T00:22:44.928734+00:00 app[web.1]: 🔄 [BBEC Service] Fetching donation summary for prospect ID: 1
+2025-09-15T00:22:44.928757+00:00 app[web.1]: 🔄 [BBEC Service] Fetching research notes for prospect ID: 1
+2025-09-15T00:22:44.928771+00:00 app[web.1]: 🔄 [BBEC Service] Fetching solicitation plans for prospect ID: 1
+2025-09-15T00:22:44.928785+00:00 app[web.1]: ✅ [Portfolio] Background tasks initiated for prospect: 1
+2025-09-15T00:22:44.929456+00:00 app[web.1]: ❌ [BBEC Service] Interactions fetch failed for user undefined: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:22:44.929456+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:22:44.929456+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:22:44.929457+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:22:44.929457+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:22:44.929457+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:22:44.929457+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:22:44.929458+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:22:44.929458+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:22:44.929459+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:22:44.929459+00:00 app[web.1]: }
+2025-09-15T00:22:44.929628+00:00 app[web.1]: ❌ [Portfolio] Interactions fetch failed for 1: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:22:44.929628+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:22:44.929628+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:22:44.929628+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:22:44.929629+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:22:44.929629+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:22:44.929629+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:22:44.929629+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:22:44.929629+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:22:44.929629+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:22:44.929629+00:00 app[web.1]: }
+2025-09-15T00:22:45.728674+00:00 app[web.1]: ✅ [BBEC Service] Donation summary fetch completed for prospect ID: 1
+2025-09-15T00:22:45.828995+00:00 app[web.1]: ✅ [BBEC Service] Solicitation plans fetch completed for prospect ID: 1
+2025-09-15T00:22:46.356676+00:00 heroku[router]: at=info method=POST path="/api/portfolio/refresh/2" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=fd5cef1c-31a2-e34a-8a9d-be6adf77b60b fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=202 bytes=109 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:22:46.129542+00:00 app[web.1]: ✅ [BBEC Service] Research notes fetch completed for prospect ID: 1
+2025-09-15T00:22:46.355639+00:00 app[web.1]: 🔄 [Portfolio] Refresh initiated for prospect ID: 2
+2025-09-15T00:22:46.356021+00:00 app[web.1]: 🔥 [Portfolio] Starting background data fetch for prospect: 2
+2025-09-15T00:22:46.356582+00:00 app[web.1]: [production] POST /api/portfolio/refresh/2 202 in 1ms :: {"message":"Refresh process initiat…
+2025-09-15T00:22:46.356747+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: undefined, context: default
+2025-09-15T00:22:46.356880+00:00 app[web.1]: 🔄 [BBEC Service] Fetching donation summary for prospect ID: 2
+2025-09-15T00:22:46.356903+00:00 app[web.1]: 🔄 [BBEC Service] Fetching research notes for prospect ID: 2
+2025-09-15T00:22:46.356920+00:00 app[web.1]: 🔄 [BBEC Service] Fetching solicitation plans for prospect ID: 2
+2025-09-15T00:22:46.356933+00:00 app[web.1]: ✅ [Portfolio] Background tasks initiated for prospect: 2
+2025-09-15T00:22:46.357597+00:00 app[web.1]: ❌ [BBEC Service] Interactions fetch failed for user undefined: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:22:46.357598+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:22:46.357598+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:22:46.357598+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:22:46.357598+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:22:46.357599+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:22:46.357599+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:22:46.357599+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:22:46.357599+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:22:46.357605+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:22:46.357606+00:00 app[web.1]: }
+2025-09-15T00:22:46.357649+00:00 app[web.1]: ❌ [Portfolio] Interactions fetch failed for 2: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:22:46.357649+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:22:46.357649+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:22:46.357650+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:22:46.357650+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:22:46.357650+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:22:46.357650+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:22:46.357651+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:22:46.357651+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:22:46.357651+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:22:46.357652+00:00 app[web.1]: }
+2025-09-15T00:22:47.157202+00:00 app[web.1]: ✅ [BBEC Service] Donation summary fetch completed for prospect ID: 2
+2025-09-15T00:22:47.257509+00:00 app[web.1]: ✅ [BBEC Service] Solicitation plans fetch completed for prospect ID: 2
+2025-09-15T00:22:47.557031+00:00 app[web.1]: ✅ [BBEC Service] Research notes fetch completed for prospect ID: 2
+2025-09-15T00:21:20.000000+00:00 app[api]: Build succeeded
