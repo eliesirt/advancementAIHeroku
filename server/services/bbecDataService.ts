@@ -366,17 +366,6 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
         // [14]=City, [15]=State, [16]=Country (newly added location fields)
         
         
-        // Debug: Log the entire values array to find location data
-        if (index === 0) {
-          console.log('🔍 [BBEC DEBUG] Full values array analysis:', {
-            totalLength: values.length,
-            indices_0_to_9: values.slice(0, 10),
-            indices_10_to_19: values.slice(10, 20),
-            indices_20_to_29: values.slice(20, 30),
-            indices_30_to_39: values.slice(30, 40),
-            searchingForLocationData: 'Address fields should contain city/state/country strings'
-          });
-        }
         
         const prospect = {
           buid: values[4] || '',                               // Array index 4: BUID
@@ -387,10 +376,10 @@ const parseProspectsResponse = async (soapResponse: string): Promise<any[]> => {
           fullName: values[6] || values[1] || `${values[2] || ''} ${values[3] || ''}`.trim(), // Array index 6 (with title), fallback to index 1, or construct from first/last
           email: null,                                         // Not available in BBEC prospects API
           phone: null,                                         // Not available in BBEC prospects API
-          // Location fields - searching through higher indices since not in documented 0-13 range
-          city: values[17] || values[18] || values[19] || null,     // Trying indices 17-19 for City
-          state: values[20] || values[21] || values[22] || null,    // Trying indices 20-22 for State  
-          country: values[23] || values[24] || values[25] || null,  // Trying indices 23-25 for Country
+          // Location fields - found in debug logs at indices 17, 18, 19
+          city: values[17] || null,                                // Array index 17: City (e.g., "Chicago")
+          state: values[18] || null,                               // Array index 18: State (e.g., "Illinois")  
+          country: values[19] || null,                             // Array index 19: Country (e.g., "United States")
           prospectRating: values[13] || null,                  // Array index 13: Capacity Rating (e.g., "E-$100K - $249k")
           stage: 'Identification',                             // Default stage (not in BBEC API)
           lastContactDate: null,                               // Not available in BBEC prospects API
