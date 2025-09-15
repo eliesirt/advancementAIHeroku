@@ -16,14 +16,33 @@ import { parseMarkdownToJSX } from "@/lib/markdown-utils";
 // Utility function to normalize rating data to consistent string format
 function normalizeRating(r: unknown): string | null {
   if (r == null) return null;
-  if (typeof r === 'string') return r.trim() || null;
+  if (typeof r === 'string') {
+    const trimmed = r.trim();
+    // Frontend safeguard: block any string starting with "[object"
+    if (trimmed.toLowerCase().startsWith('[object')) return null;
+    return trimmed || null;
+  }
   if (typeof r === 'number') return String(r);
   if (typeof r === 'object') {
     const o = r as any;
     const v = o.name ?? o.label ?? o.text ?? o.value ?? null;
-    return (typeof v === 'string' && v.trim()) ? v.trim() : null;
+    if (typeof v === 'string' && v.trim()) {
+      const trimmed = v.trim();
+      // Frontend safeguard: block any string starting with "[object"
+      if (trimmed.toLowerCase().startsWith('[object')) return null;
+      return trimmed;
+    }
+    return null;
   }
   return null;
+}
+
+// Additional frontend safeguard function to prevent "[object" display
+function safeDisplayRating(rating: string | null): string {
+  if (!rating) return 'Not available';
+  // Double-check: prevent any "[object" strings from displaying
+  if (rating.toLowerCase().startsWith('[object')) return 'Not available';
+  return rating;
 }
 
 type SortField = 'fullName' | 'prospectRating' | 'lifetimeGiving' | 'lastContactDate' | 'totalInteractions' | 'stage';
@@ -605,9 +624,10 @@ export default function PortfolioPage() {
                           <TableCell>
                             {(() => {
                               const rating = normalizeRating(prospect.prospectRating);
+                              const safeRating = safeDisplayRating(rating);
                               return (
                                 <Badge className={getProspectRatingColor(rating ?? 'Unknown')}>
-                                  {rating ?? 'Not available'}
+                                  {safeRating}
                                 </Badge>
                               );
                             })()}
@@ -698,9 +718,10 @@ export default function PortfolioPage() {
                           <p className="text-gray-500">Rating</p>
                           {(() => {
                             const rating = normalizeRating(selectedProspect.prospectRating);
+                            const safeRating = safeDisplayRating(rating);
                             return (
                               <Badge className={getProspectRatingColor(rating ?? 'Unknown')}>
-                                {rating ?? 'Not available'}
+                                {safeRating}
                               </Badge>
                             );
                           })()}
