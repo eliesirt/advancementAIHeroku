@@ -394,7 +394,8 @@ app.get('/health', (req, res) => {
     app.get('/api/settings/ai-model-preference', async (req: any, res) => {
       try {
         const userId = req.session?.user?.id || "42195145";
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const userPreference = await storage.getUserSettingValue(userId, 'ai_model_preference', 'gpt-4o');
         res.json({
           value: userPreference,
@@ -423,7 +424,8 @@ app.get('/health', (req, res) => {
           return res.status(400).json({ message: "Invalid AI model selection" });
         }
 
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const preference = await storage.setUserSetting({
           userId,
           settingKey: 'ai_model_preference',
@@ -474,7 +476,8 @@ app.get('/health', (req, res) => {
         console.log("🧪 DIRECT AFFINITY TEST - Starting...");
         const { interests, transcript } = req.body;
         
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const { createAffinityMatcher } = await import("./lib/affinity-matcher");
         
         console.log("🧪 Loading affinity tags...");
@@ -571,7 +574,8 @@ app.get('/health', (req, res) => {
           Promise.race([
             (async () => {
               try {
-                const { storage } = await import("./storage");
+                const { getStorage } = await import("./storage");
+        const storage = getStorage();
                 const [affinityTags, settings] = await Promise.all([
                   storage.getAffinityTags(),
                   storage.getAffinityTagSettings().catch(() => ({ matchingThreshold: 0.25 }))
@@ -811,7 +815,8 @@ app.get('/health', (req, res) => {
         });
 
         try {
-          const { storage } = await import("./storage");
+          const { getStorage } = await import("./storage");
+        const storage = getStorage();
           const affinityTags = await storage.getAffinityTags();
           
           if (!affinityTags || affinityTags.length === 0) {
@@ -920,7 +925,8 @@ app.get('/health', (req, res) => {
     // Create interaction endpoint - using real database
     app.post("/api/interactions", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         const interactionData = {
           userId: "42195145",
@@ -991,7 +997,8 @@ app.get('/health', (req, res) => {
       }, 12000);
 
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const interactionsPromise = storage.getInteractionsByUser("42195145");
         const fastTimeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('DB timeout')), 8000);
@@ -1065,7 +1072,8 @@ app.get('/health', (req, res) => {
       }, 12000);
 
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const interactionsPromise = storage.getInteractionsByUser("42195145");
         const fastTimeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('DB timeout')), 8000);
@@ -1147,7 +1155,8 @@ app.get('/health', (req, res) => {
     // GET interactions endpoints - using real database
     app.get("/api/interactions", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const interactions = await storage.getInteractionsByUser("42195145");
         res.json(interactions);
       } catch (error) {
@@ -1158,7 +1167,8 @@ app.get('/health', (req, res) => {
 
     app.get("/api/interactions/drafts", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const drafts = await storage.getDraftInteractions("42195145");
         res.json(drafts);
       } catch (error) {
@@ -1171,7 +1181,8 @@ app.get('/health', (req, res) => {
     app.get("/api/interactions/:id", async (req: any, res) => {
       try {
         const id = parseInt(req.params.id);
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const interaction = await storage.getInteraction(id);
         
         if (!interaction) {
@@ -1189,7 +1200,8 @@ app.get('/health', (req, res) => {
     app.put("/api/interactions/:id", async (req: any, res) => {
       try {
         const id = parseInt(req.params.id);
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         // Fix timestamp fields for database compatibility
         const updateData = {
@@ -1212,7 +1224,8 @@ app.get('/health', (req, res) => {
     app.patch("/api/interactions/:id", async (req: any, res) => {
       try {
         const id = parseInt(req.params.id);
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         // Handle affinity tag reprocessing if requested
         if (req.body.reprocessAffinityTags) {
@@ -1265,7 +1278,8 @@ app.get('/health', (req, res) => {
         const id = parseInt(req.params.id);
         console.log(`🗑️ [PRODUCTION] Attempting to delete interaction: ${id}`);
         
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         // Check if interaction exists first
         const existingInteraction = await storage.getInteraction(id);
@@ -1297,7 +1311,8 @@ app.get('/health', (req, res) => {
     // Draft interaction endpoints - using real database
     app.post("/api/interactions/draft", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         // Fix timestamp field conversion for database compatibility
         const draftData = {
@@ -1406,7 +1421,8 @@ app.get('/health', (req, res) => {
     // Affinity tags endpoints - using real database
     app.get("/api/affinity-tags", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const affinityTags = await storage.getAffinityTags();
         res.json(affinityTags);
       } catch (error) {
@@ -1419,7 +1435,8 @@ app.get('/health', (req, res) => {
       try {
         const { interests } = req.body;
         
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const affinityTags = await storage.getAffinityTags();
         const { createAffinityMatcher } = await import("./lib/affinity-matcher");
         const threshold = (await storage.getAffinityTagSettings())?.matchingThreshold || 0.25;
@@ -1441,7 +1458,8 @@ app.get('/health', (req, res) => {
 
     app.get("/api/affinity-tags/info", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const affinityTags = await storage.getAffinityTags();
         const settings = await storage.getAffinityTagSettings();
         
@@ -1477,7 +1495,8 @@ app.get('/health', (req, res) => {
           nextRefresh: null
         };
 
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         await storage.updateAffinityTagSettings(settings);
 
         // Update scheduler if available
@@ -1534,7 +1553,8 @@ app.get('/health', (req, res) => {
     app.get("/api/admin/roles", async (req: any, res) => {
       try {
         console.log("🔑 [PRODUCTION] Getting all roles");
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const roles = await storage.getRoles();
         console.log("✅ [PRODUCTION] Successfully retrieved roles:", roles.length);
         res.json(roles);
@@ -1549,7 +1569,8 @@ app.get('/health', (req, res) => {
     
     app.get("/api/python-scripts", async (req: any, res) => {
       try {
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const scripts = await storage.getPythonScripts();
         res.json(scripts);
       } catch (error: any) {
@@ -1561,7 +1582,8 @@ app.get('/health', (req, res) => {
     app.get("/api/python-scripts/:id", async (req: any, res) => {
       try {
         const { id } = req.params;
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const script = await storage.getPythonScript(parseInt(id));
         if (!script) {
           return res.status(404).json({ error: 'Script not found' });
@@ -1576,7 +1598,8 @@ app.get('/health', (req, res) => {
     app.put("/api/python-scripts/:id", async (req: any, res) => {
       try {
         const { id } = req.params;
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const script = await storage.updatePythonScript(parseInt(id), req.body);
         res.json(script);
       } catch (error: any) {
@@ -1592,7 +1615,8 @@ app.get('/health', (req, res) => {
         const scriptData = { ...req.body, ownerId: userId };
         console.log("🐍 [HEROKU] Script data prepared:", { scriptData, userId });
         
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         console.log("🐍 [HEROKU] Storage imported successfully");
         
         const script = await storage.createPythonScript(scriptData);
@@ -1615,7 +1639,8 @@ app.get('/health', (req, res) => {
     app.get("/api/script-executions", async (req: any, res) => {
       try {
         const { scriptId, userId } = req.query;
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const executions = await storage.getScriptExecutions(
           scriptId ? parseInt(scriptId as string) : undefined,
           userId as string
@@ -1634,7 +1659,8 @@ app.get('/health', (req, res) => {
         const startTime = Date.now();
 
         // Get the script from storage
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const script = await storage.getPythonScript(parseInt(id));
         if (!script) {
           return res.status(404).json({ error: 'Script not found' });
@@ -1795,7 +1821,8 @@ app.get('/health', (req, res) => {
     app.get("/api/admin/applications", async (req: any, res) => {
       try {
         console.log("📱 [PRODUCTION] Getting all applications");
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const applications = await storage.getAllApplications();
         console.log("✅ [PRODUCTION] Successfully retrieved applications:", applications.length);
         res.json(applications);
@@ -1808,7 +1835,8 @@ app.get('/health', (req, res) => {
     app.get("/api/admin/role-applications", async (req: any, res) => {
       try {
         console.log("🔗 [PRODUCTION] Getting role-applications mapping");
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const roles = await storage.getRoles();
         const applications = await storage.getAllApplications();
         
@@ -1888,7 +1916,8 @@ app.get('/health', (req, res) => {
         console.log("🎭 [PRODUCTION] Creating user with data:", req.body);
         const userData = req.body;
         
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         
         // Check if user with this email already exists
         const existingUser = await storage.getUserByUsername(userData.email);
@@ -1920,7 +1949,8 @@ app.get('/health', (req, res) => {
     app.get("/api/admin/users", async (req: any, res) => {
       try {
         console.log("👥 [PRODUCTION] Getting all users with roles");
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const users = await storage.getAllUsersWithRoles();
         console.log("✅ [PRODUCTION] Successfully retrieved users:", users.length);
         res.json(users);
@@ -2174,7 +2204,8 @@ app.get('/health', (req, res) => {
       try {
         const { jobId } = req.params;
         const userId = req.user?.claims?.sub || req.session?.user?.id || "42195145"; // Fallback user
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
 
         const job = await storage.getAiJob(parseInt(jobId));
         
@@ -2197,7 +2228,8 @@ app.get('/health', (req, res) => {
     app.get('/api/ai-jobs/:jobId/debug', async (req: any, res) => {
       try {
         const { jobId } = req.params;
-        const { storage } = await import("./storage");
+        const { getStorage } = await import("./storage");
+        const storage = getStorage();
         const job = await storage.getAiJob(parseInt(jobId));
         
         if (!job) {
@@ -2453,7 +2485,8 @@ app.get('/health', (req, res) => {
         // Get affinity tags from database and match
         let suggestedTags = [];
         try {
-          const storage = (await import("./storage.js")).storage;
+          const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
           const affinityTags = await storage.getAffinityTags();
           console.log("📊 Available affinity tags:", affinityTags.length);
 
@@ -2515,7 +2548,8 @@ app.get('/health', (req, res) => {
     app.get("/api/interactions/recent", async (req: any, res) => {
       try {
         const userId = "42195145"; // Admin user
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const interactions = await storage.getRecentInteractions(userId, 10);
         res.json(interactions);
       } catch (error) {
@@ -2528,7 +2562,8 @@ app.get('/health', (req, res) => {
     app.post("/api/interactions", async (req: any, res) => {
       try {
         const userId = "42195145"; // Admin user
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const { insertInteractionSchema } = await import("../shared/schema.js");
         
         const interactionData = insertInteractionSchema.parse({
@@ -2548,7 +2583,8 @@ app.get('/health', (req, res) => {
     app.post("/api/interactions/:id/submit-bbec", async (req: any, res) => {
       try {
         const interactionId = parseInt(req.params.id);
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const interaction = await storage.getInteraction(interactionId);
 
         if (!interaction) {
@@ -2613,7 +2649,8 @@ app.get('/health', (req, res) => {
     app.post("/api/interactions/draft", async (req: any, res) => {
       try {
         const userId = "42195145"; // Admin user
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const { insertInteractionSchema } = await import("../shared/schema.js");
         
         const interactionData = insertInteractionSchema.parse({
@@ -2634,7 +2671,8 @@ app.get('/health', (req, res) => {
     app.patch("/api/interactions/:id", async (req: any, res) => {
       try {
         const interactionId = parseInt(req.params.id);
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const { insertInteractionSchema } = await import("../shared/schema.js");
         
         const updates = insertInteractionSchema.partial().parse(req.body);
@@ -2815,7 +2853,8 @@ app.get('/health', (req, res) => {
     app.get("/api/itineraries", async (req: any, res) => {
       try {
         const userId = "42195145"; // Admin user
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const itineraries = await storage.getItineraries(userId);
         console.log("📅 Fetched itineraries:", itineraries.length);
         res.json(itineraries);
@@ -2829,7 +2868,8 @@ app.get('/health', (req, res) => {
     app.post("/api/itineraries", async (req: any, res) => {
       try {
         const userId = "42195145"; // Admin user
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const { insertItinerarySchema } = await import("../shared/schema.js");
         
         const validatedData = insertItinerarySchema.parse({
@@ -2850,7 +2890,8 @@ app.get('/health', (req, res) => {
     app.get("/api/itineraries/:id/meetings", async (req: any, res) => {
       try {
         const itineraryId = parseInt(req.params.id);
-        const storage = (await import("./storage.js")).storage;
+        const { getStorage } = await import("./storage.js");
+        const storage = getStorage();
         const meetings = await storage.getItineraryMeetings(itineraryId);
         console.log("📅 Fetched itinerary meetings:", meetings.length);
         res.json(meetings);
