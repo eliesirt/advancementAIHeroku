@@ -4125,6 +4125,92 @@ Generate a complete, functional Python script that accomplishes the user's requi
     }
   });
 
+  // Portfolio AI Settings API Routes
+
+  // Get portfolio AI prompt settings for the current user
+  app.get('/api/portfolio/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      // Get user-specific prompt settings with fallback to defaults
+      const generateAiPrompt = await storage.getUserSettingValue(
+        userId,
+        'portfolio.generateAiPrompt',
+        `You are an expert fundraising analyst. Analyze this prospect's profile and generate a comprehensive AI summary including:
+
+1. **Prospect Overview**: Key demographic and professional information
+2. **Giving Capacity**: Analysis of their potential giving level based on available data
+3. **Engagement History**: Summary of past interactions and giving patterns
+4. **Strategic Insights**: Key opportunities and considerations for cultivation
+5. **Relationship Mapping**: Important connections and affiliations
+
+Focus on actionable insights that will help the fundraiser build meaningful relationships and identify cultivation opportunities.`
+      );
+
+      const nextActionsPrompt = await storage.getUserSettingValue(
+        userId,
+        'portfolio.nextActionsPrompt',
+        `You are a strategic fundraising advisor. Based on this prospect's profile and interaction history, recommend 3-5 specific next actions for the fundraiser:
+
+1. **Immediate Actions** (next 1-2 weeks)
+2. **Short-term Strategy** (next 1-3 months)  
+3. **Long-term Cultivation** (3-12 months)
+
+Each recommendation should be:
+- Specific and actionable
+- Tailored to the prospect's interests and giving capacity
+- Focused on relationship building and stewardship
+- Include suggested timeline and follow-up steps
+
+Consider their preferred communication methods, past giving history, and current engagement level.`
+      );
+
+      res.json({
+        generateAiPrompt,
+        nextActionsPrompt
+      });
+    } catch (error) {
+      console.error('Error fetching portfolio settings:', error);
+      res.status(500).json({ error: 'Failed to fetch portfolio settings' });
+    }
+  });
+
+  // Save portfolio AI prompt settings for the current user
+  app.post('/api/portfolio/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { generateAiPrompt, nextActionsPrompt } = req.body;
+
+      if (!generateAiPrompt || !nextActionsPrompt) {
+        return res.status(400).json({ error: 'Both generateAiPrompt and nextActionsPrompt are required' });
+      }
+
+      // Save the prompt settings as user-specific settings
+      await storage.setUserSetting({
+        userId,
+        settingKey: 'portfolio.generateAiPrompt',
+        value: generateAiPrompt
+      });
+
+      await storage.setUserSetting({
+        userId,
+        settingKey: 'portfolio.nextActionsPrompt',
+        value: nextActionsPrompt
+      });
+
+      console.log(`✅ [Portfolio Settings] Updated AI prompt settings for user: ${userId}`);
+      
+      res.json({
+        message: 'Portfolio settings saved successfully',
+        generateAiPrompt,
+        nextActionsPrompt
+      });
+    } catch (error) {
+      console.error('Error saving portfolio settings:', error);
+      res.status(500).json({ error: 'Failed to save portfolio settings' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
