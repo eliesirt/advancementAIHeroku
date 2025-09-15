@@ -2305,51 +2305,7 @@ app.get('/health', (req, res) => {
       }
     });
 
-    // Mock endpoints for existing portfolio functionality compatibility
-    app.get('/api/prospects', async (req: any, res) => {
-      try {
-        // Return mock prospect data for now - TODO: Replace with real database calls
-        console.log('📋 [Portfolio] Fetching prospects list');
-        res.json([
-          {
-            id: 1,
-            fullName: "John Smith",
-            email: "john.smith@example.com",
-            employer: "Tech Corp",
-            occupation: "CEO",
-            prospectRating: "Leadership",
-            lifetimeGiving: 50000,
-            lastContactDate: "2024-01-15",
-            stage: "Cultivation",
-            spouse: "Jane Smith",
-            badges: [],
-            aiSummary: null,
-            aiNextActions: null
-          },
-          {
-            id: 2,
-            fullName: "Emily Johnson",
-            email: "emily.johnson@example.com",
-            employer: "University Hospital",
-            occupation: "Surgeon",
-            prospectRating: "Principal",
-            lifetimeGiving: 25000,
-            lastContactDate: "2024-02-20",
-            stage: "Solicitation",
-            spouse: null,
-            badges: [],
-            aiSummary: null,
-            aiNextActions: null
-          }
-        ]);
-      } catch (error) {
-        console.error('❌ [Portfolio] Error fetching prospects:', error);
-        res.status(500).json({ 
-          message: 'Failed to fetch prospects', 
-          error: error instanceof Error ? error.message : 'Unknown error' 
-        });
-      }
-    });
+    // REMOVED: Mock /api/prospects endpoint - now handled by routes.ts with real PostgreSQL data
 
     app.post('/api/prospects/refresh-all', async (req: any, res) => {
       try {

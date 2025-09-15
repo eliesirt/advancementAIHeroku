@@ -1,0 +1,356 @@
+2025-09-15T00:50:02.000000+00:00 app[api]: Build started by user esirotta@bu.edu
+2025-09-15T00:50:42.717887+00:00 heroku[web.1]: Restarting
+2025-09-15T00:50:42.774366+00:00 heroku[web.1]: State changed from up to starting
+2025-09-15T00:50:43.712762+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2025-09-15T00:50:43.811356+00:00 heroku[web.1]: Process exited with status 143
+2025-09-15T00:50:52.078060+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-09-15T00:50:52.775633+00:00 app[web.1]: Python buildpack: Detected 512 MB available memory and 8 CPU cores.
+2025-09-15T00:50:52.775704+00:00 app[web.1]: Python buildpack: Defaulting WEB_CONCURRENCY to 2 based on the available memory.
+2025-09-15T00:50:53.100899+00:00 app[web.1]: 
+2025-09-15T00:50:53.100919+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-09-15T00:50:53.100920+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-09-15T00:50:53.100920+00:00 app[web.1]: 
+2025-09-15T00:50:53.137529+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-09-15T00:50:53.853959+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.5
+2025-09-15T00:50:55.308659+00:00 app[web.1]: Starting application initialization...
+2025-09-15T00:50:55.308696+00:00 app[web.1]: NODE_ENV: production
+2025-09-15T00:50:55.308712+00:00 app[web.1]: Starting server on port 12104, NODE_ENV=production
+2025-09-15T00:50:55.308728+00:00 app[web.1]: 🚀 HEROKU: Using fast startup mode with storage gating...
+2025-09-15T00:50:55.518730+00:00 app[web.1]: ⏳ [HEROKU] Initializing storage before serving routes...
+2025-09-15T00:50:55.518877+00:00 app[web.1]: 🗄️ [STORAGE] Initializing storage backend, NODE_ENV: production
+2025-09-15T00:50:55.745517+00:00 heroku[web.1]: State changed from starting to up
+2025-09-15T00:50:55.619759+00:00 app[web.1]: ✅ [STORAGE] PostgreSQL connection verified
+2025-09-15T00:50:55.619822+00:00 app[web.1]: ✅ [STORAGE] Storage initialized: PostgreSQL
+2025-09-15T00:50:55.619843+00:00 app[web.1]: ✅ [HEROKU] Storage initialized successfully
+2025-09-15T00:50:55.619962+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-09-15T00:50:55.619998+00:00 app[web.1]: Setting up production fallbacks for Vite functions
+2025-09-15T00:50:55.620921+00:00 app[web.1]: 🔐 Setting up immediate authentication routes...
+2025-09-15T00:50:55.621120+00:00 app[web.1]: Warning: connect.session() MemoryStore is not
+2025-09-15T00:50:55.621121+00:00 app[web.1]: designed for a production environment, as it will leak
+2025-09-15T00:50:55.621121+00:00 app[web.1]: memory, and will not scale past a single process.
+2025-09-15T00:50:55.621373+00:00 app[web.1]: ⚙️ Setting up essential AI model preference routes...
+2025-09-15T00:50:55.621439+00:00 app[web.1]: 🤖 Setting up essential AI processing routes...
+2025-09-15T00:50:55.621860+00:00 app[web.1]: 🐍 Setting up Python AI routes...
+2025-09-15T00:50:55.622009+00:00 app[web.1]: 🤖 Adding AI Jobs async processing routes...
+2025-09-15T00:50:55.622107+00:00 app[web.1]: ✅ AI Jobs async processing routes added to production server
+2025-09-15T00:50:55.622119+00:00 app[web.1]: 📁 Setting up portfolio refresh endpoints...
+2025-09-15T00:50:55.622159+00:00 app[web.1]: 📁 Portfolio refresh endpoints configured successfully
+2025-09-15T00:50:55.622170+00:00 app[web.1]: ✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately
+2025-09-15T00:50:55.622180+00:00 app[web.1]: 🗺️ Adding Google Places API routes...
+2025-09-15T00:50:55.622202+00:00 app[web.1]: ✅ Google Places API routes added to production server
+2025-09-15T00:50:55.622211+00:00 app[web.1]: 🏷️ Adding affinity tag identification route...
+2025-09-15T00:50:55.622229+00:00 app[web.1]: ✅ Affinity tag identification route added to production server
+2025-09-15T00:50:55.622230+00:00 app[web.1]: 📝 Adding interaction management routes...
+2025-09-15T00:50:55.622281+00:00 app[web.1]: ✅ Interaction management routes added to production server
+2025-09-15T00:50:55.622294+00:00 app[web.1]: 🤖 Adding text analysis routes...
+2025-09-15T00:50:55.622323+00:00 app[web.1]: ✅ Text analysis routes added to production server
+2025-09-15T00:50:55.622335+00:00 app[web.1]: 👥 Adding prospect and constituent search routes...
+2025-09-15T00:50:55.622383+00:00 app[web.1]: ✅ Prospect and constituent search routes added to production server
+2025-09-15T00:50:55.622392+00:00 app[web.1]: 🗺️ Adding itinerary management routes...
+2025-09-15T00:50:55.622419+00:00 app[web.1]: ✅ Itinerary management routes added to production server
+2025-09-15T00:50:55.622427+00:00 app[web.1]: 📁 Setting up static file serving with SPA routing...
+2025-09-15T00:50:55.622554+00:00 app[web.1]: ✅ Static file serving with SPA routing enabled immediately
+2025-09-15T00:50:55.624134+00:00 app[web.1]: 🚀 HEROKU: Server listening on port 12104 - IMMEDIATE SUCCESS!
+2025-09-15T00:50:55.624242+00:00 app[web.1]: 🔧 PRODUCTION ROUTE FIX: About to initialize routes immediately...
+2025-09-15T00:50:55.624268+00:00 app[web.1]: 🔧 Starting full initialization immediately...
+2025-09-15T00:50:55.624415+00:00 app[web.1]: Node.js version: v18.20.8
+2025-09-15T00:50:55.624429+00:00 app[web.1]: Working directory: /app
+2025-09-15T00:50:55.626356+00:00 app[web.1]: Available files in current directory: [
+2025-09-15T00:50:55.626357+00:00 app[web.1]:   '.gitignore',
+2025-09-15T00:50:55.626357+00:00 app[web.1]:   '.heroku',
+2025-09-15T00:50:55.626357+00:00 app[web.1]:   '.herokuignore',
+2025-09-15T00:50:55.626357+00:00 app[web.1]:   '.npm',
+2025-09-15T00:50:55.626358+00:00 app[web.1]:   '.profile.d',
+2025-09-15T00:50:55.626358+00:00 app[web.1]:   '.replit',
+2025-09-15T00:50:55.626358+00:00 app[web.1]:   'Procfile',
+2025-09-15T00:50:55.626358+00:00 app[web.1]:   'attached_assets',
+2025-09-15T00:50:55.626358+00:00 app[web.1]:   'bbec-field-mapping-analysis.md',
+2025-09-15T00:50:55.626359+00:00 app[web.1]:   'build.cjs',
+2025-09-15T00:50:55.626359+00:00 app[web.1]:   'cleanup-heroku-demo-data.sql',
+2025-09-15T00:50:55.626359+00:00 app[web.1]:   'client',
+2025-09-15T00:50:55.626359+00:00 app[web.1]:   'components.json',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'create-ai-jobs-table.sql',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'create-bbec-interactions-table.sql',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'database_backup.dump',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'database_backup.sql.gz',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'debug-heroku-affinity.js',
+2025-09-15T00:50:55.626360+00:00 app[web.1]:   'debug-heroku-profile-update.md',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'debug-heroku-voice.js',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'dist',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'drizzle.config.ts',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'fix-app-order.js',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'fix-heroku-database.md',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'fix-heroku-python-ai.md',
+2025-09-15T00:50:55.626361+00:00 app[web.1]:   'fix-production-db.sql',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-bbec-credentials-migration.sql',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-build.sh',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-db-test.js',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-debug-logs.js',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-deployment-instructions.md',
+2025-09-15T00:50:55.626362+00:00 app[web.1]:   'heroku-postbuild',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'heroku-postbuild.cjs',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'heroku-postbuild.mjs',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'migrate-ai-jobs.js',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'migrate-ai-jobs.mjs',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'migrate-settings-tables.sql',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'node_modules',
+2025-09-15T00:50:55.626363+00:00 app[web.1]:   'package-lock.json',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'package.json',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'postcss.config.js',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'pyproject.toml',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'replit.md',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'requirements.txt',
+2025-09-15T00:50:55.626364+00:00 app[web.1]:   'runtime.txt',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'scripts',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'server',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'shared',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'tailwind.config.ts',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'test-heroku-profile.js',
+2025-09-15T00:50:55.626365+00:00 app[web.1]:   'test-prod-response.html',
+2025-09-15T00:50:55.626366+00:00 app[web.1]:   'test_interaction.js',
+2025-09-15T00:50:55.626366+00:00 app[web.1]:   'tsconfig.backup.json',
+2025-09-15T00:50:55.626366+00:00 app[web.1]:   'tsconfig.build.json',
+2025-09-15T00:50:55.626366+00:00 app[web.1]:   'tsconfig.dev.json',
+2025-09-15T00:50:55.626366+00:00 app[web.1]:   'tsconfig.json',
+2025-09-15T00:50:55.626367+00:00 app[web.1]:   'tsconfig.production.json',
+2025-09-15T00:50:55.626367+00:00 app[web.1]:   'uv.lock',
+2025-09-15T00:50:55.626367+00:00 app[web.1]:   'vite.config.ts'
+2025-09-15T00:50:55.626367+00:00 app[web.1]: ]
+2025-09-15T00:50:55.626669+00:00 app[web.1]: Available files in server directory: [
+2025-09-15T00:50:55.626669+00:00 app[web.1]:   'db.ts',         'entraAuth.ts',
+2025-09-15T00:50:55.626669+00:00 app[web.1]:   'herokuAuth.ts', 'index.ts',
+2025-09-15T00:50:55.626669+00:00 app[web.1]:   'lib',           'replitAuth.ts',
+2025-09-15T00:50:55.626669+00:00 app[web.1]:   'routes.ts',     'seedData.ts',
+2025-09-15T00:50:55.626670+00:00 app[web.1]:   'services',      'storage.ts',
+2025-09-15T00:50:55.626670+00:00 app[web.1]:   'types',         'vite.ts'
+2025-09-15T00:50:55.626670+00:00 app[web.1]: ]
+2025-09-15T00:50:55.626686+00:00 app[web.1]: Importing routes module...
+2025-09-15T00:50:55.969647+00:00 app[web.1]: Routes module imported successfully
+2025-09-15T00:50:55.969661+00:00 app[web.1]: Skipping Vite import in production for faster startup
+2025-09-15T00:50:56.051683+00:00 app[web.1]: 🔐 [AUTH] Failed to check SSO configuration, falling back to default auth: PostgresError: relation "sso_configurations" does not exist
+2025-09-15T00:50:56.051692+00:00 app[web.1]:     at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+2025-09-15T00:50:56.051693+00:00 app[web.1]:     at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+2025-09-15T00:50:56.051693+00:00 app[web.1]:     at TLSSocket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+2025-09-15T00:50:56.051694+00:00 app[web.1]:     at TLSSocket.emit (node:events:517:28)
+2025-09-15T00:50:56.051694+00:00 app[web.1]:     at addChunk (node:internal/streams/readable:368:12)
+2025-09-15T00:50:56.051695+00:00 app[web.1]:     at readableAddChunk (node:internal/streams/readable:341:9)
+2025-09-15T00:50:56.051695+00:00 app[web.1]:     at Readable.push (node:internal/streams/readable:278:10)
+2025-09-15T00:50:56.051695+00:00 app[web.1]:     at TLSWrap.onStreamRead (node:internal/stream_base_commons:190:23) {
+2025-09-15T00:50:56.051696+00:00 app[web.1]:   severity_local: 'ERROR',
+2025-09-15T00:50:56.051696+00:00 app[web.1]:   severity: 'ERROR',
+2025-09-15T00:50:56.051696+00:00 app[web.1]:   code: '42P01',
+2025-09-15T00:50:56.051697+00:00 app[web.1]:   position: '369',
+2025-09-15T00:50:56.051697+00:00 app[web.1]:   file: 'parse_relation.c',
+2025-09-15T00:50:56.051698+00:00 app[web.1]:   line: '1486',
+2025-09-15T00:50:56.051698+00:00 app[web.1]:   routine: 'parserOpenTable'
+2025-09-15T00:50:56.051698+00:00 app[web.1]: }
+2025-09-15T00:50:56.051712+00:00 app[web.1]: 🔐 [AUTH] Using Heroku authentication
+2025-09-15T00:50:56.065236+00:00 app[web.1]: ℹ️ [HEROKU AUTH] Assuming sessions table exists (created by post-build script)
+2025-09-15T00:50:56.088305+00:00 app[web.1]: ✅ [HEROKU AUTH] Admin user verified/created
+2025-09-15T00:50:56.088764+00:00 app[web.1]: Seeding initial data...
+2025-09-15T00:50:56.109560+00:00 app[web.1]: User elsirt@gmail.com already has Administrator role
+2025-09-15T00:50:56.222839+00:00 app[web.1]: Seeding prospects: disabled, reason: NODE_ENV=production, DEMO_SEED=undefined
+2025-09-15T00:50:56.222853+00:00 app[web.1]: Skipping demo prospect seeding in production environment
+2025-09-15T00:50:56.222853+00:00 app[web.1]: Initial data seeding completed successfully
+2025-09-15T00:50:56.224243+00:00 app[web.1]: ✅ Full routes registered successfully
+2025-09-15T00:50:56.224273+00:00 app[web.1]: ✅ Full server initialization complete - All API routes available!
+2025-09-15T00:50:42.357201+00:00 app[api]: Release v202 created by user esirotta@bu.edu
+2025-09-15T00:50:42.357201+00:00 app[api]: Deploy c60b31f0 by user esirotta@bu.edu
+2025-09-15T00:50:50.000000+00:00 app[api]: Build succeeded
+2025-09-15T00:55:19.402323+00:00 heroku[router]: at=info method=GET path="/" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=cc69e2a6-2b89-45c5-3632-4bd387e8b68e fwd="73.253.249.113" dyno=web.1 connect=0ms service=10ms status=200 bytes=625 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.449816+00:00 heroku[router]: at=info method=GET path="/assets/index-DcdHDzdk.js" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=c1d20d27-1457-b014-0722-bbab9dc1846b fwd="73.253.249.113" dyno=web.1 connect=0ms service=7ms status=200 bytes=748625 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.452358+00:00 heroku[router]: at=info method=GET path="/assets/index-DkOG4azj.css" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=b3f53263-a157-ceee-ba82-92b97a1dea0f fwd="73.253.249.113" dyno=web.1 connect=0ms service=3ms status=200 bytes=84812 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.702702+00:00 heroku[router]: at=info method=GET path="/favicon.ico" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=e08dfffd-9caf-8406-46b5-8e31f814fb76 fwd="73.253.249.113" dyno=web.1 connect=0ms service=3ms status=200 bytes=625 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.763415+00:00 heroku[router]: at=info method=GET path="/api/auth/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=6fd295b1-9ffc-86c6-68c4-414fbff90139 fwd="73.253.249.113" dyno=web.1 connect=0ms service=78ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.799993+00:00 heroku[router]: at=info method=GET path="/api/applications" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=9e814b3a-f5cd-4e0e-b977-56d5988184ad fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.830420+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=54f95379-2b92-6a89-b909-0c16d6e18d2d fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.831363+00:00 heroku[router]: at=info method=GET path="/bu-logo.svg" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=42f05a67-9a95-d6d3-154a-ae5da39d3456 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=200 bytes=279 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:19.701623+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /favicon.ico
+2025-09-15T00:55:19.761252+00:00 app[web.1]: 🔄 [HEROKU AUTH] Fresh user data loaded from database: {
+2025-09-15T00:55:19.761256+00:00 app[web.1]:   id: '42195145',
+2025-09-15T00:55:19.761256+00:00 app[web.1]:   firstName: 'Admin',
+2025-09-15T00:55:19.761257+00:00 app[web.1]:   lastName: 'User',
+2025-09-15T00:55:19.761257+00:00 app[web.1]:   buid: 'U029480520',
+2025-09-15T00:55:19.761257+00:00 app[web.1]:   bbecGuid: '34e0c896-76b2-4041-b035-6591356ca1ad',
+2025-09-15T00:55:19.761258+00:00 app[web.1]:   hasUsername: true,
+2025-09-15T00:55:19.761258+00:00 app[web.1]:   hasPassword: true
+2025-09-15T00:55:19.761270+00:00 app[web.1]: }
+2025-09-15T00:55:19.763393+00:00 app[web.1]: [production] GET /api/auth/user 304 in 78ms :: {"id":"42195145","email":"elsirt@gmail.com","…
+2025-09-15T00:55:19.799965+00:00 app[web.1]: [production] GET /api/applications 304 in 2ms :: [{"id":1,"name":"interaction-manager","disp…
+2025-09-15T00:55:19.830332+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
+2025-09-15T00:55:20.783360+00:00 heroku[router]: at=info method=GET path="/apps/portfolio" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=a16de641-0416-44bf-1cc7-6afce3036a02 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=200 bytes=625 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.818794+00:00 heroku[router]: at=info method=GET path="/assets/index-DcdHDzdk.js" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=a8c2618e-fbc7-13f9-2b86-701e3304c61e fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.823555+00:00 heroku[router]: at=info method=GET path="/assets/index-DkOG4azj.css" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=35e90776-7c43-1942-0fdc-9876251ac099 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.865620+00:00 heroku[router]: at=info method=GET path="/api/auth/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=db1efca4-c034-e0f5-07e9-212fa7ef583d fwd="73.253.249.113" dyno=web.1 connect=0ms service=4ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.868916+00:00 heroku[router]: at=info method=GET path="/favicon.ico" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=ee58a70b-45a4-26a4-d55a-e1ba13bc3331 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.927355+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=9497a43b-12f0-4641-a57b-5cfffde08e8b fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.929341+00:00 heroku[router]: at=info method=GET path="/bu-logo.svg" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=fd41e8cb-209e-79f7-c241-56ab9bac115e fwd="73.253.249.113" dyno=web.1 connect=0ms service=3ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.960965+00:00 heroku[router]: at=info method=GET path="/api/prospects" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=ba374b9c-2acb-b920-ec77-568f361bb056 fwd="73.253.249.113" dyno=web.1 connect=0ms service=4ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:20.782382+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /apps/portfolio
+2025-09-15T00:55:20.864931+00:00 app[web.1]: 🔄 [HEROKU AUTH] Fresh user data loaded from database: {
+2025-09-15T00:55:20.864932+00:00 app[web.1]:   id: '42195145',
+2025-09-15T00:55:20.864932+00:00 app[web.1]:   firstName: 'Admin',
+2025-09-15T00:55:20.864933+00:00 app[web.1]:   lastName: 'User',
+2025-09-15T00:55:20.864933+00:00 app[web.1]:   buid: 'U029480520',
+2025-09-15T00:55:20.864933+00:00 app[web.1]:   bbecGuid: '34e0c896-76b2-4041-b035-6591356ca1ad',
+2025-09-15T00:55:20.864934+00:00 app[web.1]:   hasUsername: true,
+2025-09-15T00:55:20.864934+00:00 app[web.1]:   hasPassword: true
+2025-09-15T00:55:20.864935+00:00 app[web.1]: }
+2025-09-15T00:55:20.865604+00:00 app[web.1]: [production] GET /api/auth/user 304 in 4ms :: {"id":"42195145","email":"elsirt@gmail.com","f…
+2025-09-15T00:55:20.868094+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /favicon.ico
+2025-09-15T00:55:20.927364+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 2ms :: {"isImpersonating":false}
+2025-09-15T00:55:20.958740+00:00 app[web.1]: 🔍 [HEROKU AUTH] Authentication check for POST /api/prospects/sync-from-bbec
+2025-09-15T00:55:20.958760+00:00 app[web.1]: 🔍 [HEROKU AUTH] Session exists: true
+2025-09-15T00:55:20.958782+00:00 app[web.1]: 🔍 [HEROKU AUTH] Session user: {"id":"42195145","email":"elsirt@gmail.com","firstName":"Admin","lastName":"User","profileImageUrl":null,"buid":"U029480520","bbecGuid":"34e0c896-76b2-4041-b035-6591356ca1ad","bbecUsername":"ad\\esirotta","hasPassword":true}
+2025-09-15T00:55:20.958823+00:00 app[web.1]: ✅ [HEROKU AUTH] User authenticated: 42195145
+2025-09-15T00:55:20.960329+00:00 app[web.1]: 📋 [Portfolio] Fetching prospects list
+2025-09-15T00:55:20.960920+00:00 app[web.1]: [production] GET /api/prospects 304 in 1ms :: [{"id":1,"fullName":"John Smith","email":"john…
+2025-09-15T00:55:20.962299+00:00 app[web.1]: 🔄 [Routes] Starting BBEC prospects sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:20.988292+00:00 app[web.1]: 🔄 [BBEC Service] Fetching prospects for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:20.991141+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for prospects data...
+2025-09-15T00:55:21.426329+00:00 heroku[router]: at=info method=POST path="/api/prospects/sync-from-bbec" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=a2107a84-532b-5cc2-a605-32315c567e1e fwd="73.253.249.113" dyno=web.1 connect=0ms service=471ms status=200 bytes=4345 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:21.458905+00:00 heroku[router]: at=info method=GET path="/api/prospects" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=e28d56b4-5c6a-df3e-9bd5-a87c7f55d5c7 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:21.181765+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing prospects data...
+2025-09-15T00:55:21.208308+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 3 prospect rows from SOAP response
+2025-09-15T00:55:21.208501+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 1: Mr. Andrew Mark Mento, (ENG'95)  (U251742630)
+2025-09-15T00:55:21.208529+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 2: Janet Sirotta  (Z935603400)
+2025-09-15T00:55:21.208555+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 3: Dr. Stacey Linda Sirotta (E), (SAR'01, SARᴳ'03,'08)  (U221713130)
+2025-09-15T00:55:21.208574+00:00 app[web.1]: ✅ [BBEC Service] Successfully processed 3 valid prospects
+2025-09-15T00:55:21.208586+00:00 app[web.1]: ✅ [BBEC Service] Prospects fetch completed for user: 42195145, found 3 prospects
+2025-09-15T00:55:21.208753+00:00 app[web.1]: 📥 [Storage] Syncing 3 prospects from BBEC for manager: 42195145
+2025-09-15T00:55:21.228299+00:00 app[web.1]: ✅ [Storage] Successfully synced 3 prospects from BBEC
+2025-09-15T00:55:21.228324+00:00 app[web.1]: 🔄 [Routes] Starting BBEC interactions sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:21.228999+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:21.231511+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for interactions data...
+2025-09-15T00:55:21.290436+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing data...
+2025-09-15T00:55:21.292842+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 0 interaction rows from SOAP response
+2025-09-15T00:55:21.292856+00:00 app[web.1]: ✅ [BBEC Service] Successfully parsed 0 interactions
+2025-09-15T00:55:21.292865+00:00 app[web.1]: ✅ [BBEC Service] Interactions fetch completed for user: 42195145, found 0 interactions
+2025-09-15T00:55:21.293151+00:00 app[web.1]: 📥 [Storage] Syncing 0 interactions from BBEC for manager: 42195145
+2025-09-15T00:55:21.293152+00:00 app[web.1]: ✅ [Storage] No interactions to sync for manager: 42195145
+2025-09-15T00:55:21.293172+00:00 app[web.1]: ✅ [Routes] Successfully synced 0 interactions from BBEC
+2025-09-15T00:55:21.426326+00:00 app[web.1]: [production] POST /api/prospects/sync-from-bbec 200 in 471ms :: {"message":"Prospects and in…
+2025-09-15T00:55:21.457553+00:00 app[web.1]: 📋 [Portfolio] Fetching prospects list
+2025-09-15T00:55:21.458734+00:00 app[web.1]: [production] GET /api/prospects 304 in 2ms :: [{"id":1,"fullName":"John Smith","email":"john…
+2025-09-15T00:55:22.694833+00:00 heroku[router]: at=info method=POST path="/api/prospects/sync-from-bbec" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=40440dd7-3d3e-9568-d8cf-6d767b25b67e fwd="73.253.249.113" dyno=web.1 connect=0ms service=178ms status=200 bytes=4345 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:22.733162+00:00 heroku[router]: at=info method=GET path="/api/prospects" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=0eca8cec-ead1-0337-6c0a-57ad446f5cc1 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:22.518978+00:00 app[web.1]: 🔍 [HEROKU AUTH] Authentication check for POST /api/prospects/sync-from-bbec
+2025-09-15T00:55:22.518992+00:00 app[web.1]: 🔍 [HEROKU AUTH] Session exists: true
+2025-09-15T00:55:22.519013+00:00 app[web.1]: 🔍 [HEROKU AUTH] Session user: {"id":"42195145","email":"elsirt@gmail.com","firstName":"Admin","lastName":"User","profileImageUrl":null,"buid":"U029480520","bbecGuid":"34e0c896-76b2-4041-b035-6591356ca1ad","bbecUsername":"ad\\esirotta","hasPassword":true}
+2025-09-15T00:55:22.519029+00:00 app[web.1]: ✅ [HEROKU AUTH] User authenticated: 42195145
+2025-09-15T00:55:22.521511+00:00 app[web.1]: 🔄 [Routes] Starting BBEC prospects sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:22.522044+00:00 app[web.1]: 🔄 [BBEC Service] Fetching prospects for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:22.524589+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for prospects data...
+2025-09-15T00:55:22.584399+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing prospects data...
+2025-09-15T00:55:22.587456+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 3 prospect rows from SOAP response
+2025-09-15T00:55:22.587494+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 1: Mr. Andrew Mark Mento, (ENG'95)  (U251742630)
+2025-09-15T00:55:22.587515+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 2: Janet Sirotta  (Z935603400)
+2025-09-15T00:55:22.587542+00:00 app[web.1]: ✅ [BBEC Service] Processed prospect 3: Dr. Stacey Linda Sirotta (E), (SAR'01, SARᴳ'03,'08)  (U221713130)
+2025-09-15T00:55:22.587544+00:00 app[web.1]: ✅ [BBEC Service] Successfully processed 3 valid prospects
+2025-09-15T00:55:22.587558+00:00 app[web.1]: ✅ [BBEC Service] Prospects fetch completed for user: 42195145, found 3 prospects
+2025-09-15T00:55:22.587594+00:00 app[web.1]: 📥 [Storage] Syncing 3 prospects from BBEC for manager: 42195145
+2025-09-15T00:55:22.607367+00:00 app[web.1]: ✅ [Storage] Successfully synced 3 prospects from BBEC
+2025-09-15T00:55:22.607380+00:00 app[web.1]: 🔄 [Routes] Starting BBEC interactions sync for user: 42195145, BBEC GUID: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:22.607767+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: 42195145, context: 34e0c896-76b2-4041-b035-6591356ca1ad
+2025-09-15T00:55:22.613050+00:00 app[web.1]: 🔥 [BBEC Service] Making SOAP call for interactions data...
+2025-09-15T00:55:22.674388+00:00 app[web.1]: ✅ [BBEC Service] Raw SOAP response received, processing data...
+2025-09-15T00:55:22.676597+00:00 app[web.1]: 🔍 [BBEC Service] Parsing 0 interaction rows from SOAP response
+2025-09-15T00:55:22.676602+00:00 app[web.1]: ✅ [BBEC Service] Successfully parsed 0 interactions
+2025-09-15T00:55:22.676614+00:00 app[web.1]: ✅ [BBEC Service] Interactions fetch completed for user: 42195145, found 0 interactions
+2025-09-15T00:55:22.676645+00:00 app[web.1]: 📥 [Storage] Syncing 0 interactions from BBEC for manager: 42195145
+2025-09-15T00:55:22.676647+00:00 app[web.1]: ✅ [Storage] No interactions to sync for manager: 42195145
+2025-09-15T00:55:22.676660+00:00 app[web.1]: ✅ [Routes] Successfully synced 0 interactions from BBEC
+2025-09-15T00:55:22.694833+00:00 app[web.1]: [production] POST /api/prospects/sync-from-bbec 200 in 177ms :: {"message":"Prospects and in…
+2025-09-15T00:55:22.732506+00:00 app[web.1]: 📋 [Portfolio] Fetching prospects list
+2025-09-15T00:55:22.733145+00:00 app[web.1]: [production] GET /api/prospects 304 in 1ms :: [{"id":1,"fullName":"John Smith","email":"john…
+2025-09-15T00:55:23.731647+00:00 heroku[router]: at=info method=POST path="/api/portfolio/refresh/1" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=ee707fa1-61b1-ceaa-8d80-c16aa802ef7b fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=202 bytes=109 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:23.730256+00:00 app[web.1]: 🔄 [Portfolio] Refresh initiated for prospect ID: 1
+2025-09-15T00:55:23.730795+00:00 app[web.1]: 🔥 [Portfolio] Starting background data fetch for prospect: 1
+2025-09-15T00:55:23.731561+00:00 app[web.1]: [production] POST /api/portfolio/refresh/1 202 in 2ms :: {"message":"Refresh process initiat…
+2025-09-15T00:55:23.731789+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: undefined, context: default
+2025-09-15T00:55:23.731988+00:00 app[web.1]: 🔄 [BBEC Service] Fetching donation summary for prospect ID: 1
+2025-09-15T00:55:23.732068+00:00 app[web.1]: 🔄 [BBEC Service] Fetching research notes for prospect ID: 1
+2025-09-15T00:55:23.732119+00:00 app[web.1]: 🔄 [BBEC Service] Fetching solicitation plans for prospect ID: 1
+2025-09-15T00:55:23.732145+00:00 app[web.1]: ✅ [Portfolio] Background tasks initiated for prospect: 1
+2025-09-15T00:55:23.733474+00:00 app[web.1]: ❌ [BBEC Service] Interactions fetch failed for user undefined: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:55:23.733474+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:55:23.733474+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:55:23.733475+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:55:23.733475+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:55:23.733475+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:55:23.733476+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:55:23.733476+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:55:23.733476+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:55:23.733477+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:55:23.733477+00:00 app[web.1]: }
+2025-09-15T00:55:23.733623+00:00 app[web.1]: ❌ [Portfolio] Interactions fetch failed for 1: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:55:23.733623+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:55:23.733623+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:55:23.733623+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:55:23.733623+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:55:23.733624+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:55:23.733624+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:55:23.733624+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:55:23.733624+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:55:23.733624+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:55:23.733624+00:00 app[web.1]: }
+2025-09-15T00:55:24.273225+00:00 heroku[router]: at=info method=POST path="/api/portfolio/refresh/2" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=0a8a74c4-fb08-414a-138a-c48392fe88fb fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=202 bytes=109 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:24.272449+00:00 app[web.1]: 🔄 [Portfolio] Refresh initiated for prospect ID: 2
+2025-09-15T00:55:24.272799+00:00 app[web.1]: 🔥 [Portfolio] Starting background data fetch for prospect: 2
+2025-09-15T00:55:24.273393+00:00 app[web.1]: [production] POST /api/portfolio/refresh/2 202 in 2ms :: {"message":"Refresh process initiat…
+2025-09-15T00:55:24.273552+00:00 app[web.1]: 🔄 [BBEC Service] Fetching interactions for user ID: undefined, context: default
+2025-09-15T00:55:24.273675+00:00 app[web.1]: 🔄 [BBEC Service] Fetching donation summary for prospect ID: 2
+2025-09-15T00:55:24.273703+00:00 app[web.1]: 🔄 [BBEC Service] Fetching research notes for prospect ID: 2
+2025-09-15T00:55:24.273720+00:00 app[web.1]: 🔄 [BBEC Service] Fetching solicitation plans for prospect ID: 2
+2025-09-15T00:55:24.273743+00:00 app[web.1]: ✅ [Portfolio] Background tasks initiated for prospect: 2
+2025-09-15T00:55:24.274591+00:00 app[web.1]: ❌ [BBEC Service] Interactions fetch failed for user undefined: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:55:24.274592+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:55:24.274592+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:55:24.274592+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:55:24.274593+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:55:24.274593+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:55:24.274593+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:55:24.274594+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:55:24.274594+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:55:24.274595+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:55:24.274595+00:00 app[web.1]: }
+2025-09-15T00:55:24.274662+00:00 app[web.1]: ❌ [Portfolio] Interactions fetch failed for 2: Error: UNDEFINED_VALUE: Undefined values are not allowed
+2025-09-15T00:55:24.274663+00:00 app[web.1]:     at handleValue (file:///app/node_modules/postgres/src/types.js:83:20)
+2025-09-15T00:55:24.274663+00:00 app[web.1]:     at file:///app/node_modules/postgres/src/connection.js:225:38
+2025-09-15T00:55:24.274663+00:00 app[web.1]:     at Array.forEach (<anonymous>)
+2025-09-15T00:55:24.274663+00:00 app[web.1]:     at build (file:///app/node_modules/postgres/src/connection.js:225:25)
+2025-09-15T00:55:24.274664+00:00 app[web.1]:     at Object.execute (file:///app/node_modules/postgres/src/connection.js:167:7)
+2025-09-15T00:55:24.274664+00:00 app[web.1]:     at go (file:///app/node_modules/postgres/src/index.js:345:14)
+2025-09-15T00:55:24.274664+00:00 app[web.1]:     at Query.handler (file:///app/node_modules/postgres/src/index.js:334:14)
+2025-09-15T00:55:24.274664+00:00 app[web.1]:     at Query.handle (file:///app/node_modules/postgres/src/query.js:140:65) {
+2025-09-15T00:55:24.274664+00:00 app[web.1]:   code: 'UNDEFINED_VALUE'
+2025-09-15T00:55:24.274665+00:00 app[web.1]: }
+2025-09-15T00:55:24.532180+00:00 app[web.1]: ✅ [BBEC Service] Donation summary fetch completed for prospect ID: 1
+2025-09-15T00:55:24.632538+00:00 app[web.1]: ✅ [BBEC Service] Solicitation plans fetch completed for prospect ID: 1
+2025-09-15T00:55:24.932067+00:00 app[web.1]: ✅ [BBEC Service] Research notes fetch completed for prospect ID: 1
+2025-09-15T00:55:25.073549+00:00 app[web.1]: ✅ [BBEC Service] Donation summary fetch completed for prospect ID: 2
+2025-09-15T00:55:25.173991+00:00 app[web.1]: ✅ [BBEC Service] Solicitation plans fetch completed for prospect ID: 2
+2025-09-15T00:55:25.474542+00:00 app[web.1]: ✅ [BBEC Service] Research notes fetch completed for prospect ID: 2
+2025-09-15T00:55:30.162888+00:00 heroku[router]: at=info method=GET path="/apps/portfolio" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=e5eb8cf1-f104-bdeb-780b-b6a85d5197b2 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.197739+00:00 heroku[router]: at=info method=GET path="/assets/index-DcdHDzdk.js" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=543c041f-ebf0-0a5e-0891-522878137dff fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.249723+00:00 heroku[router]: at=info method=GET path="/favicon.ico" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=27b3b5d5-9571-ccb5-1656-b66748a5b768 fwd="73.253.249.113" dyno=web.1 connect=0ms service=3ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.203499+00:00 heroku[router]: at=info method=GET path="/assets/index-DkOG4azj.css" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=76a48916-a492-2318-4bd5-7f0812e4f5c7 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.288508+00:00 heroku[router]: at=info method=GET path="/bu-logo.svg" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=941f96ef-c6a0-3a8b-3580-759d0ab42cc7 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.252532+00:00 heroku[router]: at=info method=GET path="/api/auth/user" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=3b759c46-4a46-90a7-6fd1-98b3f2c247b1 fwd="73.253.249.113" dyno=web.1 connect=0ms service=6ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.287707+00:00 heroku[router]: at=info method=GET path="/api/admin/impersonation-status" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=7b79a636-cc42-2d0d-a75a-218585a40721 fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.288956+00:00 heroku[router]: at=info method=GET path="/api/prospects" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=98a8dc20-600b-d494-1b95-5d711985cd09 fwd="73.253.249.113" dyno=web.1 connect=0ms service=2ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-15T00:55:30.162175+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /apps/portfolio
+2025-09-15T00:55:30.249030+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /favicon.ico
+2025-09-15T00:55:30.251448+00:00 app[web.1]: 🔄 [HEROKU AUTH] Fresh user data loaded from database: {
+2025-09-15T00:55:30.251450+00:00 app[web.1]:   id: '42195145',
+2025-09-15T00:55:30.251450+00:00 app[web.1]:   firstName: 'Admin',
+2025-09-15T00:55:30.251450+00:00 app[web.1]:   lastName: 'User',
+2025-09-15T00:55:30.251450+00:00 app[web.1]:   buid: 'U029480520',
+2025-09-15T00:55:30.251451+00:00 app[web.1]:   bbecGuid: '34e0c896-76b2-4041-b035-6591356ca1ad',
+2025-09-15T00:55:30.251451+00:00 app[web.1]:   hasUsername: true,
+2025-09-15T00:55:30.251451+00:00 app[web.1]:   hasPassword: true
+2025-09-15T00:55:30.251451+00:00 app[web.1]: }
+2025-09-15T00:55:30.252027+00:00 app[web.1]: [production] GET /api/auth/user 304 in 4ms :: {"id":"42195145","email":"elsirt@gmail.com","f…
+2025-09-15T00:55:30.287672+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 1ms :: {"isImpersonating":false}
+2025-09-15T00:55:30.288406+00:00 app[web.1]: 📋 [Portfolio] Fetching prospects list
+2025-09-15T00:55:30.288910+00:00 app[web.1]: [production] GET /api/prospects 304 in 0ms :: [{"id":1,"fullName":"John Smith","email":"john…
