@@ -3134,6 +3134,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Temporary admin endpoint to fix prospect aggregates
+  app.post('/api/admin/fix-prospect-aggregates', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        console.error('🚨 [Admin] Fix aggregates called without authentication');
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      console.log('🔧 [Admin] Manual prospect aggregates fix initiated by:', userId);
+      
+      // Get prospects with BBEC interactions that need fixing
+      const prospectsToFix = [214, 211, 212]; // Current prospect IDs from database
+      const results = [];
+      
+      for (const prospectId of prospectsToFix) {
+        try {
+          console.log(`🔧 [Admin] Starting aggregation for prospect ID: ${prospectId}`);
+          await storage.updateProspectInteractionAggregatesForProspect(prospectId);
+          console.log(`✅ [Admin] Successfully processed prospect ID: ${prospectId}`);
+          results.push({ prospectId, status: 'success' });
+        } catch (prospectError) {
+          console.error(`❌ [Admin] Failed to process prospect ${prospectId}:`, prospectError);
+          results.push({ 
+            prospectId, 
+            status: 'error', 
+            error: prospectError instanceof Error ? prospectError.message : 'Unknown error' 
+          });
+        }
+      }
+      
+      console.log(`🔧 [Admin] Aggregation fix completed. Results:`, results);
+      
+      res.json({ 
+        success: true, 
+        message: `Processed ${prospectsToFix.length} prospects`,
+        results: results,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ [Admin] Critical error in fix aggregates endpoint:', error);
+      res.status(500).json({ 
+        error: 'Failed to fix prospect aggregates',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Itinerary routes
   app.get('/api/itineraries', isAuthenticated, async (req: any, res) => {
     try {
