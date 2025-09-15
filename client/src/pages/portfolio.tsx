@@ -25,8 +25,10 @@ export default function PortfolioPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiNextActionsLoading, setAiNextActionsLoading] = useState(false);
+  const [aiResearchLoading, setAiResearchLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiNextActions, setAiNextActions] = useState<string | null>(null);
+  const [aiResearch, setAiResearch] = useState<string | null>(null);
   const [refreshingProspects, setRefreshingProspects] = useState<Set<number>>(new Set());
   const [refreshingAll, setRefreshingAll] = useState(false);
   
@@ -37,6 +39,7 @@ export default function PortfolioPage() {
   useEffect(() => {
     setAiSummary(null);
     setAiNextActions(null);
+    setAiResearch(null);
   }, [selectedProspect]);
 
   // Sync prospects from BBEC mutation
@@ -780,6 +783,72 @@ export default function PortfolioPage() {
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           ) : null}
                           Generate Next Actions
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* AI Prospect Research Section */}
+                <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+                  <CardHeader className="border-b border-gray-100">
+                    <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+                      <div className="p-2 rounded-lg bg-red-50">
+                        <Search className="h-6 w-6" style={{ color: '#CC0000' }} />
+                      </div>
+                      <span>Prospect Research</span>
+                    </CardTitle>
+                    <p className="text-gray-600">
+                      AI-powered research to identify wealth indicators, philanthropic patterns, and cultivation strategies.
+                    </p>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {aiResearch ? (
+                      <div className="prose prose-sm max-w-none">
+                        {parseMarkdownToJSX(aiResearch)}
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-gray-500 text-sm mb-4">No AI-generated prospect research available</p>
+                        <Button 
+                          className="bg-red-600 hover:bg-red-700"
+                          disabled={aiResearchLoading}
+                          data-testid="button-generate-prospect-research"
+                          onClick={async () => {
+                            if (!selectedProspect) return;
+                            
+                            setAiResearchLoading(true);
+                            try {
+                              const response = await apiRequest('POST', `/api/prospect/${selectedProspect.id}/generate-research`);
+                              const data = await response.json();
+                              
+                              // Validate response structure
+                              if (!data || typeof data.research !== 'string') {
+                                throw new Error('Invalid response format from AI service');
+                              }
+                              
+                              setAiResearch(data.research);
+                              toast({
+                                title: "Prospect Research Generated",
+                                description: "AI-powered prospect research completed successfully.",
+                              });
+                            } catch (error: any) {
+                              console.error('Failed to generate prospect research:', error);
+                              const errorMessage = error?.message || 'Failed to generate prospect research. Please try again.';
+                              toast({
+                                title: "Error", 
+                                description: errorMessage,
+                                variant: "destructive",
+                              });
+                            } finally {
+                              setAiResearchLoading(false);
+                            }
+                          }}
+                        >
+                          {aiResearchLoading ? (
+                            <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                          ) : null}
+                          Research Prospect
                         </Button>
                       </div>
                     )}
