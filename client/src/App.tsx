@@ -12,6 +12,7 @@ import InteractionsApp from "@/pages/interactions-app";
 import InteractionsPage from "@/pages/interactions";
 import BBECInteractionsPage from "@/pages/bbec-interactions";
 import PortfolioPage from "@/pages/portfolio";
+import PortfolioSettingsPage from "@/pages/portfolio-settings";
 import ItineraryPage from "@/pages/itinerary";
 import UserManagementPage from "@/pages/user-management";
 import Launcher from "@/pages/launcher";
@@ -47,6 +48,7 @@ function AppContent() {
             <Route path="/apps/interactions" component={InteractionsApp} />
             <Route path="/apps/interactions/list" component={InteractionsPage} />
             <Route path="/apps/portfolio" component={PortfolioPage} />
+            <Route path="/apps/portfolio/settings" component={PortfolioSettingsPage} />
             <Route path="/apps/portfolio/interactions" component={BBECInteractionsPage} />
             <Route path="/apps/itinerary" component={ItineraryPage} />
             <Route path="/apps/settings" component={SettingsPage} />
