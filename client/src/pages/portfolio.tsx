@@ -436,7 +436,7 @@ export default function PortfolioPage() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Prospects Table */}
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <div className="overflow-x-auto max-h-[32rem] overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -519,8 +519,8 @@ export default function PortfolioPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getProspectRatingColor(prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
-                              {prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : prospect.prospectRating ? String(prospect.prospectRating) : 'Not available'}
+                            <Badge className={getProspectRatingColor(typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
+                              {typeof prospect.prospectRating === 'string' && prospect.prospectRating ? prospect.prospectRating : 'Not available'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
