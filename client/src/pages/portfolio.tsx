@@ -436,7 +436,7 @@ export default function PortfolioPage() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Prospects Table */}
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -509,11 +509,18 @@ export default function PortfolioPage() {
                             <div>
                               <p className="font-medium text-gray-900">{prospect.fullName}</p>
                               <p className="text-sm text-gray-500">{prospect.occupation} at {prospect.employer}</p>
+                              {(prospect.city || prospect.state || prospect.country) && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  <span className="inline-flex items-center">
+                                    📍 {[prospect.city, prospect.state, prospect.country].filter(Boolean).join(', ')}
+                                  </span>
+                                </p>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getProspectRatingColor(typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
-                              {typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Not available'}
+                            <Badge className={getProspectRatingColor(prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
+                              {prospect.prospectRating && typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Not available'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
