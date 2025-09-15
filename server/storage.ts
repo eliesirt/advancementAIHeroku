@@ -2508,12 +2508,23 @@ if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
 }
 
 // Storage initialization state
-let storageInstance: IStorage | null = null;
+let _storage: IStorage | null = null;
 let storageReady: Promise<void> | null = null;
 
+export function setStorage(s: IStorage): void {
+  _storage = s;
+}
+
+export function getStorage(): IStorage {
+  if (!_storage) {
+    throw new Error('Storage not initialized. Call initStorage() first.');
+  }
+  return _storage;
+}
+
 export async function initStorage({ requireDbInProd = true } = {}): Promise<IStorage> {
-  if (storageInstance) {
-    return storageInstance;
+  if (_storage) {
+    return _storage;
   }
   
   console.log(`🗄️ [STORAGE] Initializing storage backend, NODE_ENV: ${process.env.NODE_ENV}`);
@@ -2536,17 +2547,10 @@ export async function initStorage({ requireDbInProd = true } = {}): Promise<ISto
   }
 
   // Initialize storage instance
-  storageInstance = new DatabaseStorage();
-  storage = storageInstance; // Also update legacy export immediately
+  const storageInstance = new DatabaseStorage();
+  setStorage(storageInstance); // Set the initialized instance
   console.log(`✅ [STORAGE] Storage initialized: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'Development'}`);
   
-  return storageInstance;
-}
-
-export function getStorage(): IStorage {
-  if (!storageInstance) {
-    throw new Error('Storage not initialized. Call initStorage() first.');
-  }
   return storageInstance;
 }
 
@@ -2557,8 +2561,17 @@ export function getStorageReady(): Promise<void> {
   return storageReady;
 }
 
-// Legacy export for backward compatibility - will be updated when storage initializes
-export let storage: IStorage = new DatabaseStorage();
+// Proxy storage that delegates to the initialized instance at runtime
+export const storage = new Proxy({} as IStorage, {
+  get: (_target, prop) => {
+    const initialized = getStorage();
+    const value = (initialized as any)[prop];
+    if (typeof value === 'function') {
+      return value.bind(initialized);
+    }
+    return value;
+  }
+});
 
 // Initialize storage immediately if not in production mode  
 if (process.env.NODE_ENV !== 'production') {
