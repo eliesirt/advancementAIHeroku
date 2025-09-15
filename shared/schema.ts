@@ -303,6 +303,9 @@ export const prospects = pgTable("prospects", {
   email: text("email"),
   phone: text("phone"),
   address: jsonb("address"), // Full address structure
+  city: text("city"),
+  state: text("state"), 
+  country: text("country"),
   preferredName: text("preferred_name"),
   
   // Prospect management fields
