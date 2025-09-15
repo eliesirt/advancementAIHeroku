@@ -185,3 +185,69 @@ export async function generateProspectBadges(summaryData: ProspectSummaryData): 
 
   return badges;
 }
+
+export async function generateProspectResearch(summaryData: ProspectSummaryData, prospectName: string, userId: string): Promise<string> {
+  try {
+    // Get custom prompt from user settings
+    const { storage } = await import('../storage');
+    const customPrompt = await storage.getUserSettingValue(
+      userId,
+      'portfolio.prospectResearchPrompt',
+      `You are a prospect research specialist with expertise in identifying wealth indicators and philanthropic patterns. Based on the prospect's information including their location, analyze and research potential indicators of:
+
+1. **Wealth Indicators**: Look for professional achievements, business affiliations, executive positions, board memberships, or property ownership that might indicate giving capacity
+2. **Philanthropic History**: Research giving patterns to educational institutions, health organizations, arts/culture, or community foundations  
+3. **Current News & Activities**: Recent professional accomplishments, company news, awards, or public recognition
+4. **Strategic Connections**: University affiliations, alumni networks, professional associations, or social connections relevant to Boston University
+5. **Location-Based Insights**: Consider regional giving patterns, local community involvement, or geographic ties to Boston/Massachusetts
+
+Please provide actionable intelligence that could help a gift officer:
+- Identify optimal cultivation strategies
+- Find common ground for relationship building  
+- Understand their philanthropic interests and motivations
+- Determine appropriate ask levels and timing
+- Locate mutual connections or introduction opportunities
+
+Focus on publicly available information and avoid speculation. Provide specific, actionable insights with suggested next steps.`
+    );
+
+    // Build the data context for the custom prompt
+    const locationInfo = summaryData.location && (summaryData.location.city || summaryData.location.state || summaryData.location.country) 
+      ? `${summaryData.location.city || ''}${summaryData.location.city && summaryData.location.state ? ', ' : ''}${summaryData.location.state || ''}${(summaryData.location.city || summaryData.location.state) && summaryData.location.country ? ', ' : ''}${summaryData.location.country || ''}`.trim()
+      : 'Not specified';
+    
+    const prospectDataContext = `
+PROSPECT RESEARCH TARGET:
+Prospect: ${prospectName}
+Location: ${locationInfo}
+Professional Background: ${summaryData.professional.currentPosition || 'Not specified'} at ${summaryData.professional.employer || 'Not specified'}
+Current Prospect Rating: ${summaryData.engagement.prospectRating}
+Giving History: $${summaryData.donorHistory.lifetimeGiving.toLocaleString()} lifetime giving
+Current Stage: ${summaryData.engagement.stage}
+Event Participation: ${summaryData.eventAttendance.totalEvents} events attended
+Engagement Level: ${summaryData.engagement.inclination} inclination
+Relationships: ${summaryData.relationships.spouse ? `Spouse: ${summaryData.relationships.spouse}` : 'Single or unknown'}
+
+Research Focus Areas:
+- Use the location information to identify regional wealth indicators and local connections
+- Look for professional achievements, board memberships, and executive positions
+- Identify potential philanthropic interests and giving patterns
+- Find Boston University or Massachusetts connections
+- Suggest cultivation strategies based on publicly available information`;
+
+    // Combine custom prompt with prospect data
+    const fullPrompt = `${customPrompt}\n\n${prospectDataContext}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // Using GPT-4o for stable API compatibility
+      messages: [{ role: "user", content: fullPrompt }],
+      max_tokens: 1000,
+      temperature: 0.6,
+    });
+
+    return response.choices[0].message.content || "Unable to generate prospect research at this time.";
+  } catch (error) {
+    console.error("Error generating prospect research:", error);
+    return "Error generating prospect research. Please try again.";
+  }
+}

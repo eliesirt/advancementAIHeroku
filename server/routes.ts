@@ -6,7 +6,7 @@ import { bbecClient, type BBECInteractionSubmission } from "./lib/soap-client";
 import { createAffinityMatcher } from "./lib/affinity-matcher";
 import { affinityTagScheduler } from "./lib/scheduler";
 import { insertInteractionSchema, insertVoiceRecordingSchema, insertItinerarySchema, insertItineraryMeetingSchema } from "@shared/schema";
-import { generateProspectSummary, generateNextActions } from "./lib/prospect-ai";
+import { generateProspectSummary, generateNextActions, generateProspectResearch } from "./lib/prospect-ai";
 import fetch from 'node-fetch';
 import { z } from "zod";
 import { exec } from 'child_process';
@@ -4137,6 +4137,73 @@ Generate a complete, functional Python script that accomplishes the user's requi
     }
   });
 
+  // AI Prospect Research endpoint for portfolio prospects  
+  app.post('/api/prospect/:id/generate-research', isAuthenticated, async (req, res) => {
+    try {
+      const prospectId = parseInt(req.params.id);
+      
+      // Get prospect data from database
+      const prospect = await storage.getProspect(prospectId);
+      if (!prospect) {
+        return res.status(404).json({ error: 'Prospect not found' });
+      }
+
+      // Get BBEC interactions for this prospect
+      const constituentId = prospect.constituentGuid || prospect.bbecGuid;
+      let interactions: any[] = [];
+      if (constituentId) {
+        interactions = await storage.getBbecInteractionsByConstituent(constituentId);
+      }
+
+      // Build summary data for AI research
+      const summaryData = {
+        interactionHistory: {
+          totalCount: interactions.length,
+          lastContactDate: interactions.length > 0 ? interactions[0]?.date : null,
+          averageContactsPerMonth: interactions.length / Math.max(12, 1) // Rough estimate
+        },
+        donorHistory: {
+          lifetimeGiving: prospect.lifetimeGiving || 0,
+          currentYearGiving: prospect.currentYearGiving || 0
+        },
+        eventAttendance: {
+          totalEvents: 0,
+          favoriteEventTypes: [],
+          lastTwoYears: [],
+          attendanceRate: 0
+        },
+        professional: {
+          currentPosition: prospect.jobTitle || 'Not specified',
+          employer: prospect.employer || 'Not specified'
+        },
+        location: {
+          city: prospect.city || null,
+          state: prospect.state || null,
+          country: prospect.country || null
+        },
+        engagement: {
+          prospectRating: prospect.rating || 'Not available',
+          inclination: prospect.inclination || 'Unknown',
+          stage: prospect.stage || 'Unknown',
+          capacity: prospect.capacity,
+          engagementTrend: 'Unknown'
+        },
+        relationships: {
+          spouse: prospect.spouseName || null
+        }
+      };
+
+      const prospectName = `${prospect.firstName || ''} ${prospect.lastName || ''}`.trim() || 'Unknown Prospect';
+      const userId = req.user.claims.sub;
+      const research = await generateProspectResearch(summaryData, prospectName, userId);
+      
+      res.json({ research });
+    } catch (error) {
+      console.error('Error generating prospect research:', error);
+      res.status(500).json({ error: 'Failed to generate prospect research' });
+    }
+  });
+
   // Portfolio AI Settings API Routes
 
   // Get portfolio AI prompt settings for the current user
@@ -4177,9 +4244,31 @@ Each recommendation should be:
 Consider their preferred communication methods, past giving history, and current engagement level.`
       );
 
+      const prospectResearchPrompt = await storage.getUserSettingValue(
+        userId,
+        'portfolio.prospectResearchPrompt',
+        `You are a prospect research specialist with expertise in identifying wealth indicators and philanthropic patterns. Based on the prospect's information including their location, analyze and research potential indicators of:
+
+1. **Wealth Indicators**: Look for professional achievements, business affiliations, executive positions, board memberships, or property ownership that might indicate giving capacity
+2. **Philanthropic History**: Research giving patterns to educational institutions, health organizations, arts/culture, or community foundations  
+3. **Current News & Activities**: Recent professional accomplishments, company news, awards, or public recognition
+4. **Strategic Connections**: University affiliations, alumni networks, professional associations, or social connections relevant to Boston University
+5. **Location-Based Insights**: Consider regional giving patterns, local community involvement, or geographic ties to Boston/Massachusetts
+
+Please provide actionable intelligence that could help a gift officer:
+- Identify optimal cultivation strategies
+- Find common ground for relationship building  
+- Understand their philanthropic interests and motivations
+- Determine appropriate ask levels and timing
+- Locate mutual connections or introduction opportunities
+
+Focus on publicly available information and avoid speculation. Provide specific, actionable insights with suggested next steps.`
+      );
+
       res.json({
         generateAiPrompt,
-        nextActionsPrompt
+        nextActionsPrompt,
+        prospectResearchPrompt
       });
     } catch (error) {
       console.error('Error fetching portfolio settings:', error);
@@ -4191,10 +4280,10 @@ Consider their preferred communication methods, past giving history, and current
   app.post('/api/portfolio/settings', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { generateAiPrompt, nextActionsPrompt } = req.body;
+      const { generateAiPrompt, nextActionsPrompt, prospectResearchPrompt } = req.body;
 
-      if (!generateAiPrompt || !nextActionsPrompt) {
-        return res.status(400).json({ error: 'Both generateAiPrompt and nextActionsPrompt are required' });
+      if (!generateAiPrompt || !nextActionsPrompt || !prospectResearchPrompt) {
+        return res.status(400).json({ error: 'All three prompts (generateAiPrompt, nextActionsPrompt, and prospectResearchPrompt) are required' });
       }
 
       // Save the prompt settings as user-specific settings
@@ -4210,12 +4299,19 @@ Consider their preferred communication methods, past giving history, and current
         value: nextActionsPrompt
       });
 
+      await storage.setUserSetting({
+        userId,
+        settingKey: 'portfolio.prospectResearchPrompt',
+        value: prospectResearchPrompt
+      });
+
       console.log(`✅ [Portfolio Settings] Updated AI prompt settings for user: ${userId}`);
       
       res.json({
         message: 'Portfolio settings saved successfully',
         generateAiPrompt,
-        nextActionsPrompt
+        nextActionsPrompt,
+        prospectResearchPrompt
       });
     } catch (error) {
       console.error('Error saving portfolio settings:', error);

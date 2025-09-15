@@ -5,19 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save, Settings, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, Save, Settings, Sparkles, Target, Search } from "lucide-react";
 import { AppNavigation } from "@/components/app-navigation";
 import { useToast } from "@/hooks/use-toast";
 
 interface AiPromptSettings {
   generateAiPrompt: string;
   nextActionsPrompt: string;
+  prospectResearchPrompt: string;
 }
 
 export default function PortfolioSettingsPage() {
   const [settings, setSettings] = useState<AiPromptSettings>({
     generateAiPrompt: '',
-    nextActionsPrompt: ''
+    nextActionsPrompt: '',
+    prospectResearchPrompt: ''
   });
   
   const { toast } = useToast();
@@ -47,7 +49,24 @@ Each recommendation should be:
 - Focused on relationship building and stewardship
 - Include suggested timeline and follow-up steps
 
-Consider their preferred communication methods, past giving history, and current engagement level.`
+Consider their preferred communication methods, past giving history, and current engagement level.`,
+
+    prospectResearchPrompt: `You are a prospect research specialist with expertise in identifying wealth indicators and philanthropic patterns. Based on the prospect's information including their location, analyze and research potential indicators of:
+
+1. **Wealth Indicators**: Look for professional achievements, business affiliations, executive positions, board memberships, or property ownership that might indicate giving capacity
+2. **Philanthropic History**: Research giving patterns to educational institutions, health organizations, arts/culture, or community foundations  
+3. **Current News & Activities**: Recent professional accomplishments, company news, awards, or public recognition
+4. **Strategic Connections**: University affiliations, alumni networks, professional associations, or social connections relevant to Boston University
+5. **Location-Based Insights**: Consider regional giving patterns, local community involvement, or geographic ties to Boston/Massachusetts
+
+Please provide actionable intelligence that could help a gift officer:
+- Identify optimal cultivation strategies
+- Find common ground for relationship building  
+- Understand their philanthropic interests and motivations
+- Determine appropriate ask levels and timing
+- Locate mutual connections or introduction opportunities
+
+Focus on publicly available information and avoid speculation. Provide specific, actionable insights with suggested next steps.`
   };
 
   // Fetch current settings
@@ -209,6 +228,37 @@ Consider their preferred communication methods, past giving history, and current
                 />
                 <p className="text-sm text-gray-500">
                   This prompt will be used to generate strategic next action recommendations for prospects.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Prospect Research Prompt Settings */}
+          <Card className="border-2 hover:border-red-100 transition-colors bg-white shadow-lg">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="flex items-center space-x-3 text-xl font-bold text-gray-900">
+                <div className="p-2 rounded-lg bg-red-50">
+                  <Search className="h-6 w-6" style={{ color: '#CC0000' }} />
+                </div>
+                <span>Prospect Research Prompt</span>
+              </CardTitle>
+              <p className="text-gray-600">
+                This prompt is used when you click "Research Prospect" to analyze online information and identify wealth indicators.
+              </p>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <Label htmlFor="prospectResearchPrompt">Prospect Research Prompt</Label>
+                <Textarea
+                  id="prospectResearchPrompt"
+                  value={settings.prospectResearchPrompt}
+                  onChange={(e) => setSettings(prev => ({ ...prev, prospectResearchPrompt: e.target.value }))}
+                  className="min-h-[200px] font-mono text-sm"
+                  placeholder="Enter your custom prompt for prospect research and wealth indicators..."
+                  data-testid="textarea-prospect-research-prompt"
+                />
+                <p className="text-sm text-gray-500">
+                  This prompt will be used to research prospects online and identify wealth indicators, philanthropic patterns, and cultivation strategies.
                 </p>
               </div>
             </CardContent>
