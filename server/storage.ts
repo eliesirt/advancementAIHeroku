@@ -2537,6 +2537,7 @@ export async function initStorage({ requireDbInProd = true } = {}): Promise<ISto
 
   // Initialize storage instance
   storageInstance = new DatabaseStorage();
+  storage = storageInstance; // Also update legacy export immediately
   console.log(`✅ [STORAGE] Storage initialized: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'Development'}`);
   
   return storageInstance;
@@ -2556,5 +2557,10 @@ export function getStorageReady(): Promise<void> {
   return storageReady;
 }
 
-// Legacy export for backward compatibility - will be removed after migration
-export const storage = new DatabaseStorage();
+// Legacy export for backward compatibility - will be updated when storage initializes
+export let storage: IStorage = new DatabaseStorage();
+
+// Initialize storage immediately if not in production mode  
+if (process.env.NODE_ENV !== 'production') {
+  initStorage().catch(console.error);
+}

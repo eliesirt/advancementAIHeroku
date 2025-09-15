@@ -1,0 +1,159 @@
+2025-09-15T00:34:21.000000+00:00 app[api]: Build started by user esirotta@bu.edu
+2025-09-15T00:35:02.478327+00:00 heroku[web.1]: Restarting
+2025-09-15T00:35:02.633695+00:00 heroku[web.1]: State changed from up to starting
+2025-09-15T00:35:03.410372+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2025-09-15T00:35:03.483078+00:00 heroku[web.1]: Process exited with status 143
+2025-09-15T00:35:02.236840+00:00 app[api]: Deploy 43453838 by user esirotta@bu.edu
+2025-09-15T00:35:02.236840+00:00 app[api]: Release v199 created by user esirotta@bu.edu
+2025-09-15T00:35:10.150501+00:00 heroku[web.1]: Starting process with command `npm run start`
+2025-09-15T00:35:10.823154+00:00 app[web.1]: Python buildpack: Detected 512 MB available memory and 8 CPU cores.
+2025-09-15T00:35:10.823235+00:00 app[web.1]: Python buildpack: Defaulting WEB_CONCURRENCY to 2 based on the available memory.
+2025-09-15T00:35:11.164940+00:00 app[web.1]: 
+2025-09-15T00:35:11.164954+00:00 app[web.1]: > rest-express@1.0.0 start
+2025-09-15T00:35:11.164955+00:00 app[web.1]: > NODE_ENV=production node dist/index.js
+2025-09-15T00:35:11.164955+00:00 app[web.1]: 
+2025-09-15T00:35:11.202688+00:00 app[web.1]: 🚀 Starting TypeScript server with tsx...
+2025-09-15T00:35:11.984294+00:00 app[web.1]: npm warn exec The following package was not found and will be installed: tsx@4.20.5
+2025-09-15T00:35:10.000000+00:00 app[api]: Build succeeded
+2025-09-15T00:35:13.203164+00:00 app[web.1]: Starting application initialization...
+2025-09-15T00:35:13.203207+00:00 app[web.1]: NODE_ENV: production
+2025-09-15T00:35:13.203228+00:00 app[web.1]: Starting server on port 42922, NODE_ENV=production
+2025-09-15T00:35:13.203246+00:00 app[web.1]: 🚀 HEROKU: Using fast startup mode with storage gating...
+2025-09-15T00:35:13.433987+00:00 app[web.1]: ⏳ [HEROKU] Initializing storage before serving routes...
+2025-09-15T00:35:13.434143+00:00 app[web.1]: 🗄️ [STORAGE] Initializing storage backend, NODE_ENV: production
+2025-09-15T00:35:13.551374+00:00 app[web.1]: ✅ [STORAGE] PostgreSQL connection verified
+2025-09-15T00:35:13.551394+00:00 app[web.1]: ✅ [STORAGE] Storage initialized: PostgreSQL
+2025-09-15T00:35:13.551417+00:00 app[web.1]: ✅ [HEROKU] Storage initialized successfully
+2025-09-15T00:35:13.551542+00:00 app[web.1]: Routes module failed to load, using fallback
+2025-09-15T00:35:13.551577+00:00 app[web.1]: Setting up production fallbacks for Vite functions
+2025-09-15T00:35:13.551818+00:00 app[web.1]: 🔐 Setting up immediate authentication routes...
+2025-09-15T00:35:13.552014+00:00 app[web.1]: Warning: connect.session() MemoryStore is not
+2025-09-15T00:35:13.552014+00:00 app[web.1]: designed for a production environment, as it will leak
+2025-09-15T00:35:13.552014+00:00 app[web.1]: memory, and will not scale past a single process.
+2025-09-15T00:35:13.552232+00:00 app[web.1]: ⚙️ Setting up essential AI model preference routes...
+2025-09-15T00:35:13.552272+00:00 app[web.1]: 🤖 Setting up essential AI processing routes...
+2025-09-15T00:35:13.552684+00:00 app[web.1]: 🐍 Setting up Python AI routes...
+2025-09-15T00:35:13.552831+00:00 app[web.1]: 🤖 Adding AI Jobs async processing routes...
+2025-09-15T00:35:13.552927+00:00 app[web.1]: ✅ AI Jobs async processing routes added to production server
+2025-09-15T00:35:13.552939+00:00 app[web.1]: 📁 Setting up portfolio refresh endpoints...
+2025-09-15T00:35:13.552976+00:00 app[web.1]: 📁 Portfolio refresh endpoints configured successfully
+2025-09-15T00:35:13.552986+00:00 app[web.1]: ✅ Comprehensive CRUD, AI processing, CRM integration, and admin routes registered immediately
+2025-09-15T00:35:13.552996+00:00 app[web.1]: 🗺️ Adding Google Places API routes...
+2025-09-15T00:35:13.553029+00:00 app[web.1]: ✅ Google Places API routes added to production server
+2025-09-15T00:35:13.553030+00:00 app[web.1]: 🏷️ Adding affinity tag identification route...
+2025-09-15T00:35:13.553039+00:00 app[web.1]: ✅ Affinity tag identification route added to production server
+2025-09-15T00:35:13.553047+00:00 app[web.1]: 📝 Adding interaction management routes...
+2025-09-15T00:35:13.553080+00:00 app[web.1]: ✅ Interaction management routes added to production server
+2025-09-15T00:35:13.553088+00:00 app[web.1]: 🤖 Adding text analysis routes...
+2025-09-15T00:35:13.553104+00:00 app[web.1]: ✅ Text analysis routes added to production server
+2025-09-15T00:35:13.553112+00:00 app[web.1]: 👥 Adding prospect and constituent search routes...
+2025-09-15T00:35:13.553154+00:00 app[web.1]: ✅ Prospect and constituent search routes added to production server
+2025-09-15T00:35:13.553163+00:00 app[web.1]: 🗺️ Adding itinerary management routes...
+2025-09-15T00:35:13.553189+00:00 app[web.1]: ✅ Itinerary management routes added to production server
+2025-09-15T00:35:13.553191+00:00 app[web.1]: 📁 Setting up static file serving with SPA routing...
+2025-09-15T00:35:13.553316+00:00 app[web.1]: ✅ Static file serving with SPA routing enabled immediately
+2025-09-15T00:35:13.554814+00:00 app[web.1]: 🚀 HEROKU: Server listening on port 42922 - IMMEDIATE SUCCESS!
+2025-09-15T00:35:13.554941+00:00 app[web.1]: 🔧 PRODUCTION ROUTE FIX: About to initialize routes immediately...
+2025-09-15T00:35:13.554954+00:00 app[web.1]: 🔧 Starting full initialization immediately...
+2025-09-15T00:35:13.555127+00:00 app[web.1]: Node.js version: v18.20.8
+2025-09-15T00:35:13.555148+00:00 app[web.1]: Working directory: /app
+2025-09-15T00:35:13.557022+00:00 app[web.1]: Available files in current directory: [
+2025-09-15T00:35:13.557022+00:00 app[web.1]:   '.gitignore',
+2025-09-15T00:35:13.557023+00:00 app[web.1]:   '.heroku',
+2025-09-15T00:35:13.557023+00:00 app[web.1]:   '.herokuignore',
+2025-09-15T00:35:13.557023+00:00 app[web.1]:   '.npm',
+2025-09-15T00:35:13.557023+00:00 app[web.1]:   '.profile.d',
+2025-09-15T00:35:13.557024+00:00 app[web.1]:   '.replit',
+2025-09-15T00:35:13.557024+00:00 app[web.1]:   'Procfile',
+2025-09-15T00:35:13.557024+00:00 app[web.1]:   'attached_assets',
+2025-09-15T00:35:13.557024+00:00 app[web.1]:   'bbec-field-mapping-analysis.md',
+2025-09-15T00:35:13.557024+00:00 app[web.1]:   'build.cjs',
+2025-09-15T00:35:13.557025+00:00 app[web.1]:   'cleanup-heroku-demo-data.sql',
+2025-09-15T00:35:13.557025+00:00 app[web.1]:   'client',
+2025-09-15T00:35:13.557025+00:00 app[web.1]:   'components.json',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'create-ai-jobs-table.sql',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'create-bbec-interactions-table.sql',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'database_backup.dump',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'database_backup.sql.gz',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'debug-heroku-affinity.js',
+2025-09-15T00:35:13.557026+00:00 app[web.1]:   'debug-heroku-profile-update.md',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'debug-heroku-voice.js',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'dist',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'drizzle.config.ts',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'fix-app-order.js',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'fix-heroku-database.md',
+2025-09-15T00:35:13.557027+00:00 app[web.1]:   'fix-heroku-python-ai.md',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'fix-production-db.sql',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'heroku-bbec-credentials-migration.sql',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'heroku-build.sh',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'heroku-db-test.js',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'heroku-debug-logs.js',
+2025-09-15T00:35:13.557028+00:00 app[web.1]:   'heroku-deployment-instructions.md',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'heroku-postbuild',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'heroku-postbuild.cjs',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'heroku-postbuild.mjs',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'migrate-ai-jobs.js',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'migrate-ai-jobs.mjs',
+2025-09-15T00:35:13.557029+00:00 app[web.1]:   'migrate-settings-tables.sql',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'node_modules',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'package-lock.json',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'package.json',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'postcss.config.js',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'pyproject.toml',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'replit.md',
+2025-09-15T00:35:13.557030+00:00 app[web.1]:   'requirements.txt',
+2025-09-15T00:35:13.557031+00:00 app[web.1]:   'runtime.txt',
+2025-09-15T00:35:13.557031+00:00 app[web.1]:   'scripts',
+2025-09-15T00:35:13.557031+00:00 app[web.1]:   'server',
+2025-09-15T00:35:13.557031+00:00 app[web.1]:   'shared',
+2025-09-15T00:35:13.557032+00:00 app[web.1]:   'tailwind.config.ts',
+2025-09-15T00:35:13.557032+00:00 app[web.1]:   'test-heroku-profile.js',
+2025-09-15T00:35:13.557032+00:00 app[web.1]:   'test-prod-response.html',
+2025-09-15T00:35:13.557032+00:00 app[web.1]:   'test_interaction.js',
+2025-09-15T00:35:13.557032+00:00 app[web.1]:   'tsconfig.backup.json',
+2025-09-15T00:35:13.557033+00:00 app[web.1]:   'tsconfig.build.json',
+2025-09-15T00:35:13.557033+00:00 app[web.1]:   'tsconfig.dev.json',
+2025-09-15T00:35:13.557033+00:00 app[web.1]:   'tsconfig.json',
+2025-09-15T00:35:13.557034+00:00 app[web.1]:   'tsconfig.production.json',
+2025-09-15T00:35:13.557034+00:00 app[web.1]:   'uv.lock',
+2025-09-15T00:35:13.557034+00:00 app[web.1]:   'vite.config.ts'
+2025-09-15T00:35:13.557034+00:00 app[web.1]: ]
+2025-09-15T00:35:13.557347+00:00 app[web.1]: Available files in server directory: [
+2025-09-15T00:35:13.557347+00:00 app[web.1]:   'db.ts',         'entraAuth.ts',
+2025-09-15T00:35:13.557347+00:00 app[web.1]:   'herokuAuth.ts', 'index.ts',
+2025-09-15T00:35:13.557347+00:00 app[web.1]:   'lib',           'replitAuth.ts',
+2025-09-15T00:35:13.557347+00:00 app[web.1]:   'routes.ts',     'seedData.ts',
+2025-09-15T00:35:13.557348+00:00 app[web.1]:   'services',      'storage.ts',
+2025-09-15T00:35:13.557348+00:00 app[web.1]:   'types',         'vite.ts'
+2025-09-15T00:35:13.557348+00:00 app[web.1]: ]
+2025-09-15T00:35:13.557365+00:00 app[web.1]: Importing routes module...
+2025-09-15T00:35:13.812256+00:00 heroku[web.1]: State changed from starting to up
+2025-09-15T00:35:13.924605+00:00 app[web.1]: Routes module imported successfully
+2025-09-15T00:35:13.924636+00:00 app[web.1]: Skipping Vite import in production for faster startup
+2025-09-15T00:35:14.009099+00:00 app[web.1]: 🔐 [AUTH] Failed to check SSO configuration, falling back to default auth: PostgresError: relation "sso_configurations" does not exist
+2025-09-15T00:35:14.009100+00:00 app[web.1]:     at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+2025-09-15T00:35:14.009101+00:00 app[web.1]:     at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+2025-09-15T00:35:14.009101+00:00 app[web.1]:     at TLSSocket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+2025-09-15T00:35:14.009102+00:00 app[web.1]:     at TLSSocket.emit (node:events:517:28)
+2025-09-15T00:35:14.009102+00:00 app[web.1]:     at addChunk (node:internal/streams/readable:368:12)
+2025-09-15T00:35:14.009102+00:00 app[web.1]:     at readableAddChunk (node:internal/streams/readable:341:9)
+2025-09-15T00:35:14.009102+00:00 app[web.1]:     at Readable.push (node:internal/streams/readable:278:10)
+2025-09-15T00:35:14.009103+00:00 app[web.1]:     at TLSWrap.onStreamRead (node:internal/stream_base_commons:190:23) {
+2025-09-15T00:35:14.009103+00:00 app[web.1]:   severity_local: 'ERROR',
+2025-09-15T00:35:14.009104+00:00 app[web.1]:   severity: 'ERROR',
+2025-09-15T00:35:14.009104+00:00 app[web.1]:   code: '42P01',
+2025-09-15T00:35:14.009104+00:00 app[web.1]:   position: '369',
+2025-09-15T00:35:14.009104+00:00 app[web.1]:   file: 'parse_relation.c',
+2025-09-15T00:35:14.009105+00:00 app[web.1]:   line: '1486',
+2025-09-15T00:35:14.009115+00:00 app[web.1]:   routine: 'parserOpenTable'
+2025-09-15T00:35:14.009115+00:00 app[web.1]: }
+2025-09-15T00:35:14.009119+00:00 app[web.1]: 🔐 [AUTH] Using Heroku authentication
+2025-09-15T00:35:14.017895+00:00 app[web.1]: ℹ️ [HEROKU AUTH] Assuming sessions table exists (created by post-build script)
+2025-09-15T00:35:14.041740+00:00 app[web.1]: ✅ [HEROKU AUTH] Admin user verified/created
+2025-09-15T00:35:14.042203+00:00 app[web.1]: Seeding initial data...
+2025-09-15T00:35:14.060412+00:00 app[web.1]: User elsirt@gmail.com already has Administrator role
+2025-09-15T00:35:14.182042+00:00 app[web.1]: Seeding prospects: disabled, reason: NODE_ENV=production, DEMO_SEED=undefined
+2025-09-15T00:35:14.182054+00:00 app[web.1]: Skipping demo prospect seeding in production environment
+2025-09-15T00:35:14.182055+00:00 app[web.1]: Initial data seeding completed successfully
+2025-09-15T00:35:14.182882+00:00 app[web.1]: ✅ Full routes registered successfully
+2025-09-15T00:35:14.182909+00:00 app[web.1]: ✅ Full server initialization complete - All API routes available!
