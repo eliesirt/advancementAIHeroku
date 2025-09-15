@@ -3062,7 +3062,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/portfolio/refresh/:prospectId', isAuthenticated, async (req: any, res) => {
     try {
       const { prospectId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub;
+      
+      // Validate userId before any background operations
+      if (!userId) {
+        console.error(`🚨 [Portfolio Routes] CRITICAL: No valid user ID for prospect refresh ${prospectId}`);
+        console.error(`🚨 [Portfolio Routes] Request user object: ${JSON.stringify(req.user)}`);
+        return res.status(401).json({ 
+          error: 'Authentication failed: Invalid user context for background operations',
+          prospectId,
+          timestamp: new Date().toISOString()
+        });
+      }
       
       console.log(`🔄 [Portfolio Routes] Refresh initiated for prospect ID: ${prospectId} by user: ${userId}`);
       

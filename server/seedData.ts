@@ -164,11 +164,15 @@ export async function seedInitialData() {
       console.log("Note: Could not update application display name:", error);
     }
 
-    // Seed sample prospect data for demonstration (development only)
+    // Seed sample prospect data for demonstration (explicit opt-in only)
     try {
+      const shouldSeedDemo = process.env.DEMO_SEED === 'true' && process.env.NODE_ENV !== 'production';
       const existingProspects = await storage.getProspects();
-      if (existingProspects.length === 0 && process.env.NODE_ENV !== 'production') {
-        console.log("Seeding demo prospect data (development mode only)...");
+      
+      console.log(`Seeding prospects: ${shouldSeedDemo ? 'enabled' : 'disabled'}, reason: NODE_ENV=${process.env.NODE_ENV}, DEMO_SEED=${process.env.DEMO_SEED || 'undefined'}`);
+      
+      if (existingProspects.length === 0 && shouldSeedDemo) {
+        console.log("Seeding demo prospect data (development mode with explicit opt-in)...");
         const sampleProspects = [
           {
             buid: "BUID001",
@@ -251,6 +255,8 @@ export async function seedInitialData() {
         console.log("Created sample prospect data");
       } else if (process.env.NODE_ENV === 'production') {
         console.log("Skipping demo prospect seeding in production environment");
+      } else if (existingProspects.length > 0) {
+        console.log(`Skipping demo prospect seeding - ${existingProspects.length} prospects already exist`);
       }
     } catch (error) {
       console.log("Note: Could not create sample prospect data:", error);

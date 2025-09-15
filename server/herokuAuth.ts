@@ -86,10 +86,23 @@ export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
       req.session.user = HEROKU_ADMIN_USER;
     }
 
+    // Validate that we have a valid user ID
+    const userId = req.session.user?.id;
+    if (!userId) {
+      console.error('🚨 [HEROKU AUTH] CRITICAL: No valid user ID found');
+      return res.status(401).json({ 
+        error: 'Authentication failed: No valid user ID',
+        details: 'User session exists but lacks valid ID',
+        sessionUser: req.session?.user,
+        path: req.path,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Mock the user object structure expected by the routes
     req.user = {
       claims: {
-        sub: req.session.user.id,
+        sub: userId,
         email: req.session.user.email,
         first_name: req.session.user.firstName,
         last_name: req.session.user.lastName,

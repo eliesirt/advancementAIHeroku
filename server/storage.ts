@@ -2501,4 +2501,12 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
+// Production safety checks
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+  console.error('🚨 [STORAGE] CRITICAL: DATABASE_URL missing in production environment');
+  process.exit(1);
+}
+
+console.log(`🗄️ [STORAGE] Storage backend: ${process.env.DATABASE_URL ? 'Postgres' : 'Development'}, NODE_ENV: ${process.env.NODE_ENV}`);
+
 export const storage = new DatabaseStorage();
