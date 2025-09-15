@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RefreshCw, Search, Filter, Users, DollarSign, Calendar, Award, ArrowUpDown } from "lucide-react";
+import { RefreshCw, Search, Filter, Users, DollarSign, Calendar, Award, ArrowUpDown, Settings } from "lucide-react";
 import { AppNavigation } from "@/components/app-navigation";
 import { useToast } from "@/hooks/use-toast";
 import { parseMarkdownToJSX } from "@/lib/markdown-utils";
@@ -299,16 +299,28 @@ export default function PortfolioPage() {
         <div className="mb-8">
           <div className="bg-white rounded-xl shadow-lg border-2 border-gray-100 overflow-hidden">
             <div className="bg-gradient-to-r from-red-600 to-red-700 p-8 text-white">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-lg bg-white/20">
-                  <Users className="h-8 w-8" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 rounded-lg bg-white/20">
+                    <Users className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold">portfolioAI</h1>
+                    <p className="text-red-100 text-lg mt-1">
+                      AI-powered prospect portfolio management for fundraisers
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold">portfolioAI</h1>
-                  <p className="text-red-100 text-lg mt-1">
-                    AI-powered prospect portfolio management for fundraisers
-                  </p>
-                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => window.location.href = '/apps/portfolio/settings'}
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50"
+                  data-testid="button-portfolio-settings"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
               </div>
               <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white/10 rounded-lg p-4">
@@ -500,8 +512,8 @@ export default function PortfolioPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getProspectRatingColor(prospect.prospectRating || 'Unknown')}>
-                              {prospect.prospectRating || 'Not available'}
+                            <Badge className={getProspectRatingColor(typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
+                              {typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Not available'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
@@ -588,8 +600,8 @@ export default function PortfolioPage() {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-gray-500">Rating</p>
-                          <Badge className={getProspectRatingColor(selectedProspect.prospectRating || 'Unknown')}>
-                            {selectedProspect.prospectRating || 'Not available'}
+                          <Badge className={getProspectRatingColor(typeof selectedProspect.prospectRating === 'string' ? selectedProspect.prospectRating : 'Unknown')}>
+                            {typeof selectedProspect.prospectRating === 'string' ? selectedProspect.prospectRating : 'Not available'}
                           </Badge>
                         </div>
                         <div>
