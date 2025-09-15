@@ -253,7 +253,7 @@ app.get('/health', (req, res) => {
             buid: freshUser.buid,
             bbecGuid: freshUser.bbecGuid,
             bbecUsername: freshUser.bbecUsername,
-            bbecPassword: freshUser.bbecPassword
+            hasPassword: !!freshUser.bbecPassword
           };
           
           console.log("🔄 [HEROKU AUTH] Fresh user data loaded from database:", {
@@ -274,7 +274,7 @@ app.get('/health', (req, res) => {
             buid: freshUser.buid,
             bbecGuid: freshUser.bbecGuid,
             bbecUsername: freshUser.bbecUsername,
-            bbecPassword: freshUser.bbecPassword,
+            hasPassword: !!freshUser.bbecPassword,
             profileImageUrl: freshUser.profileImageUrl || req.session.user.profileImageUrl,
             roles: [{ name: "Administrator" }] // Mock admin role
           });
