@@ -3101,7 +3101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bbecService.fetchDonationSummary(prospectId),
         bbecService.fetchResearchNotes(prospectId),
         bbecService.fetchSolicitationPlans(prospectId)
-      ]).then((results) => {
+      ]).then(async (results) => {
         console.log(`✅ [Portfolio Routes] Background processing completed for prospect ${prospectId}`);
         results.forEach((result, index) => {
           const operations = ['fetchInteractions', 'fetchDonationSummary', 'fetchResearchNotes', 'fetchSolicitationPlans'];
@@ -3111,6 +3111,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`✅ [Portfolio Routes] ${operations[index]} completed for ${prospectId}`);
           }
         });
+        
+        // After background processing, update interaction aggregates for this specific prospect
+        try {
+          await storage.updateProspectInteractionAggregatesForProspect(parseInt(prospectId));
+          console.log(`✅ [Portfolio Routes] Interaction aggregates updated for prospect ${prospectId}`);
+        } catch (aggregateError) {
+          console.error(`❌ [Portfolio Routes] Failed to update interaction aggregates for prospect ${prospectId}:`, aggregateError);
+        }
       }).catch((error) => {
         console.error(`❌ [Portfolio Routes] Critical error in background processing for ${prospectId}:`, error);
       });

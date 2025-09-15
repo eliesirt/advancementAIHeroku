@@ -13,6 +13,19 @@ import { AppNavigation } from "@/components/app-navigation";
 import { useToast } from "@/hooks/use-toast";
 import { parseMarkdownToJSX } from "@/lib/markdown-utils";
 
+// Utility function to normalize rating data to consistent string format
+function normalizeRating(r: unknown): string | null {
+  if (r == null) return null;
+  if (typeof r === 'string') return r.trim() || null;
+  if (typeof r === 'number') return String(r);
+  if (typeof r === 'object') {
+    const o = r as any;
+    const v = o.name ?? o.label ?? o.text ?? o.value ?? null;
+    return (typeof v === 'string' && v.trim()) ? v.trim() : null;
+  }
+  return null;
+}
+
 type SortField = 'fullName' | 'prospectRating' | 'lifetimeGiving' | 'lastContactDate' | 'totalInteractions' | 'stage';
 type SortDirection = 'asc' | 'desc';
 
@@ -82,6 +95,59 @@ export default function PortfolioPage() {
     retry: false,
   });
 
+  // Poll for data changes after refresh operations
+  const startPollingForUpdates = (prospectIds: number[], maxDuration: number = 30000) => {
+    console.log(`🔄 Starting polling for interaction updates for ${prospectIds.length} prospects`);
+    
+    const startTime = Date.now();
+    const initialData = queryClient.getQueryData<ProspectWithDetails[]>(['/api/prospects']) || prospects;
+    const initialState = new Map(
+      initialData
+        .filter(p => prospectIds.includes(p.id))
+        .map(p => [p.id, { lastContactDate: p.lastContactDate, totalInteractions: p.totalInteractions }])
+    );
+    
+    const pollInterval = setInterval(() => {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
+      
+      // Stop polling after max duration
+      if (elapsedTime > maxDuration) {
+        clearInterval(pollInterval);
+        console.log(`⏰ Polling timeout reached after ${maxDuration/1000}s`);
+        return;
+      }
+      
+      // Check for changes by invalidating and comparing
+      queryClient.invalidateQueries({ queryKey: ['/api/prospects'] }).then(() => {
+        const updatedData = queryClient.getQueryData<ProspectWithDetails[]>(['/api/prospects']) || [];
+        let hasChanges = false;
+        
+        for (const prospect of updatedData.filter(p => prospectIds.includes(p.id))) {
+          const initial = initialState.get(prospect.id);
+          if (initial && (
+            prospect.lastContactDate !== initial.lastContactDate ||
+            prospect.totalInteractions !== initial.totalInteractions
+          )) {
+            hasChanges = true;
+            console.log(`📅 Detected interaction updates for prospect ${prospect.id}: ${prospect.lastContactDate}`);
+          }
+        }
+        
+        if (hasChanges) {
+          clearInterval(pollInterval);
+          toast({
+            title: "Data Updated",
+            description: "Last contact dates have been refreshed with latest interaction data.",
+          });
+          console.log('✅ Interaction updates detected and displayed');
+        }
+      }).catch(error => {
+        console.error('❌ Error during polling check:', error);
+      });
+    }, 3000); // Poll every 3 seconds
+  };
+
   // Refresh individual prospect with loading state
   const refreshProspect = async (prospectId: number) => {
     try {
@@ -92,8 +158,11 @@ export default function PortfolioPage() {
       
       toast({
         title: "Refresh Started",
-        description: `Data refresh initiated for prospect. This may take a few moments.`,
+        description: `Data refresh initiated for prospect. Polling for updates...`,
       });
+      
+      // Start polling for interaction updates for this prospect
+      startPollingForUpdates([prospectId], 20000); // 20 second max for individual refresh
       
       console.log(`🔄 Portfolio refresh response for ${prospectId}:`, response);
     } catch (error) {
@@ -165,8 +234,11 @@ export default function PortfolioPage() {
       
       toast({
         title: "Sync & Refresh Complete",
-        description: `Synced from BBEC and refreshed all ${prospectIds.length} prospects.`,
+        description: `Synced from BBEC and refreshed all ${prospectIds.length} prospects. Polling for interaction updates...`,
       });
+      
+      // Start polling for interaction updates for all refreshed prospects
+      startPollingForUpdates(prospectIds, 45000); // 45 second max for bulk refresh
       
     } catch (error) {
       console.error('❌ Bulk refresh error:', error);
@@ -188,7 +260,7 @@ export default function PortfolioPage() {
                            prospect.employer?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStage = stageFilter === "all" || prospect.stage === stageFilter;
-      const matchesRating = ratingFilter === "all" || prospect.prospectRating === ratingFilter;
+      const matchesRating = ratingFilter === "all" || normalizeRating(prospect.prospectRating) === ratingFilter;
       
       return matchesSearch && matchesStage && matchesRating;
     });
@@ -208,6 +280,12 @@ export default function PortfolioPage() {
       if (sortField === 'lifetimeGiving' || sortField === 'totalInteractions') {
         aValue = aValue || 0;
         bValue = bValue || 0;
+      }
+
+      // Handle prospect rating normalization
+      if (sortField === 'prospectRating') {
+        aValue = normalizeRating(aValue)?.toLowerCase() ?? '';
+        bValue = normalizeRating(bValue)?.toLowerCase() ?? '';
       }
 
       // Handle strings
@@ -362,7 +440,10 @@ export default function PortfolioPage() {
                     <Award className="h-5 w-5 mr-2" />
                     <div>
                       <p className="font-semibold text-lg">
-                        {prospects.filter(p => p.prospectRating === 'Leadership' || p.prospectRating === 'Principal').length}
+                        {prospects.filter(p => {
+                          const rating = normalizeRating(p.prospectRating);
+                          return rating === 'Leadership' || rating === 'Principal';
+                        }).length}
                       </p>
                       <p className="text-sm text-red-100">Top Prospects</p>
                     </div>
@@ -439,7 +520,7 @@ export default function PortfolioPage() {
               </CardHeader>
               <CardContent className="p-0">
                 {/* Prospects Table */}
-                <div className="overflow-x-auto max-h-[32rem] overflow-y-auto">
+                <div className="overflow-x-auto max-h-[48rem] overflow-y-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -522,9 +603,14 @@ export default function PortfolioPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getProspectRatingColor(typeof prospect.prospectRating === 'string' ? prospect.prospectRating : 'Unknown')}>
-                              {typeof prospect.prospectRating === 'string' && prospect.prospectRating ? prospect.prospectRating : 'Not available'}
-                            </Badge>
+                            {(() => {
+                              const rating = normalizeRating(prospect.prospectRating);
+                              return (
+                                <Badge className={getProspectRatingColor(rating ?? 'Unknown')}>
+                                  {rating ?? 'Not available'}
+                                </Badge>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>{formatCurrency(prospect.lifetimeGiving || 0)}</TableCell>
                           <TableCell>{formatDate(prospect.lastContactDate)}</TableCell>
@@ -610,9 +696,14 @@ export default function PortfolioPage() {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-gray-500">Rating</p>
-                          <Badge className={getProspectRatingColor(typeof selectedProspect.prospectRating === 'string' ? selectedProspect.prospectRating : 'Unknown')}>
-                            {typeof selectedProspect.prospectRating === 'string' ? selectedProspect.prospectRating : 'Not available'}
-                          </Badge>
+                          {(() => {
+                            const rating = normalizeRating(selectedProspect.prospectRating);
+                            return (
+                              <Badge className={getProspectRatingColor(rating ?? 'Unknown')}>
+                                {rating ?? 'Not available'}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <div>
                           <p className="text-gray-500">Stage</p>

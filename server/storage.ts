@@ -1633,11 +1633,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async refreshAllProspectData(prospectManagerId: string): Promise<void> {
-    // In a real implementation, this would batch refresh all prospects for a manager
-    await db
-      .update(prospects)
-      .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
-      .where(eq(prospects.prospectManagerId, prospectManagerId));
+    console.log(`🔄 [Storage] Refreshing all prospect data for manager: ${prospectManagerId}`);
+    
+    try {
+      // Update sync timestamps first
+      await db
+        .update(prospects)
+        .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
+        .where(eq(prospects.prospectManagerId, prospectManagerId));
+      
+      // Compute interaction aggregates to ensure lastContactDate is accurate
+      await this.updateProspectInteractionAggregates(prospectManagerId);
+      
+      console.log(`✅ [Storage] Successfully refreshed all prospect data and interaction aggregates for manager: ${prospectManagerId}`);
+    } catch (error) {
+      console.error('❌ [Storage] Error refreshing all prospect data:', error);
+      throw error;
+    }
   }
 
   async syncProspectsFromBbec(prospectsData: any[], prospectManagerId: string): Promise<void> {
@@ -1802,6 +1814,76 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async updateProspectInteractionAggregatesForProspect(prospectId: number): Promise<void> {
+    console.log(`🔄 [Storage] Computing interaction aggregates for prospect: ${prospectId}`);
+    
+    try {
+      // Get the specific prospect
+      const prospect = await db
+        .select()
+        .from(prospects)
+        .where(eq(prospects.id, prospectId))
+        .limit(1);
+        
+      if (prospect.length === 0) {
+        console.log(`⚠️ [Storage] Prospect ${prospectId} not found, skipping aggregates`);
+        return;
+      }
+      
+      const prospectData = prospect[0];
+      
+      if (!prospectData.constituentGuid && !prospectData.bbecGuid) {
+        console.log(`⚠️ [Storage] Skipping prospect ${prospectId} - no GUID to match interactions`);
+        return;
+      }
+      
+      // Use either constituentGuid or bbecGuid to match interactions
+      const constituentId = prospectData.constituentGuid || prospectData.bbecGuid;
+      
+      // Get interaction count and latest interaction date for this constituent
+      const aggregateResult = await db
+        .select({
+          totalInteractions: sql<number>`count(*)`,
+          lastContactDate: sql<Date | null>`max(${bbecInteractions.date})`
+        })
+        .from(bbecInteractions)
+        .where(eq(bbecInteractions.constituentId, constituentId!))
+        .groupBy(bbecInteractions.constituentId);
+        
+      const aggregate = aggregateResult[0];
+      
+      if (aggregate) {
+        // Update prospect with computed aggregates
+        await db
+          .update(prospects)
+          .set({
+            totalInteractions: aggregate.totalInteractions,
+            lastContactDate: aggregate.lastContactDate,
+            updatedAt: new Date()
+          })
+          .where(eq(prospects.id, prospectId));
+          
+        console.log(`📈 [Storage] Updated prospect ${prospectId} (${prospectData.fullName}): ${aggregate.totalInteractions} interactions, last contact: ${aggregate.lastContactDate}`);
+      } else {
+        // No interactions found - set to 0
+        await db
+          .update(prospects)
+          .set({
+            totalInteractions: 0,
+            lastContactDate: null,
+            updatedAt: new Date()
+          })
+          .where(eq(prospects.id, prospectId));
+          
+        console.log(`📉 [Storage] Updated prospect ${prospectId} (${prospectData.fullName}): 0 interactions`);
+      }
+      
+    } catch (error) {
+      console.error(`❌ [Storage] Error updating interaction aggregates for prospect ${prospectId}:`, error);
+      throw error;
+    }
+  }
+
   private async updateProspectInteractionAggregates(prospectManagerId: string): Promise<void> {
     console.log(`🔄 [Storage] Computing interaction aggregates for prospects managed by: ${prospectManagerId}`);
     
