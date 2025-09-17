@@ -1359,7 +1359,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Map to insert schema and validate interactions
       const { insertBbecInteractionSchema } = await import('@shared/schema');
-      const validInteractions = result.interactions
+      
+      // Production-safe handling for interactions array
+      console.log(`🔍 [BBEC Refresh] Fetch result structure:`, {
+        hasResult: !!result,
+        hasInteractions: !!result?.interactions,
+        interactionsType: Array.isArray(result?.interactions) ? 'array' : typeof result?.interactions,
+        interactionsLength: result?.interactions?.length
+      });
+      
+      // Ensure we have a valid interactions array
+      const rawInteractions = Array.isArray(result?.interactions) ? result.interactions : [];
+      if (rawInteractions.length === 0) {
+        console.warn(`⚠️ [BBEC Refresh] No interactions found in result for constituent: ${constituentId}`);
+      }
+      
+      const validInteractions = rawInteractions
         .filter((interaction: any) => interaction.constituentId === constituentId) // Only keep interactions for this constituent
         .map((interaction: any) => ({
           constituentId: interaction.constituentId,
@@ -1392,9 +1407,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`✅ [BBEC Refresh] Successfully refreshed ${validInteractions.length} interactions for constituent: ${constituentId}`);
       
+      // Ensure count is always a valid number
+      const count = Array.isArray(validInteractions) ? validInteractions.length : 0;
+      
       res.json({
         success: true,
-        count: validInteractions.length,
+        count: count,
         constituentId,
         timestamp: new Date().toISOString()
       });
