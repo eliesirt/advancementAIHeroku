@@ -1,0 +1,26 @@
+2025-09-17T13:52:53.621716+00:00 heroku[router]: at=info method=GET path="/api/bbec/interactions/by-constituent/014c808c-2570-4dab-8838-90529c97aa3e" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=c8114b8d-f7b5-dc99-24b9-58dc07231acd fwd="73.253.249.113" dyno=web.1 connect=0ms service=5ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-17T13:52:53.462932+00:00 app[web.1]: 🔄 [BBEC] Refresh interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:53.463619+00:00 app[web.1]: [production] POST /api/bbec/interactions/refresh/014c808c-2570-4dab-8838-90529c97aa3e 200 in…
+2025-09-17T13:52:53.494188+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /apps/portfolio/interactions
+2025-09-17T13:52:53.577695+00:00 app[web.1]: 🔄 [HEROKU AUTH] Fresh user data loaded from database: {
+2025-09-17T13:52:53.577697+00:00 app[web.1]:   id: '42195145',
+2025-09-17T13:52:53.577697+00:00 app[web.1]:   firstName: 'Admin',
+2025-09-17T13:52:53.577698+00:00 app[web.1]:   lastName: 'User',
+2025-09-17T13:52:53.577698+00:00 app[web.1]:   buid: 'U029480520',
+2025-09-17T13:52:53.577705+00:00 app[web.1]:   bbecGuid: '34e0c896-76b2-4041-b035-6591356ca1ad',
+2025-09-17T13:52:53.577705+00:00 app[web.1]:   hasUsername: true,
+2025-09-17T13:52:53.577705+00:00 app[web.1]:   hasPassword: true
+2025-09-17T13:52:53.577706+00:00 app[web.1]: }
+2025-09-17T13:52:53.578499+00:00 app[web.1]: [production] GET /api/auth/user 304 in 5ms :: {"id":"42195145","email":"elsirt@gmail.com","f…
+2025-09-17T13:52:53.588810+00:00 app[web.1]: 🔄 SPA routing: serving index.html for /favicon.ico
+2025-09-17T13:52:53.615017+00:00 app[web.1]: [production] GET /api/admin/impersonation-status 304 in 0ms :: {"isImpersonating":false}
+2025-09-17T13:52:53.617412+00:00 app[web.1]: 📋 [BBEC] Fetching interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:53.621123+00:00 app[web.1]: ✅ [BBEC] Retrieved 0 interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:53.621615+00:00 app[web.1]: [production] GET /api/bbec/interactions/by-constituent/014c808c-2570-4dab-8838-90529c97aa3e …
+2025-09-17T13:52:54.916806+00:00 heroku[router]: at=info method=POST path="/api/bbec/interactions/refresh/014c808c-2570-4dab-8838-90529c97aa3e" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=b366c7d0-c139-3952-47bf-9e7e1028002a fwd="73.253.249.113" dyno=web.1 connect=0ms service=1ms status=200 bytes=190 protocol=http1.1 tls=true tls_version=unknown
+2025-09-17T13:52:54.951616+00:00 heroku[router]: at=info method=GET path="/api/bbec/interactions/by-constituent/014c808c-2570-4dab-8838-90529c97aa3e" host=advancement-ai-b8abf01faf28.herokuapp.com request_id=976a824a-0786-d9f4-9be2-0733aee51ad9 fwd="73.253.249.113" dyno=web.1 connect=0ms service=5ms status=304 bytes=0 protocol=http1.1 tls=true tls_version=unknown
+2025-09-17T13:52:54.916093+00:00 app[web.1]: 🔄 [BBEC] Refresh interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:54.916746+00:00 app[web.1]: [production] POST /api/bbec/interactions/refresh/014c808c-2570-4dab-8838-90529c97aa3e 200 in…
+2025-09-17T13:52:54.947266+00:00 app[web.1]: 📋 [BBEC] Fetching interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:54.951070+00:00 app[web.1]: ✅ [BBEC] Retrieved 0 interactions for constituent: 014c808c-2570-4dab-8838-90529c97aa3e
+2025-09-17T13:52:54.951522+00:00 app[web.1]: [production] GET /api/bbec/interactions/by-constituent/014c808c-2570-4dab-8838-90529c97aa3e …

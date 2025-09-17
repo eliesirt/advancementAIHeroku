@@ -2347,12 +2347,71 @@ app.get('/health', (req, res) => {
         const { constituentId } = req.params;
         console.log(`🔄 [BBEC] Refresh interactions for constituent: ${constituentId}`);
         
-        // For now, return success - the interactions should already be synced via BBEC sync
+        // Import required services and schemas
+        const { fetchInteractions } = await import('./services/bbecDataService');
+        const { insertBbecInteractionSchema } = await import('../shared/schema');
+        const { getStorage } = await import('./storage');
+        const storage = getStorage();
+        
+        console.log(`🔍 [BBEC Production] Starting interaction fetch for constituent: ${constituentId}`);
+        
+        // Fetch interactions from BBEC for this specific constituent  
+        const result = await fetchInteractions({
+          authUserId: '42195145', // Hard-coded for production admin user
+          contextRecordId: constituentId
+        });
+        
+        console.log(`🔍 [BBEC Production] Fetch result structure:`, {
+          hasResult: !!result,
+          hasInteractions: !!result?.interactions,
+          interactionsType: Array.isArray(result?.interactions) ? 'array' : typeof result?.interactions,
+          interactionsLength: result?.interactions?.length
+        });
+        
+        // Production-safe handling for interactions array
+        const rawInteractions = Array.isArray(result?.interactions) ? result.interactions : [];
+        if (rawInteractions.length === 0) {
+          console.warn(`⚠️ [BBEC Production] No interactions found in result for constituent: ${constituentId}`);
+        }
+        
+        const validInteractions = rawInteractions
+          .filter((interaction: any) => interaction.constituentId === constituentId)
+          .map((interaction: any) => ({
+            constituentId: interaction.constituentId,
+            name: interaction.name,
+            lastName: interaction.lastName,
+            lookupId: interaction.lookupId,
+            interactionLookupId: interaction.interactionLookupId,
+            interactionId: interaction.interactionId,
+            summary: interaction.summary,
+            comment: interaction.comment,
+            date: interaction.date,
+            contactMethod: interaction.contactMethod,
+            prospectManagerId: interaction.prospectManagerId
+          }))
+          .filter((interaction: any) => {
+            if (!interaction.interactionId || !interaction.constituentId) {
+              console.warn('🚫 [BBEC Production] Dropping interaction missing interactionId or constituentId:', interaction);
+              return false;
+            }
+            try {
+              insertBbecInteractionSchema.parse(interaction);
+              return true;
+            } catch (error) {
+              console.warn('🚫 [BBEC Production] Dropping invalid interaction:', interaction, error);
+              return false;
+            }
+          });
+        
+        await storage.upsertBbecInteractions(validInteractions);
+        
+        const count = Array.isArray(validInteractions) ? validInteractions.length : 0;
+        console.log(`✅ [BBEC Production] Successfully refreshed ${count} interactions for constituent: ${constituentId}`);
+        
         res.json({
           success: true,
-          count: 0,
+          count: count,
           constituentId,
-          message: "Interactions refresh completed (using existing sync data)",
           timestamp: new Date().toISOString()
         });
       } catch (error) {
