@@ -167,6 +167,7 @@ export async function setupEntraAuth(app: Express) {
       authUrl.searchParams.set('code_challenge', codeChallenge);
       authUrl.searchParams.set('code_challenge_method', 'S256');
       authUrl.searchParams.set('prompt', 'select_account');
+      authUrl.searchParams.set('domain_hint', 'bu.edu'); // Force organizational account
 
       console.log(`🔐 [ENTRA AUTH] Redirecting to: ${authUrl.toString()}`);
       res.redirect(authUrl.toString());
