@@ -355,3 +355,6 @@ export const isAuthenticated: RequestHandler = async (req: any, res, next) => {
 
   next();
 };
+
+// Export alias for compatibility with dynamic import
+export const setupAuth = setupEntraAuth;
