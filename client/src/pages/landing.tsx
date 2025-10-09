@@ -3,7 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function Landing() {
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    // Try to open in parent window first (to escape iframe), fallback to new window
+    try {
+      if (window.top && window.top !== window.self) {
+        window.top.location.href = "/api/login";
+      } else {
+        window.location.href = "/api/login";
+      }
+    } catch (e) {
+      // If cross-origin error, open in new window
+      window.open("/api/login", "_blank");
+    }
   };
 
   return (
@@ -28,10 +38,10 @@ export default function Landing() {
           <CardContent>
             <Button 
               onClick={handleLogin}
-              className="w-full"
+              className="w-full bg-[#CC0000] hover:bg-[#A50000] text-white"
               size="lg"
             >
-              Sign In
+              Boston University Single Sign On
             </Button>
           </CardContent>
         </Card>
