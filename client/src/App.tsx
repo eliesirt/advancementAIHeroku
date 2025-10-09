@@ -17,6 +17,7 @@ import ItineraryPage from "@/pages/itinerary";
 import UserManagementPage from "@/pages/user-management";
 import Launcher from "@/pages/launcher";
 import Landing from "@/pages/landing";
+import AuthError from "@/pages/auth-error";
 import NotFound from "@/pages/not-found";
 import PythonAI from "@/pages/python-ai";
 
@@ -40,6 +41,9 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Switch>
+        {/* Public routes - accessible without authentication */}
+        <Route path="/auth/error" component={AuthError} />
+        
         {isLoading || !isAuthenticated ? (
           <Route path="/" component={Landing} />
         ) : (
