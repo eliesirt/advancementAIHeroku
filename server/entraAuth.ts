@@ -140,11 +140,14 @@ export async function setupEntraAuth(app: Express) {
 
   // Generic login route - auto-discover first active SSO provider
   app.get("/api/login", async (req: any, res) => {
+    console.log('🔍 [ENTRA AUTH] /api/login route HIT!');
     try {
       const configs = await storage.getSSOConfigurations();
+      console.log(`🔍 [ENTRA AUTH] Found ${configs.length} configs, checking for active...`);
       const activeConfig = configs.find(c => c.isActive);
       
       if (!activeConfig) {
+        console.log('❌ [ENTRA AUTH] No active config found');
         return res.status(404).json({ error: 'No active SSO configuration found' });
       }
       
@@ -155,6 +158,7 @@ export async function setupEntraAuth(app: Express) {
       res.status(500).json({ error: 'Authentication error' });
     }
   });
+  console.log('✅ [ENTRA AUTH] /api/login route REGISTERED');
 
   // Dynamic login route for different tenants
   app.get("/api/auth/login/:tenantId", async (req: any, res) => {
