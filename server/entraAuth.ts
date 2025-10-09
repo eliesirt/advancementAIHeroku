@@ -325,9 +325,11 @@ export async function setupEntraAuth(app: Express) {
     }
   });
 
-  // Logout route
-  app.get("/api/auth/logout", (req: any, res) => {
+  // Logout handler function
+  const handleLogout = (req: any, res: any) => {
     const tenantId = req.session.user?.claims?.tenant_id;
+    
+    console.log('🚪 [ENTRA AUTH] Logout initiated for tenant:', tenantId);
     
     // Destroy session
     req.session.destroy((err: any) => {
@@ -336,15 +338,23 @@ export async function setupEntraAuth(app: Express) {
         return res.redirect("/");
       }
       
+      console.log('✅ [ENTRA AUTH] Session destroyed successfully');
+      
       // If user came from Entra, redirect to Entra logout
       if (tenantId) {
         const logoutUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(req.protocol + '://' + req.get('host'))}`;
+        console.log('🔄 [ENTRA AUTH] Redirecting to Entra logout:', logoutUrl);
         return res.redirect(logoutUrl);
       }
       
+      console.log('🔄 [ENTRA AUTH] Redirecting to home');
       res.redirect("/");
     });
-  });
+  };
+
+  // Logout routes (both /api/logout and /api/auth/logout for compatibility)
+  app.get("/api/logout", handleLogout);
+  app.get("/api/auth/logout", handleLogout);
 
   // Error handling route
   app.get("/auth/error", (req, res) => {
